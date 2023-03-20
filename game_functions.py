@@ -1,78 +1,183 @@
-"""여기가 아마 인게임 즉 게임이 시작할 때 구현해야 하는 공간이야 지금 아마 나랑 나연이가 많이 구현할거야."""
 import random
-import sys
 
-input = sys.stdin.readline
+"""
+Generate the UNO deck of 108 cards.
+Parameters: None
+Return values: deck->list
+"""
 
-color_set = ['r', 'g', 'b', 'y']
-game_card = []
-player_card = []
-computer_card = []
-game_turn = 0
 
-for card_c in range(4):
-    for j in range(1, 10):
-        game_card.append(color_set[card_c] + str(j))
+def buildDeck():
+    deck = []
+    # example card: Red 7, Green 8, Blue Skip
+    colours = ["Red", "Green", "Yellow", "Blue"]
+    values = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, "Draw Two", "Skip", "Reverse"]
+    wilds = ["Wild", "Wild Draw Four"]
+    for colour in colours:
+        for value in values:
+            cardVal = "{} {}".format(colour, value)
+            deck.append(cardVal)
+            if value != 0:
+                deck.append(cardVal)
+    for i in range(4):
+        deck.append(wilds[0])
+        deck.append(wilds[1])
+    return deck
 
-for card_c in range(14):
-    select_num = random.randint(0, len(game_card) - 1)
-    selected_card = game_card[select_num]
-    if card_c % 2 == 0:
-        player_card.append(selected_card)
-        game_card.remove(selected_card)
-    else:
-        computer_card.append(selected_card)
-        game_card.remove(selected_card)
 
-print('플레이어 카드')
-print(player_card)
-print('컴퓨터 카드')
-print(computer_card)
+"""
+Shuffles a list of items passed into it
+Parameters: deck->list
+Return values: deck->list
+"""
 
-"""가위바위보 또는 다른 것으로 순서 정하기 지금은 플레이어 먼저!"""
-# 플레이어는 숫자 즉 인덱스로 입력을 하며 카드는 무조건 범위 안에 있는 것을 고른다고 가정.
-# 낼 수 있는 카드가 없을 때에는 7을 내고 카드를 먹는다.
 
-given_card = game_card.pop()
-while len(player_card) != 0 and len(game_card) != 0:
-    game_turn += 1
-    if game_turn % 2 != 0:
-        print('=> ' + given_card)
-        card_num = int(input())
-        if card_num == 100:
-            player_card.append(game_card.pop())
+def shuffleDeck(deck):
+    for cardPos in range(len(deck)):
+        randPos = random.randint(0, 107)
+        deck[cardPos], deck[randPos] = deck[randPos], deck[cardPos]
+    return deck
+
+
+"""Draw card function that draws a specified number of cards off the top of the deck
+Parameters: numCards -> integer
+Return: cardsDrawn -> list
+"""
+
+
+def drawCards(numCards):
+    cardsDrawn = []
+    for x in range(numCards):
+        cardsDrawn.append(unoDeck.pop(0))
+    return cardsDrawn
+
+
+"""
+Print formatted list of player's hand
+Parameter: player->integer, playerHand->list
+Return: None
+"""
+
+
+def showHand(player, playerHand):
+    print("Player {}'s Turn".format(player + 1))
+    print("Your Hand")
+    print("------------------")
+    y = 1
+    for card in playerHand:
+        print("{}) {}".format(y, card))
+        y += 1
+    print("")
+
+
+"""
+Check whether a player is able to play a card, or not
+Parameters: colour->string, value->string, playerHand->list
+Return: boolean
+"""
+
+
+def canPlay(colour, value, playerHand):
+    for card in playerHand:
+        if "Wild" in card:
+            return True
+        elif colour in card or value in card:
+            return True
+    return False
+
+
+unoDeck = buildDeck()
+unoDeck = shuffleDeck(unoDeck)
+unoDeck = shuffleDeck(unoDeck)
+discards = []
+
+players = []
+colours = ["Red", "Green", "Yellow", "Blue"]
+numPlayers = int(input("How many players? "))
+while numPlayers < 2 or numPlayers > 4:
+    numPlayers = int(input("Invalid. Please enter a number between 2-4. How many players? "))
+for player in range(numPlayers):
+    players.append(drawCards(5))
+
+playerTurn = 0
+playDirection = 1
+playing = True
+discards.append(unoDeck.pop(0))
+splitCard = discards[0].split(" ", 1)
+currentColour = splitCard[0]
+if currentColour != "Wild":
+    cardVal = splitCard[1]
+
+else:
+    print("Card on top of discard pile: {}".format(discards[-1]))
+    for x in range(len(colours)):
+        print("{}) {}".format(x + 1, colours[x]))
+    newColour = int(input("What colour would you like to choose? "))
+    while newColour < 1 or newColour > 4:
+        newColour = int(input("Invalid option. What colour would you like to choose? "))
+    currentColour = colours[newColour - 1]
+    cardVal = "Any"
+
+while playing:
+    showHand(playerTurn, players[playerTurn])
+    print("Card on top of discard pile: {}".format(discards[-1]))
+    if canPlay(currentColour, cardVal, players[playerTurn]):
+        cardChosen = int(input("Which card do you want to play? "))
+        while not canPlay(currentColour, cardVal, [players[playerTurn][cardChosen - 1]]):
+            cardChosen = int(input("Not a valid card. Which card do you want to play? "))
+        print("You played {}".format(players[playerTurn][cardChosen - 1]))
+        discards.append(players[playerTurn].pop(cardChosen - 1))
+        # Check if player won
+        if len(players[playerTurn]) == 0:
+            playing = False
+            winner = "Player {}".format(playerTurn + 1)
         else:
-            card = player_card[card_num]
-            if card.startswith(given_card[0]) or card.endswith(given_card[1]):
-                given_card = card
-                print(card)
-                player_card.remove(card)
+            # Check for special cards
+            splitCard = discards[-1].split(" ", 1)
+            currentColour = splitCard[0]
+            if len(splitCard) == 1:
+                cardVal = "Any"
             else:
-                continue
-
+                cardVal = splitCard[1]
+            if currentColour == "Wild":
+                for x in range(len(colours)):
+                    print("{}) {}".format(x + 1, colours[x]))
+                newColour = int(input("What colour would you like to choose? "))
+                while newColour < 1 or newColour > 4:
+                    newColour = int(input("Invalid option. What colour would you like to choose? "))
+                currentColour = colours[newColour - 1]
+            if cardVal == "Reverse":
+                playDirection = playDirection * -1
+            elif cardVal == "Skip":
+                playerTurn += playDirection
+                if playerTurn >= numPlayers:
+                    playerTurn = 0
+                elif playerTurn < 0:
+                    playerTurn = numPlayers - 1
+            elif cardVal == "Draw Two":
+                playerDraw = playerTurn + playDirection
+                if playerDraw == numPlayers:
+                    playerDraw = 0
+                elif playerDraw < 0:
+                    playerDraw = numPlayers - 1
+                players[playerDraw].extend(drawCards(2))
+            elif cardVal == "Draw Four":
+                playerDraw = playerTurn + playDirection
+                if playerDraw == numPlayers:
+                    playerDraw = 0
+                elif playerDraw < 0:
+                    playerDraw = numPlayers - 1
+                players[playerDraw].extend(drawCards(4))
+            print("")
     else:
-        # 컴퓨터 알고리즘을 실행할 공간인데 일단은 for문 겁나 돌릴예정이야.
-        for i in range(len(computer_card)):
-            card_c = computer_card[i]
-            if card_c.startswith(given_card[0]) or card_c.endswith(given_card[-1]):
-                given_card = card_c
-                print(card_c)
-                computer_card.remove(card_c)
-                break
-            elif i == len(computer_card) - 1 and card_c[0] != given_card[0] and card_c[1] != given_card[1]:
-                computer_card.append(game_card.pop())
-                break
-            else:
-                continue
-        print('플레이어')
-        print(player_card)
-        print('컴퓨터')
-        print(computer_card)
-print('end'+str(game_turn))
+        print("You can't play. You have to draw a card.")
+        players[playerTurn].extend(drawCards(1))
 
-# 일단 게임 뒤집기나 특징적인 카드 구현 안함
-# 둘 다 게임 다 나와 있음
-# 만약에 game_card가 없어진다면 이미 냈던 카드 섞어서 해야 함
-# 동적 계획 또는 다익스트라로 구현...? 근데 이게 부분인지 아닌지 확인이 가능한가?
-# 반복문 줄일 수 있는 방법이 없을까?
-# 한 턴이 플레이어랑 컴퓨터 둘 다여서 오바야.. -> if문으로 해결
+    playerTurn += playDirection
+    if playerTurn >= numPlayers:
+        playerTurn = 0
+    elif playerTurn < 0:
+        playerTurn = numPlayers - 1
+
+print("Game Over")
+print("{} is the Winner!".format(winner))
