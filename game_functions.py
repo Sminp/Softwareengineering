@@ -1,21 +1,20 @@
 import random
 
 """
-Generate the UNO deck of 108 cards.
+108장의 카드 생성 
 Parameters: None
-Return values: deck->list
+Return values: deck(list)
 """
 
 
 def buildDeck():
     deck = []
-    # example card: Red 7, Green 8, Blue Skip
-    colours = ["Red", "Green", "Yellow", "Blue"]
+    colors = ["Red", "Green", "Yellow", "Blue"]
     values = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, "Draw Two", "Skip", "Reverse"]
     wilds = ["Wild", "Wild Draw Four"]
-    for colour in colours:
+    for color in colors:
         for value in values:
-            cardVal = "{} {}".format(colour, value)
+            cardVal = "{} {}".format(color, value)
             deck.append(cardVal)
             if value != 0:
                 deck.append(cardVal)
@@ -26,9 +25,9 @@ def buildDeck():
 
 
 """
-Shuffles a list of items passed into it
-Parameters: deck->list
-Return values: deck->list
+카드 섞기
+Parameters: deck(list)
+Return values: deck(list)
 """
 
 
@@ -39,9 +38,10 @@ def shuffleDeck(deck):
     return deck
 
 
-"""Draw card function that draws a specified number of cards off the top of the deck
-Parameters: numCards -> integer
-Return: cardsDrawn -> list
+"""
+카드 뽑기 
+Parameters: numCards (int) : 뽑을 카드 수
+Return: cardsDrawn (list)
 """
 
 
@@ -53,8 +53,8 @@ def drawCards(numCards):
 
 
 """
-Print formatted list of player's hand
-Parameter: player->integer, playerHand->list
+플레이어가 가지고 있는 카드를 보여줌
+Parameter: player(int), playerHand(list)
 Return: None
 """
 
@@ -71,17 +71,17 @@ def showHand(player, playerHand):
 
 
 """
-Check whether a player is able to play a card, or not
-Parameters: colour->string, value->string, playerHand->list
+현재 카드의 색과 값을 플레이어의 카드들과 비교하여 낼 수 있는 상태인지 확인
+Parameters: color(string), value(string), playerHand(list)
 Return: boolean
 """
 
 
-def canPlay(colour, value, playerHand):
+def canPlay(color, value, playerHand):
     for card in playerHand:
         if "Wild" in card:
             return True
-        elif colour in card or value in card:
+        elif color in card or value in card:
             return True
     return False
 
@@ -92,10 +92,10 @@ unoDeck = shuffleDeck(unoDeck)
 discards = []
 
 players = []
-colours = ["Red", "Green", "Yellow", "Blue"]
-numPlayers = int(input("How many players? "))
+colors = ["Red", "Green", "Yellow", "Blue"]
+numPlayers = int(input("player의 수를 입력하세요: "))
 while numPlayers < 2 or numPlayers > 4:
-    numPlayers = int(input("Invalid. Please enter a number between 2-4. How many players? "))
+    numPlayers = int(input("2~4 명의 player만 가능합니다. 다시 입력하세요:"))
 for player in range(numPlayers):
     players.append(drawCards(5))
 
@@ -104,48 +104,48 @@ playDirection = 1
 playing = True
 discards.append(unoDeck.pop(0))
 splitCard = discards[0].split(" ", 1)
-currentColour = splitCard[0]
-if currentColour != "Wild":
+currentColor = splitCard[0]
+if currentColor != "Wild":
     cardVal = splitCard[1]
 
 else:
-    print("Card on top of discard pile: {}".format(discards[-1]))
-    for x in range(len(colours)):
-        print("{}) {}".format(x + 1, colours[x]))
-    newColour = int(input("What colour would you like to choose? "))
-    while newColour < 1 or newColour > 4:
-        newColour = int(input("Invalid option. What colour would you like to choose? "))
-    currentColour = colours[newColour - 1]
+    print("현재 카드: {}".format(discards[-1]))
+    for x in range(len(colors)):
+        print("{}) {}".format(x + 1, colors[x]))
+    newColor = int(input("바꿀 색을 선택하세요: "))
+    while newColor < 1 or newColor > 4:
+        newColor = int(input("입력이 올바르지 않습니다. 바꿀 색을 선택하세요: "))
+    currentColor = colors[newColor - 1]
     cardVal = "Any"
 
 while playing:
     showHand(playerTurn, players[playerTurn])
-    print("Card on top of discard pile: {}".format(discards[-1]))
-    if canPlay(currentColour, cardVal, players[playerTurn]):
-        cardChosen = int(input("Which card do you want to play? "))
-        while not canPlay(currentColour, cardVal, [players[playerTurn][cardChosen - 1]]):
-            cardChosen = int(input("Not a valid card. Which card do you want to play? "))
-        print("You played {}".format(players[playerTurn][cardChosen - 1]))
+    print("현재 카드: {}".format(discards[-1]))
+    if canPlay(currentColor, cardVal, players[playerTurn]):
+        cardChosen = int(input("낼 카드를 선택하세요: "))
+        while not canPlay(currentColor, cardVal, [players[playerTurn][cardChosen - 1]]):
+            cardChosen = int(input("입력이 올바르지 않습니다. 낼 카드를 선택하세요: "))
+        print("당신이 낸 카드: {}".format(players[playerTurn][cardChosen - 1]))
         discards.append(players[playerTurn].pop(cardChosen - 1))
-        # Check if player won
+        # 이긴 사람 확인
         if len(players[playerTurn]) == 0:
             playing = False
             winner = "Player {}".format(playerTurn + 1)
         else:
-            # Check for special cards
+            # 기능 카드 확인
             splitCard = discards[-1].split(" ", 1)
-            currentColour = splitCard[0]
+            currentColor = splitCard[0]
             if len(splitCard) == 1:
                 cardVal = "Any"
             else:
                 cardVal = splitCard[1]
-            if currentColour == "Wild":
-                for x in range(len(colours)):
-                    print("{}) {}".format(x + 1, colours[x]))
-                newColour = int(input("What colour would you like to choose? "))
-                while newColour < 1 or newColour > 4:
-                    newColour = int(input("Invalid option. What colour would you like to choose? "))
-                currentColour = colours[newColour - 1]
+            if currentColor == "Wild":
+                for x in range(len(colors)):
+                    print("{}) {}".format(x + 1, colors[x]))
+                newColor = int(input("바꿀 색을 선택하세요: "))
+                while newColor < 1 or newColor > 4:
+                    newColor = int(input("입력이 올바르지 않습니다. 낼 카드를 선택하세요: "))
+                currentColor = colors[newColor - 1]
             if cardVal == "Reverse":
                 playDirection = playDirection * -1
             elif cardVal == "Skip":
@@ -170,7 +170,7 @@ while playing:
                 players[playerDraw].extend(drawCards(4))
             print("")
     else:
-        print("You can't play. You have to draw a card.")
+        print("낼 카드가 없습니다. 카드를 뽑습니다.")
         players[playerTurn].extend(drawCards(1))
 
     playerTurn += playDirection
@@ -180,4 +180,4 @@ while playing:
         playerTurn = numPlayers - 1
 
 print("Game Over")
-print("{} is the Winner!".format(winner))
+print("승자 : {}".format(winner))
