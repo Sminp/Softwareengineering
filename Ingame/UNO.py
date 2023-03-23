@@ -2,22 +2,10 @@ import pygame
 from game_functions import *
 from constant import *
 from settings import *
+import math
 
-# 나중에 지우기
-color_list = ["r", "g", "b", "y"]
 
-for color in color_list:
-    for i in range(0, 10):
-        CARD_LIST.append(pygame.image.load(f"Ingame/image/card_img/{color}{i}.png"))
-    CARD_LIST.append(pygame.image.load(f"Ingame/image/card_img/{color}change.png"))
-    CARD_LIST.append(pygame.image.load(f"Ingame/image/card_img/{color}pass.png"))
-    CARD_LIST.append(pygame.image.load(f"Ingame/image/card_img/{color}plus2.png"))
-
-CARD_LIST.append(pygame.image.load("Ingame/image/card_img/wild.png"))
-CARD_LIST.append(pygame.image.load("Ingame/image/card_img/wilddrawfour.png"))
-CARD_LIST.append(pygame.image.load("Ingame/image/card_img/back.png"))
-
-# 시작 화면    
+# 시작 화면
 def start_screen():
     start = True
 
@@ -59,7 +47,9 @@ def start_screen():
 
         # 방향키로 선택된 버튼 표시
         pygame.draw.rect(screen, GRAY, buttons[selected_button_index].rect)
-        screen.blit(buttons[selected_button_index].text_surf, buttons[selected_button_index].text_rect)
+
+        # 여기 고쳐야해 text_surf, text_rect 이게 사라져서 안떠
+        # screen.blit(buttons[selected_button_index].text_surf, buttons[selected_button_index].text_rect)
 
         pygame.display.update()
 
@@ -67,7 +57,7 @@ def start_screen():
 # 게임 화면
 def game_screen():
     game_exit = False
-    player_rect = [(10, 100 * i + (i + 1) * ((SCREEN_HEIGHT - 500) / 6), 180, 100) for i in range(5)]
+    player_rect = [(10, 100 * j + (j + 1) * ((SCREEN_HEIGHT - 500) / 6), 180, 100) for j in range(5)]
     font = pygame.font.Font(None, 30)
     clock = pygame.time.Clock()
     clicked = False
@@ -75,15 +65,16 @@ def game_screen():
 
     # 카드 생성, 반환값 리스트
     uno_deck = build_deck()
-    make_dict(uno_deck, CARD_LIST)
+    uno_deck_dic = make_dict(uno_deck, CARD_IMAGE_LIST)
+    # uno_deck_dict는 순서가 없기에 list 따로 만든다.
     # 카드 무작위 셔플, 반환값 리스트
-    uno_deck = shuffle_deck(uno_deck)
+    uno_deck_li = shuffle_deck(uno_deck)
     # 게임 카드
     discards = []
 
     # 0 player, 1 ~ 5 computers
-    players = []
-    colors = ["Red", "Green", "Yellow", "Blue"]
+    players = draw_card(uno_deck_li, 5)
+    # colors = ["Red", "Green", "Yellow", "Blue"]                       # 이건 왜 있지..?
     # 아마 2차 과제
     # num_players = int(input("player의 수를 입력하세요: "))
     # while num_players < 2 or num_players > 4:
@@ -91,15 +82,15 @@ def game_screen():
 
     # 아마 인원수에 따라 바꿀 듯
     # for player in range(num_players):
-    for player in range(2):
-        players.append(draw_card(uno_deck, 5))
+    # for player in range(2):
+    #     players.append(draw_card(uno_deck_li, 5))
 
     # 0 나, 1 컴퓨터 - 게임 차례
     player_turn = 0
     # reverse 방향 전환
     player_direction = 1
     playing = True
-    discards.append(uno_deck.pop(0))
+    discards.append(uno_deck_li.pop(0))
 
     while not game_exit:
         for event in pygame.event.get():
@@ -112,12 +103,12 @@ def game_screen():
                     pause()
 
         screen.fill(GREEN)
-        for i in range(len(player_rect)):
-            pygame.draw.rect(screen, WHITE, player_rect[i], width=0)
+        for x in range(len(player_rect)):
+            pygame.draw.rect(screen, WHITE, player_rect[x], width=0)
 
-        for i in range(len(player_rect)):
-            sur = font.render("player {}".format(i + 1), True, BLACK)
-            screen.blit(sur, (player_rect[i][0], player_rect[i][1]))
+        for x in range(len(player_rect)):
+            sur = font.render("player {}".format(x + 1), True, BLACK)
+            screen.blit(sur, (player_rect[x][0], player_rect[x][1]))
 
         # 마우스 위치
         mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -125,47 +116,49 @@ def game_screen():
         mBtn1, mBtn2, mBtn3 = pygame.mouse.get_pressed()
 
         # 이미지 올리기
-        for i in range(1, 11):
-            # 엎어져 있는 카드
-            if i <= 9:
-                screen.blit(img_transform(CARD_LIST[2 % i][1]), [300 + i * 2, 200])
-            # 게임 카드
-            else:
-                screen.blit(img_transform(CARD_LIST[0][0]), [450, 200])
+        # 엎어져 있는 카드
+        img_load(screen, CARD_IMAGE_LIST[-1], CARD_SIZE, [350, 200])
+        # 게임 카드
+        img_load(screen, uno_deck_dic[discards[-1]], CARD_SIZE, [350 + 100, 200])
 
         # 플레이어 카드
-        for i in range(1, 8):
-            screen.blit(img_transform(CARD_LIST[2 % i][1]), [50 + (i - 1) * 100, 400])
+        for x in range(len(players)):
+            img_load(screen, uno_deck_dic[players[x]], CARD_SIZE, [350 + (x - 1) * 100, 400])
+
+        # 클래스로 다시 구현해야해 그래야 전환도 잘 되고 move도 잘해 아니면 함수가 너무 길어져
+        # 클래스로 하면 우리 다시 얘기해야 해 리스트가 너무 많아져서 줄여야해 그래도 일단 보류
 
         # 타이머 설정
         tmr += 1
-        txt = font.render(str(10 - tmr % 10), True, WHITE)
-        screen.blit(txt, [10, 10])
-        clock.tick(1)
+        if tmr == 90:
+            tmr = 0
+        # 타이머 계산도 다시
+        txt = font.render(str(10-tmr // 10-1), True, WHITE)
+        screen.blit(txt, [400, 10])
+        clock.tick(30)
 
-        # 좌표 설정해서 노가다
-        if 50 <= mouse_x <= 50 + CARD_WIDTH and 400 <= mouse_y <= 400 + CARD_HEIGHT and mBtn1 == 1:
+        # 이거는 전환하는 거 확인하려고 만든거
+        if tmr < 45:
+            selected_img = pygame.image.load(CARD_IMAGE_LIST[-1])
+            img_before = pygame.transform.scale(selected_img,
+                                                [CARD_WIDTH * math.cos(math.radians(tmr * 2)), CARD_HEIGHT])
+            img_before_rect = img_before.get_rect()
+            screen.blit(img_before, [350 + tmr * 2 / 45 * 50, 200])
+        else:
+            up_img = pygame.image.load(uno_deck_dic[discards[-1]])
+            img_after = pygame.transform.scale(up_img,
+                                               [CARD_WIDTH * math.sin(math.radians(tmr * 2 - 90)), CARD_HEIGHT])
+            img_after_rect = img_after.get_rect()
+            # 와 계산은 나중에
+            screen.blit(img_after, [450 + 20 - tmr * 2 / 45 * 10, 200])
+
+        # 좌표 설정해서 노가다 - 이거 버튼으로 구현해도 되지 않을까? - 채령아 해줘... 헤줘.... 해줘.....
+        if 350 <= mouse_x <= 350 + CARD_WIDTH and 400 <= mouse_y <= 400 + CARD_HEIGHT and mBtn1 == 1:
             clicked = True
         if clicked:
-            pygame.draw.rect(screen, YELLOW, [50 - 2, 400 - 2, CARD_WIDTH + 2, CARD_HEIGHT + 2], 2)
+            pygame.draw.rect(screen, YELLOW, [50 - 2, 400 - 2, CARD_WIDTH + 4, CARD_HEIGHT + 4], 4)
         if tmr % 10 == 0:
             clicked = False
-
-        # color =[(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0)]
-        # cards=[]
-
-        # for j in range(4):
-        #     for i in range(10):
-        #         pos=(400+i*2 - 50, 200 -50)
-        #         card = Cards(color[j], pos, i)
-        #         cards.append(card)
-
-        # # 처음 카드 임의로 설정.
-        # current_card=Cards(color[2], (500, 200 -50), 4)
-        # current_card.show()
-
-        # for card in cards:
-        #     card.show()
 
         pygame.display.update()
 
@@ -191,10 +184,10 @@ def setting_screen():
         # 설정화면 텍스트 표시
         draw_text(screen, "설정 화면", (130, 50), 50)
 
-        # 화면 설정 텍스트 표시 ==>> 텍스트 표시 함수를 좀 고쳐야함
+        # 화면 설정 텍스트 표시 ==>> 텍스트 표시 함수를 좀 고쳐야 함
         draw_text(screen, "화면 설정", (130, 340), 20)
 
-        # 화면 설정 버튼 - 변수명 바꿔야함
+        # 화면 설정 버튼 - 변수명 바꿔야 함
         sizefull_button = Button(screen, 270, 315, 100, 50, "전체화면", 20, color=GRAY, hover_color=YELLOW,
                                  action=screen_size)
         size16_button = Button(screen, 420, 315, 100, 50, "16:9", 20, color=GRAY, hover_color=YELLOW,
@@ -222,29 +215,24 @@ def setting_screen():
 
 # 카드 객체 생성
 class Cards:
-    def __init__(self, num, pos, size=(100, 150)) -> None:
-        self.color = color
+    def __init__(self, screen, num, pos, filename, size=CARD_SIZE) -> None:
+        self.screen = screen
         self.num = num
+        self.filename = filename
         self.x, self.y = pos
         self.w, self.h = size
+        self.img = pygame.image.load(filename)
+        self.img_trans = pygame.transform.scale(self.img, size)
 
     def show(self):
-        # 카드 테두리
-        pygame.draw.rect(screen, (0, 0, 0), (self.x - 1, self.y - 1, self.w + 2, self.h + 2), 5)
-        # 카드 색깔
-        pygame.draw.rect(screen, self.color, (self.x, self.y, self.w, self.h), 0)
-        if self.num == 10:
-            pass
-        else:
-            # 카드 번호
-            font = pygame.font.SysFont("malgungothic", 50)
-            card_text = font.render(f'{self.num}')
-            text_rect = card_text.get_rect()
-            text_rect.center = (self.x + 50, self.y + 75)
-            screen.blit(card_text,text_rect)
+        screen.blit(self.img_trans, self.pos)
 
     def move(self, moved):
         self.x += moved[0]
+        self.y += moved[1]
+
+    def flipping(self):
+        pass
 
 
 # 일시정지 함수
@@ -283,7 +271,9 @@ def pause():
 
         # 방향키로 선택된 버튼 표시
         pygame.draw.rect(screen, GRAY, buttons[selected_button_index].rect)
-        screen.blit(buttons[selected_button_index].text_surf, buttons[selected_button_index].text_rect)
+
+        # 여기 고쳐야해 text_surf, text_rect 이게 사라져서 안떠
+        # screen.blit(buttons[selected_button_index].text_surf, buttons[selected_button_index].text_rect)
 
         draw_text(screen, "일시 정지", (SCREEN_WIDTH / 2), (SCREEN_HEIGHT / 3), 50)
 
