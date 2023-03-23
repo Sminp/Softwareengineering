@@ -24,6 +24,17 @@ def buildDeck():
     return deck
 
 
+# 리스트 안의 원소를 각각 일대일로 대응시켜서 딕셔너리 만드는 함수
+def make_dict(key, val):
+    new_key=[]
+    for i in key:
+        if i not in new_key:
+            new_key.append(i)
+    dic = {}
+    for k, v in zip(new_key, val):
+        dic[k] = v
+    return dic
+
 """
 카드 섞기
 Parameters: deck(list)
