@@ -1,12 +1,11 @@
 import pygame
 import sys
-# from game_functions import *
+from game_functions import *
 
 
 pygame.init()
 
 
-# 상수
 # 카드 리스트 이미지 넣고 인덱스로 접근 (안은 튜플 앞, 뒤)
 CARD_LIST = []
 
@@ -30,6 +29,7 @@ CARD_HEIGHT = 585 / 5
 CARD_WIDTH = 410 / 5
 
 # 그리고 좌표도 화면 크기 조정 때문에 다 변수로 만들어야 될 것 같아.
+
 
 # 색상
 WHITE = (255, 255, 255)
@@ -61,6 +61,7 @@ def text_objects(text,font):
 # 이미지 변환 _카드 크
 def img_transform(img):
     return pygame.transform.scale(img, [CARD_WIDTH, CARD_HEIGHT])
+
 
 
 # 시작 화면    
@@ -107,7 +108,6 @@ def startScreen():
 
         # 메뉴 버튼 생성 및 그리기
         single_player_button = Button(screen_width // 2 - 100, 300, 200, 50, "Single Player",action=gameSreen)
-        
         setting_button = Button(screen_width // 2 - 100, 400, 200, 50, "Settings",action=settingScreen)
         quit_button = Button(screen_width // 2 - 100, 500, 200, 50, "Quit",action=quitGame)
 
@@ -115,10 +115,9 @@ def startScreen():
 
         # 방향키로 선택된 버튼 표시
         pygame.draw.rect(screen,GRAY,buttons[selected_button_index].rect)
-        screen.blit(buttons[selected_button_index].textSurf, buttons[selected_button_index].textRect)
+        screen.blit(buttons[selected_button_index].textSurf,buttons[selected_button_index].textRect)
         
         pygame.display.update()
-
 
 # 게임 화면
 def gameSreen():
@@ -130,6 +129,34 @@ def gameSreen():
     clock = pygame.time.Clock()
     clicked = False
     tmr = 0
+
+    # 카드 생성, 반환값 리스트
+    unoDeck = buildDeck()
+    make_dict(unoDeck, CARD_LIST)
+    # 카드 무작위 셔플, 반환값 리스트
+    unoDeck = shuffleDeck(unoDeck)
+    # 게임 카드
+    discards = []
+
+    # 0 player, 1 ~ 5 computers
+    players = []
+    colors = ["Red", "Green", "Yellow", "Blue"]
+    # 아마 2차 과제
+    # numPlayers = int(input("player의 수를 입력하세요: "))
+    # while numPlayers < 2 or numPlayers > 4:
+    #     numPlayers = int(input("2~4 명의 player만 가능합니다. 다시 입력하세요:"))
+
+    # 아마 인원수에 따라 바꿀 듯
+    # for player in range(numPlayers):
+    for player in range(2):
+        players.append(drawCards(unoDeck, 5))
+
+    # 0 나, 1 컴퓨터 - 게임 차례
+    playerTurn = 0
+    # reverse 방향 전환
+    playDirection = 1
+    playing = True
+    discards.append(unoDeck.pop(0))
 
     while not gameExit:
         for event in pygame.event.get():
@@ -165,7 +192,7 @@ def gameSreen():
 
         # 플레이어 카드
         for i in range(1, 8):
-            screen.blit(img_transform(CARD_LIST[2 % i][0]), [50 + (i - 1) * 100, 400])
+            screen.blit(img_transform(CARD_LIST[2 % i][1]), [50 + (i - 1) * 100, 400])
 
         # 타이머 설정
         tmr += 1
@@ -207,7 +234,7 @@ def gameSreen():
             
 # 설정 화면 
 def settingScreen():
-
+    
     gameExit = False
 
     # 배경음, 효과음 slider
