@@ -2,7 +2,6 @@ import random
 
 """게임 알고리즘 그리디 컴퓨터 플레이어 구현하는 공간"""
 
-
 """
 108장의 카드 생성 
 Parameters: None
@@ -29,7 +28,7 @@ def build_deck():
 
 # 리스트 안의 원소를 각각 일대일로 대응시켜서 딕셔너리 만드는 함수
 def make_dict(key, val):
-    new_key=[]
+    new_key = []
     for i in key:
         if i not in new_key:
             new_key.append(i)
@@ -37,6 +36,7 @@ def make_dict(key, val):
     for k, v in zip(new_key, val):
         dic[k] = v
     return dic
+
 
 """
 카드 섞기
@@ -59,7 +59,7 @@ Return: cards_drawn (list)
 """
 
 
-def draw_card(deck,num_cards):
+def draw_card(deck, num_cards):
     cards_drawn = []
     for x in range(num_cards):
         cards_drawn.append(deck.pop(0))
@@ -73,15 +73,15 @@ Return: None
 """
 
 
-def showHand(player, player_hand):
-    print("Player {}'s Turn".format(player + 1))
-    print("Your Hand")
-    print("------------------")
-    y = 1
-    for card in player_hand:
-        print("{}) {}".format(y, card))
-        y += 1
-    print("")
+# def showHand(player, player_hand):
+#     print("Player {}'s Turn".format(player + 1))
+#     print("Your Hand")
+#     print("------------------")
+#     y = 1
+#     for card in player_hand:
+#         print("{}) {}".format(y, card))
+#         y += 1
+#     print("")
 
 
 """
@@ -98,8 +98,6 @@ def can_play(color, value, player_hand):
         elif color in card or value in card:
             return True
     return False
-
-
 
 
 split_card = discards[0].split(" ", 1)
