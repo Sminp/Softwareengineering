@@ -9,22 +9,18 @@ RED = (200, 0, 0)
 GREEN = (0, 80, 0)
 
 # 카드 리스트 이미지 넣고 인덱스로 접근 (안은 튜플 앞, 뒤)
-CARD_LIST = []
+CARD_IMAGE_LIST = []
 
-# 카드추가
-# 파일명으로 긁어서 저장후 game_fuctions 이나 다른 파일에 for문으로 저장
-# color_list = ["r", "g", "b", "y"]
-#
-# for color in color_list:
-#     for i in range(0, 10):
-#         CARD_LIST.append(pygame.image.load(f"Ingame/image/card_img/{color}{i}.png"))
-#     CARD_LIST.append(pygame.image.load(f"Ingame/image/card_img/{color}change.png"))
-#     CARD_LIST.append(pygame.image.load(f"Ingame/image/card_img/{color}pass.png"))
-#     CARD_LIST.append(pygame.image.load(f"Ingame/image/card_img/{color}plus2.png"))
-#
-# CARD_LIST.append(pygame.image.load("Ingame/image/card_img/wild.png"))
-# CARD_LIST.append(pygame.image.load("Ingame/image/card_img/wilddrawfour.png"))
-# CARD_LIST.append(pygame.image.load("Ingame/image/card_img/back.png"))
+for color in ["red", "green", "blue", "yellow"]:
+    for i in range(0, 10):
+        CARD_IMAGE_LIST.append(f"image/card_img/{color}{i}.png")
+    CARD_IMAGE_LIST.append(f"image/card_img/{color}change.png")
+    CARD_IMAGE_LIST.append(f"image/card_img/{color}pass.png")
+    CARD_IMAGE_LIST.append(f"image/card_img/{color}plus2.png")
+
+CARD_IMAGE_LIST.append("image/card_img/wild.png")
+CARD_IMAGE_LIST.append("image/card_img/wilddrawfour.png")
+CARD_IMAGE_LIST.append("image/card_img/back.png")
 
 # 화면 크기
 SCREEN_WIDTH = 800
@@ -38,5 +34,6 @@ MALGUNGOTHIC = "malgungothic"
 # 카드 크기
 CARD_HEIGHT = 585 / 5
 CARD_WIDTH = 410 / 5
+CARD_SIZE = (CARD_WIDTH, CARD_HEIGHT)
 
 """카드 변환하는거 코사인 함수로 스케일링한 뒤에 뒤 이미지 변환하는 것 구현하기"""
