@@ -8,9 +8,22 @@ pygame.init()
 
 # 상수
 # 카드 리스트 이미지 넣고 인덱스로 접근 (안은 튜플 앞, 뒤)
-CARD_LIST = [(pygame.image.load("Ingame/image/UNO-Zeros.png"), pygame.image.load("Ingame/image/UNO-Back.png")),
-             (pygame.image.load("Ingame/image/UNO-Front.png"), pygame.image.load("Ingame/image/UNO-Back.png")),
-             (pygame.image.load("Ingame/image/UNO-Front.png"), pygame.image.load("Ingame/image/UNO-Back.png"))]
+CARD_LIST = []
+
+# 카드추가
+colorList = ["blue", "yellow", "green", "red"]
+
+for color in colorList:
+    CARD_LIST.append((pygame.image.load(f"Ingame/image/uno card png/{color}change.png"), pygame.image.load("Ingame/image/uno card png/back.png")))   
+    CARD_LIST.append((pygame.image.load(f"Ingame/image/uno card png/{color}pass.png"), pygame.image.load("Ingame/image/uno card png/back.png")))
+    CARD_LIST.append((pygame.image.load(f"Ingame/image/uno card png/{color}plus2.png"), pygame.image.load("Ingame/image/uno card png/back.png"))) 
+    for i in range(0,10):
+         CARD_LIST.append((pygame.image.load(f"Ingame/image/uno card png/{color}{i}.png"), pygame.image.load("Ingame/image/uno card png/back.png")))
+
+CARD_LIST.append((pygame.image.load("Ingame/image/uno card png/colorchange.png"), pygame.image.load("Ingame/image/uno card png/back.png"))) 
+CARD_LIST.append((pygame.image.load("Ingame/image/uno card png/plus4.png"), pygame.image.load("Ingame/image/uno card png/back.png"))) 
+CARD_LIST.append((pygame.image.load("Ingame/image/uno card png/colorchange.png"), pygame.image.load("Ingame/image/uno card png/back.png"))) 
+
 
 # 카드 크기
 CARD_HEIGHT = 585 / 5
@@ -94,6 +107,7 @@ def startScreen():
 
         # 메뉴 버튼 생성 및 그리기
         single_player_button = Button(screen_width // 2 - 100, 300, 200, 50, "Single Player",action=gameSreen)
+        
         setting_button = Button(screen_width // 2 - 100, 400, 200, 50, "Settings",action=settingScreen)
         quit_button = Button(screen_width // 2 - 100, 500, 200, 50, "Quit",action=quitGame)
 
@@ -101,9 +115,10 @@ def startScreen():
 
         # 방향키로 선택된 버튼 표시
         pygame.draw.rect(screen,GRAY,buttons[selected_button_index].rect)
-        screen.blit(buttons[selected_button_index].textSurf,buttons[selected_button_index].textRect)
+        screen.blit(buttons[selected_button_index].textSurf, buttons[selected_button_index].textRect)
         
         pygame.display.update()
+
 
 # 게임 화면
 def gameSreen():
@@ -150,7 +165,7 @@ def gameSreen():
 
         # 플레이어 카드
         for i in range(1, 8):
-            screen.blit(img_transform(CARD_LIST[2 % i][1]), [50 + (i - 1) * 100, 400])
+            screen.blit(img_transform(CARD_LIST[2 % i][0]), [50 + (i - 1) * 100, 400])
 
         # 타이머 설정
         tmr += 1
@@ -192,7 +207,7 @@ def gameSreen():
             
 # 설정 화면 
 def settingScreen():
-    
+
     gameExit = False
 
     # 배경음, 효과음 slider
