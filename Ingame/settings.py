@@ -7,7 +7,12 @@ import pygame
 
 # Rect를 빼고 모두다 좌표로 설정.
 
-# 이미지 로드 함수 (사이즈, 좌표)
+# 이미지 로드 및 크기 변경 함수 (사이즈, 좌표)
+def img_load(screen, filename, size, pos):
+    img = pygame.image.load(filename)
+    img_trans = pygame.transform.scale(img, size)
+    screen.blit(img_trans, pos)
+
 
 # 게임 종료
 def quit_game():
@@ -16,15 +21,10 @@ def quit_game():
 
 
 # 텍스트 설정 -> 고치기
-def draw_text(screen, text, pos, size, font = "malgungothic"):
-    Font = pygame.font.SysFont(font,size)
+def draw_text(screen, text, pos, size, font="malgungothic"):
+    Font = pygame.font.SysFont(font, size)
     text1 = Font.render(text)
-    screen.blit(text1,(pos))
-
-
-# 이미지 변환 _카드 크기
-def img_transform(img):
-    return pygame.transform.scale(img, [CARD_WIDTH, CARD_HEIGHT])
+    screen.blit(text1, (pos))
 
 
 """설정화면"""
@@ -101,7 +101,7 @@ class Slider:
                     self.button_rect.x = int((self.x + self.length) - 1 / 10 * self.length)
 
         self.value = self.max + (self.min - self.max) * (
-                    1 - (self.button_rect.x - self.x) / (9 / 10 * self.length))  # value 수정
+                1 - (self.button_rect.x - self.x) / (9 / 10 * self.length))  # value 수정
 
     # value을 text로 출력 
     def draw_value(self, name, pos, color=BLACK, size=20):
@@ -139,7 +139,7 @@ class Button:
 
         # 버튼의 text 설정
         font = pygame.font.SysFont(font_name, font_size)
-        text1 = font.render(text)
+        text1 = font.render(text, True, color)
         text_rect = text1.get_rect()
         text_rect.center = ((x + width / 2), (y + height / 2))
-        screen.blit(text1,text_rect)
+        screen.blit(text1, text_rect)

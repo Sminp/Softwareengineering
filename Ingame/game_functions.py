@@ -11,7 +11,7 @@ Return values: deck(list)
 
 def build_deck():
     deck = []
-    colors = ["Red", "Green", "Yellow", "Blue"]
+    colors = ["red", "green", "yellow", "blue"]
     values = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, "Draw Two", "Skip", "Reverse"]
     wilds = ["Wild", "Wild Draw Four"]
     for color in colors:
@@ -99,7 +99,9 @@ def can_play(color, value, player_hand):
             return True
     return False
 
+# 고칠 부분
 
+"""
 split_card = discards[0].split(" ", 1)
 current_color = split_card[0]
 
@@ -179,3 +181,5 @@ while playing:
 
 print("Game Over")
 print("승자 : {}".format(winner))
+
+"""
