@@ -23,7 +23,7 @@ def quit_game():
 # 텍스트 설정 -> 고치기
 def draw_text(screen, text, pos, size, font="malgungothic"):
     Font = pygame.font.SysFont(font, size)
-    text1 = Font.render(text)
+    text1 = Font.render(text,True,BLACK)
     screen.blit(text1, (pos))
 
 
@@ -139,7 +139,7 @@ class Button:
 
         # 버튼의 text 설정
         font = pygame.font.SysFont(font_name, font_size)
-        text1 = font.render(text, True, color)
-        text_rect = text1.get_rect()
-        text_rect.center = ((x + width / 2), (y + height / 2))
-        screen.blit(text1, text_rect)
+        self.text_surf = font.render(self.text, True, BLACK)
+        self.text_rect = self.text_surf.get_rect()
+        self.text_rect.center = ((x + width / 2), (y + height / 2))
+        screen.blit(self.text_surf, self.text_rect)

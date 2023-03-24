@@ -38,8 +38,7 @@ def start_screen():
         # 이미지....
 
         # 메뉴 버튼 생성 및 그리기
-        single_player_button = Button(screen, SCREEN_WIDTH // 2 - 100, 300, 200, 50, "Single Player",
-                                      action=game_screen)
+        single_player_button = Button(screen, SCREEN_WIDTH // 2 - 100, 300, 200, 50, "Single Player",action=game_screen)
         setting_button = Button(screen, SCREEN_WIDTH // 2 - 100, 400, 200, 50, "Settings", action=setting_screen)
         quit_button = Button(screen, SCREEN_WIDTH // 2 - 100, 500, 200, 50, "Quit", action=quit_game)
 
@@ -50,6 +49,7 @@ def start_screen():
 
         # 여기 고쳐야해 text_surf, text_rect 이게 사라져서 안떠
         # screen.blit(buttons[selected_button_index].text_surf, buttons[selected_button_index].text_rect)
+        screen.blit(buttons[selected_button_index].text_surf,buttons[selected_button_index].text_rect)
 
         pygame.display.update()
 
@@ -274,6 +274,7 @@ def pause():
 
         # 여기 고쳐야해 text_surf, text_rect 이게 사라져서 안떠
         # screen.blit(buttons[selected_button_index].text_surf, buttons[selected_button_index].text_rect)
+        screen.blit(buttons[selected_button_index].text_surf,buttons[selected_button_index].text_rect)
 
         draw_text(screen, "일시 정지", (SCREEN_WIDTH / 2), (SCREEN_HEIGHT / 3), 50)
 
