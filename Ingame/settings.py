@@ -14,12 +14,6 @@ def img_load(screen, filename, size, pos):
     screen.blit(img_trans, pos)
 
 
-# 게임 종료
-def quit_game():
-    pygame.quit()
-    sys.exit()
-
-
 # 텍스트 설정 -> 고치기
 def draw_text(screen, text, pos, size, font="malgungothic"):
     Font = pygame.font.SysFont(font, size)
