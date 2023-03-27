@@ -38,7 +38,8 @@ def start_screen():
         # 이미지....
 
         # 메뉴 버튼 생성 및 그리기
-        single_player_button = Button(screen, SCREEN_WIDTH // 2 - 100, 300, 200, 50, "Single Player",action=game_screen)
+        single_player_button = Button(screen, SCREEN_WIDTH // 2 - 100, 300, 200, 50, "Single Player",
+                                      action=game_screen)
         setting_button = Button(screen, SCREEN_WIDTH // 2 - 100, 400, 200, 50, "Settings", action=setting_screen)
         quit_button = Button(screen, SCREEN_WIDTH // 2 - 100, 500, 200, 50, "Quit", action=quit_game)
 
@@ -49,7 +50,7 @@ def start_screen():
 
         # 여기 고쳐야해 text_surf, text_rect 이게 사라져서 안떠
         # screen.blit(buttons[selected_button_index].text_surf, buttons[selected_button_index].text_rect)
-        screen.blit(buttons[selected_button_index].text_surf,buttons[selected_button_index].text_rect)
+        screen.blit(buttons[selected_button_index].text_surf, buttons[selected_button_index].text_rect)
 
         pygame.display.update()
 
@@ -66,7 +67,7 @@ def game_screen():
     # 카드 생성, 반환값 리스트
     uno_deck = build_deck()
     uno_deck_dic = make_dict(uno_deck, CARD_IMAGE_LIST)
-    # uno_deck_dict는 순서가 없기에 list 따로 만든다.
+    # uno_deck_dic는 순서가 없기에 list 따로 만든다.
     # 카드 무작위 셔플, 반환값 리스트
     uno_deck_li = shuffle_deck(uno_deck)
     # 게임 카드
@@ -133,7 +134,7 @@ def game_screen():
         if tmr == 90:
             tmr = 0
         # 타이머 계산도 다시
-        txt = font.render(str(10-tmr // 10-1), True, WHITE)
+        txt = font.render(str(10 - tmr // 10 - 1), True, WHITE)
         screen.blit(txt, [400, 10])
         clock.tick(30)
 
@@ -213,6 +214,7 @@ def setting_screen():
         pygame.display.update()
 
 
+"""
 # 카드 객체 생성
 class Cards:
     def __init__(self, screen, num, pos, filename, size=CARD_SIZE) -> None:
@@ -233,6 +235,76 @@ class Cards:
 
     def flipping(self):
         pass
+"""
+
+
+class Card(pygame.sprite.Sprite):
+    def __init__(self, name, position):
+        pygame.sprite.Sprite.__init__(self)
+        self.name = name
+        self.image = pygame.image.load('./image/card_img' + name + '.png')
+        self.image = pygame.transform.scale(self.image, (80, 100))
+        self.orig_pos = position
+        self.position = position
+        self.user_rotation = 30
+        self.rect = self.image.get_rect()
+        self.rect.center = self.position
+
+    def update(self, dest_loc):
+        x, y = self.position
+        vx, vy = (dest_loc[0] - x, dest_loc[1] - y)
+        vx, vy = (x / (x ** 2 + y ** 2) ** 0.5, y / (x ** 2 + y ** 2) ** 0.5)
+
+        speed = 5
+
+        x = x + speed * vx
+        y = y + speed * vy
+
+        if x >= dest_loc[0]:
+            x = dest_loc[0]
+        if y >= dest_loc[1]:
+            y = dest_loc[1]
+
+        self.position = (x, y)
+        self.rect = self.image.get_rect()
+        self.rect.center = self.position
+
+    def rotation(self, rotate):
+        self.image = pygame.transform.rotate(self.image, rotate)
+
+    def getposition(self):
+        return self.position
+
+    def setposition(self, x, y):
+        i_x = x
+        i_y = y
+        self.position = (i_x, i_y)
+        self.rect = self.image.get_rect()
+        self.rect.center = self.position
+
+    def move(self, compare_pos):
+        x, y = self.position
+        i_x = compare_pos[0]
+        i_y = compare_pos[1]
+
+        if x > i_x + 60 and y == i_y:
+            x -= 70
+
+        elif y > i_y:
+            if x <= 200:
+                x = 620
+                y = y - 80
+            else:
+                x -= 70
+        self.position = (x, y)
+        self.rect = self.image.get_rect()
+        self.rect.center = self.position
+
+    def get_rect(self):
+        return self.rect
+
+    def get_name(self):
+        return self.name
 
 
 # 일시정지 함수
@@ -274,7 +346,7 @@ def pause():
 
         # 여기 고쳐야해 text_surf, text_rect 이게 사라져서 안떠
         # screen.blit(buttons[selected_button_index].text_surf, buttons[selected_button_index].text_rect)
-        screen.blit(buttons[selected_button_index].text_surf,buttons[selected_button_index].text_rect)
+        screen.blit(buttons[selected_button_index].text_surf, buttons[selected_button_index].text_rect)
 
         draw_text(screen, "일시 정지", (SCREEN_WIDTH / 2), (SCREEN_HEIGHT / 3), 50)
 
