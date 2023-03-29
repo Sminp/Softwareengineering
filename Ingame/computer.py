@@ -16,7 +16,7 @@ class AI():
         now = self.nowcard.split('_')
         for item in self.playerdeck:
             card = item.split('_')
-            if now[0] == 'BLACK': return item
+            if now[0] == 'wild': return item
             if len(now) == 1:
                 if card[0] == now[0]: return item
             elif len(card) < 3 or len(now) < 3:
@@ -31,7 +31,7 @@ class AI():
                     return item
         for item in self.playerdeck:
             card = item.split('_')
-            if card[0] == 'BLACK':
+            if card[0] == 'wild':
                 return item
         return 0
 
@@ -52,7 +52,7 @@ class AI():
         if result is None:
             for item in self.playerdeck:
                 card = item.split('_')
-                if card[0] == 'BLACK':
+                if card[0] == 'wild':
                     result = item
             return result
         else:
@@ -73,7 +73,7 @@ class AI():
                 if len(now) == 3:
                     if item_[0] == now[0]: temp.append(item)
             if len(item_) == 3:
-                if item_[0] != 'BLACK':
+                if item_[0] != 'wild':
                     if item_[0] == now[0]:
                         if self.playernum == 2:
                             if self.check_same_color(item_[0]): temp.append(item)
@@ -85,7 +85,7 @@ class AI():
                                 if self.check_same_color(item_[0]): temp.append(item)
                             else:
                                 temp.append(item)
-                elif item_[0] == 'BLACK':
+                elif item_[0] == 'wild':
                     temp.append(item)
         if len(temp) == 1:
             return temp[0]
@@ -130,13 +130,13 @@ class AI():
         for card in self.wastes:
             card_ = card.split('_')
             if len(card_) != 1:
-                if card_[0] == 'RED':
+                if card_[0] == 'red':
                     red += 1.0
-                elif card_[0] == 'YELLOW':
+                elif card_[0] == 'yellow':
                     yellow += 1.0
-                elif card_[0] == 'GREEN':
+                elif card_[0] == 'green':
                     green += 1.0
-                elif card_[0] == 'BLUE':
+                elif card_[0] == 'blue':
                     blue += 1.0
 
         temp = [red, yellow, green, blue]
@@ -146,13 +146,13 @@ class AI():
         c_temp = []
         for p in temp:
             if p == red:
-                c_temp.append('RED')
+                c_temp.append('red')
             elif p == yellow:
-                c_temp.append('YELLOW')
+                c_temp.append('yellow')
             elif p == green:
-                c_temp.append('GREEN')
+                c_temp.append('green')
             elif p == blue:
-                c_temp.append('BLUE')
+                c_temp.append('blue')
 
         for c in c_temp:
             for i in result:
