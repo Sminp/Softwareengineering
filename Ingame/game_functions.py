@@ -4,23 +4,42 @@ import pygame
 import loadcard
 import computer
 from pygame.locals import *
+from constant import *
 
 
 class game():
-    def __init__(self, playernum, difficulty):
+    def __init__(self, playernum=2, difficulty=1):  # 초기값 임시로 설정 - 지우기
+        # 임시로 설정
+        pygame.init()
+        # self.background = pygame.image.load(img_basic_address + 'background.png')
+        self.screen_width = SCREEN_WIDTH
+        self.screen_height = SCREEN_HEIGHT
+        self.background_Color = WHITE
+        self.playernum = 2
+        self.difficulty = 1
+        self.font = MALGUNGOTHIC
+        self.clock = pygame.time.Clock()
+        self.FPS = 0.1
+        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+        self.screen.fill(self.background_Color)
+        # self.screen.blit(self.background, (-30, -30))
+        self.mouse_pos = pygame.mouse.get_pos()
+        pygame.display.update()
+
         self.playernum = playernum
         self.difficulty = difficulty
         # 이미지 바꿔야함
-        self.background = pygame.image.load('./img/default.png')
-        self.screen = pygame.display.set_mode((800, 700))
-        self.screen.blit(self.background, (-100, -70))
+        # self.background = pygame.image.load('./image/default.png')
+        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        # self.screen.blit(self.background, (-100, -70))
         self.color = {1: 'red', 2: 'yellow', 3: 'green', 4: 'blue', 5: 'wild'}
-        self.skill = {11: '_skip', 12: '_reverse', 13: '_draw_two', 14: '', 15: '_draw_four'}
+        self.skill = {11: '_pass', 12: '_reverse', 13: '_plus_two', 14: '_defense', 15: '', 16: '_plus_four', 17:'_change'}
         self.card_deck = []
         self.player = [[0] for i in range(0, self.playernum)]
         self.waste_group = pygame.sprite.RenderPlain()
         self.rotate = 0
         self.uno = 0
+        self.screen.fill(WHITE)
         pygame.display.update()
 
     # 텍스트 형식
@@ -41,30 +60,48 @@ class game():
                 while iterate != 2:
                     self.card_deck.append(now_card)
                     iterate += 1
-            for card_number in range(11, 14):
+        for color_idx in range(1, 5):
+            card = self.color[color_idx]
+            for card_number in range(11, 15):
                 now_card = card + self.skill[card_number]
                 iterate = 0
                 while iterate != 2:
                     self.card_deck.append(now_card)
                     iterate += 1
         card = 'wild'
-        for card_number in range(14, 16):
+        for card_number in range(15, 18):
             now_card = card + self.skill[card_number]
             iterate = 0
             while iterate != 4:
                 self.card_deck.append(now_card)
                 iterate += 1
-        random.shuffle(self.card_deck)
+        # random.shuffle(self.card_deck)
 
     # 게임 시작 화면 - 덱 구성, 플레이어에게 카드 지급, 플레이어 숫자마다 카드 위치 다 다름 -> 5명까지 설정해야함
     def set_window(self):
         self.set_deck()
-        for player in range(0, self.playernum):
+        if self.difficulty == 0:
+            random.shuffle(self.card_deck)
+            for player in range(0, self.playernum):
+                card = []
+                for number in range(0, 7):
+                    temp = self.card_deck.pop(number)
+                    card.append(temp)
+                self.player[player] = card
+        # 수정하기 - 집에서
+        if self.difficulty == 1:
+            card_num = self.card_deck[:76]
+            card_skill = self.card_deck[76:]
+            random.shuffle(self.card_num)
+            random.shuffle(self.card_skill())
             card = []
             for number in range(0, 7):
-                temp = self.card_deck.pop(number)
+                if random.random() < 76/164:
+                    temp = card_num.pop(number)
+                else:
+                    temp = card_skill.pop(number)
                 card.append(temp)
-            self.player[player] = card
+                self.player[player] = card
         deck = loadcard.Card('back', (350, 300))
         self.deck_group = pygame.sprite.RenderPlain(deck)
 
@@ -229,7 +266,8 @@ class game():
 
     # 플레이어 이름 표시
     def printwindow(self):
-        self.screen.blit(self.background, (-100, -70))
+        # self.screen.blit(self.background, (-100, -70))
+        self.screen.fill(WHITE)
         self.deck_group.draw(self.screen)
         self.user_group.draw(self.screen)
         self.com1_group.draw(self.screen)
@@ -269,10 +307,11 @@ class game():
         return False
 
     # 기능 카드 수행
+    # if name[0] 해서 기능 추가
     def card_skill(self, sprite):
         name = sprite.get_name()
         name = name.split('_')
-        if name[1] == 'skip':
+        if name[1] == 'pass':
             pygame.time.wait(500)
             self.now_turn = self.next_turn(self.now_turn)
         elif name[1] == 'reverse':
@@ -284,7 +323,7 @@ class game():
                     self.rotate = 1
                 else:
                     self.rotate = 0
-        elif name[1] == 'draw':
+        elif name[1] == 'plus':
             if name[2] == 'two':
                 pygame.time.wait(500)
                 self.give_card(2)
@@ -434,7 +473,14 @@ class game():
     def playgame(self):
         self.now_turn = 0
         self.waste_card = []
+        # 좌표 알기 위한 선 따기
+        for i in range(0, 900, 100):
+            pygame.draw.line(self.screen, BLACK, (0, i), (900, i))
+            pygame.draw.line(self.screen, BLACK, (i, 0), (i, 700))
         while True:
+            self.mouse_pos = pygame.mouse.get_pos()
+            print(self.mouse_pos)
+            pygame.time.wait(500)
             if len(self.user_group) == 0:
                 self.restart()
                 return
