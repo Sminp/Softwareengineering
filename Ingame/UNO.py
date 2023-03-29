@@ -13,7 +13,7 @@ class UNOGame():
 
     def __init__(self):
         pygame.init()
-        self.background = pygame.image.load(img_basic_address + 'background.png')
+        # self.background = pygame.image.load("Ingame/image/TitleImage/TitleBackground.jpg")
         self.screen_width = SCREEN_WIDTH
         self.screen_height = SCREEN_HEIGHT
         self.background_Color = WHITE
@@ -24,7 +24,7 @@ class UNOGame():
         self.FPS = 30
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         self.screen.fill(self.background_Color)
-        self.screen.blit(self.background, (-30, -30))
+        # self.screen.blit(self.background, (0, 0))
         self.mouse_pos = pygame.mouse.get_pos()
         pygame.display.update()
 
@@ -37,9 +37,9 @@ class UNOGame():
     # 시작 화면
     def main_menu(self):
         pygame.init()
-        # 괄호에 이미지 상대경로 추가 - 해결하면 지우기
-        self.background = pygame.image.load('./image/default.png')
-        self.screen.blit(self.background, (-100, -70))
+        self.screen_background_img = pygame.image.load("image/TitleImage/TitleBackground.jpg")
+        self.background = pygame.transform.scale(self.screen_background_img, (800, 600))
+        self.screen.blit(self.background, (0, 0))
 
         # 기본 버튼이 1 (왼쪽 시작 버튼) - 해결하면 지우기
         selected = 1
@@ -50,9 +50,9 @@ class UNOGame():
             pygame.mixer.pre_init(44100, -16, 1, 512)
             pygame.init()
             # 효과음 넣기 - 해결하면 지우기
-            sound = pygame.mixer.Sound('./sound/menu.wav')
+            # sound = pygame.mixer.Sound('./sound/menu.wav')
 
-            #이벤트를 발생시키는 입력
+            # 이벤트를 발생시키는 입력
             for event in pygame.event.get():
                 # 창 버튼
                 if event.type == pygame.QUIT:
@@ -61,13 +61,13 @@ class UNOGame():
                 # 키보드 버튼
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_LEFT:
-                        sound.play()
+                        # sound.play()
                         if selected <= 1:
                             selected = 1
                         else:
                             selected = selected - 1
                     elif event.key == pygame.K_RIGHT:
-                        sound.play()
+                        # sound.play()
                         if selected >= 3:
                             selected = 3
                         else:
@@ -87,16 +87,26 @@ class UNOGame():
                 if event.type == pygame.MOUSEBUTTONUP:
                     # 마우스 누를 때도 효과음이라면 넣기 - 해결하면 지우기
                     # 좌표로 채우기 버튼 1, 2, 3 - 해결하면 지우기
-                    if 0 <= self.mouse_pos[0] <= 1 and 0 <= self.mouse_pos[1] <= 1:
+                    if button_list[0].x <= self.mouse_pos[0] <= button_list[0].width and button_list[0].y <= \
+                            self.mouse_pos[1] <= button_list[0].height:
+                        print("확인")
+                    if button_list[1].x <= self.mouse_pos[0] <= button_list[1].width and button_list[1].y <= \
+                            self.mouse_pos[1] <= button_list[1].height:
                         pass
-                    if 0 <= self.mouse_pos[0] <= 1 and 0 <= self.mouse_pos[1] <= 1:
-                        pass
-                    if 0 <= self.mouse_pos[0] <= 1 and 0 <= self.mouse_pos[1] <= 1:
+                    if button_list[2].x <= self.mouse_pos[0] <= button_list[2].width and button_list[2].y <= \
+                            self.mouse_pos[1] <= button_list[2].height:
                         pass
 
             # 버튼 클래스 선택
+            start_button = Button(self.screen, 0, 0, "image/TitleImage/StartButton.png", 800, 600)
+
+            menu_button = Button(self.screen, 0, 0, "image/TitleImage/MenuButton.png", 800, 600)
+
+            end_button = Button(self.screen, 0, 0, "image/TitleImage/EndButton.png", 800, 600)
             # 버튼 클래스로  pass 대체 - 해결하면 지우기
             # if문은 선택했을 때의 변화 else문은 선택하지 않았을 때의 변화 - 해결하면 지우기
+
+            button_list = [start_button, menu_button, end_button]
             if selected == 1:
                 pass
             else:
@@ -114,6 +124,43 @@ class UNOGame():
             self.clock.tick(self.FPS)
             pygame.display.set_caption("UNO!")
 
+
+# 버트 클래스
+# 버튼 클래스
+class Button:
+    def __init__(self, screen, x, y, img, width, height):
+        self.screen = screen
+        # self.rect = pygame.Rect(x,y, 30, 30)
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+
+        self.img = pygame.transform.scale(pygame.image.load(img), [width, height])
+        # self.action = action
+
+        self.screen.blit(self.img, (x, y))
+
+        # mouse = pygame.mouse.get_pos()
+        # click = pygame.mouse.get_pressed()
+
+        # if x + width > mouse[0] > x and y + height > mouse[1] > y:
+        #     # 마우스를 버튼위에 올렸을 때 색깔 변함
+        #     pygame.draw.rect(screen, self.hover_color, self.rect)
+        #     if click[0] == 1 and action != None:
+        #         # 클릭하면 해당 버튼 기능 수행
+        #         action()
+        # else:
+        #     pygame.draw.rect(screen, self.color, self.rect)
+
+        # 버튼의 text 설정
+        # font = pygame.font.SysFont(font_name,font_size)
+        # self.textSurf = font.render(text,True,BLACK)
+        # self.textRect = self.textSurf.get_rect()
+        # self.textRect.center = ((x + width/2),(y + height/2))
+        # screen.blit(self.textSurf, self.textRect)
+
+
 # 기획이 완료된 후 수정
 """
     # 로비 화면
@@ -122,7 +169,7 @@ class UNOGame():
         # 배경 이미지 넣기 - 해결하면 지우기
         self.background = pygame.image.load('./img/default.png')
         self.screen.blit(self.background, (-100, -70))
-        
+
         # 플레이어 기본 명 수 설정 - 해결하면 지우기
         selected = 1
         menu = True
@@ -131,7 +178,7 @@ class UNOGame():
             pygame.init()
             # 효과음 집어 넣기
             sound = pygame.mixer.Sound('./sound/menu.wav')
-            
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -223,80 +270,80 @@ class UNOGame():
 """
 
 
-    # 설정 화면
-    def setting_screen():
-        game_exit = False
+# 설정 화면
+def setting_screen():
+    game_exit = False
 
-        # 배경음, 효과음 slider
-        backgroundsound_slider = Slider(screen, 300, (250, 180), (0, 100))
-        soundeffect_slider = Slider(screen, 300, (250, 250), (0, 100))
+    # 배경음, 효과음 slider
+    backgroundsound_slider = Slider(screen, 300, (250, 180), (0, 100))
+    soundeffect_slider = Slider(screen, 300, (250, 250), (0, 100))
 
-        while not game_exit:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
+    while not game_exit:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
 
-                backgroundsound_slider.operate(event)
-                soundeffect_slider.operate(event)
+            backgroundsound_slider.operate(event)
+            soundeffect_slider.operate(event)
 
-                # 키보드 버튼
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_LEFT:
-                        sound.play()
-                        if selected <= 1:
-                            selected = 1
-                        else:
-                            selected = selected - 1
-                    elif event.key == pygame.K_RIGHT:
-                        sound.play()
-                        if selected >= 3:
-                            selected = 3
-                        else:
-                            selected = selected + 1
-                    if event.key == pygame.K_RETURN:
-                        if selected <= 1:
-                            # 버튼 입력 후 시작 함수 실행 - 해결하면 지우기
-                            pass
-                        if selected == 2:
-                            # 버튼 입력 후 설정 함수 실행 - 해결하면 지우기
-                            pass
-                        if selected >= 3:
-                            # 버튼 입력 후 시작 함수 실행 - 해결하면 지우기
-                            pass
+            # 키보드 버튼
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT:
+                    # sound.play()
+                    if selected <= 1:
+                        selected = 1
+                    else:
+                        selected = selected - 1
+                elif event.key == pygame.K_RIGHT:
+                    # sound.play()
+                    if selected >= 3:
+                        selected = 3
+                    else:
+                        selected = selected + 1
+                if event.key == pygame.K_RETURN:
+                    if selected <= 1:
+                        # 버튼 입력 후 시작 함수 실행 - 해결하면 지우기
+                        pass
+                    if selected == 2:
+                        # 버튼 입력 후 설정 함수 실행 - 해결하면 지우기
+                        pass
+                    if selected >= 3:
+                        # 버튼 입력 후 시작 함수 실행 - 해결하면 지우기
+                        pass
 
-            screen.fill(WHITE)
+        screen.fill(WHITE)
 
-            # 설정화면 텍스트 표시
-            draw_text(screen, "설정 화면", (130, 50), 50)
+        # 설정화면 텍스트 표시
+        draw_text(screen, "설정 화면", (130, 50), 50)
 
-            # 화면 설정 텍스트 표시 ==>> 텍스트 표시 함수를 좀 고쳐야 함
-            draw_text(screen, "화면 설정", (130, 340), 20)
+        # 화면 설정 텍스트 표시 ==>> 텍스트 표시 함수를 좀 고쳐야 함
+        draw_text(screen, "화면 설정", (130, 340), 20)
 
-            # 화면 설정 버튼 - 변수명 바꿔야 함
-            sizefull_button = Button(screen, 270, 315, 100, 50, "전체화면", 20, color=GRAY, hover_color=YELLOW,
-                                     action=screen_size)
-            size16_button = Button(screen, 420, 315, 100, 50, "16:9", 20, color=GRAY, hover_color=YELLOW,
-                                   action=setting_screen)
-            size4_button = Button(screen, 570, 315, 100, 50, "4:3", 20, color=GRAY, hover_color=YELLOW, action=quit_game)
+        # 화면 설정 버튼 - 변수명 바꿔야 함
+        sizefull_button = Button(screen, 270, 315, 100, 50, "전체화면", 20, color=GRAY, hover_color=YELLOW,
+                                 action=screen_size)
+        size16_button = Button(screen, 420, 315, 100, 50, "16:9", 20, color=GRAY, hover_color=YELLOW,
+                               action=setting_screen)
+        size4_button = Button(screen, 570, 315, 100, 50, "4:3", 20, color=GRAY, hover_color=YELLOW, action=quit_game)
 
-            # 배경음, 효과음 그림
-            backgroundsound_slider.draw()
-            backgroundsound_slider.draw_value('배경음', (130, 180))
-            soundeffect_slider.draw()
-            soundeffect_slider.draw_value('효과음', (130, 250))
+        # 배경음, 효과음 그림
+        backgroundsound_slider.draw()
+        backgroundsound_slider.draw_value('배경음', (130, 180))
+        soundeffect_slider.draw()
+        soundeffect_slider.draw_value('효과음', (130, 250))
 
-            # 조작키 설정, 설정 초기화, 설정 저장 버튼
-            control_button = Button(screen, 80, 400, 100, 50, "조작키 설정", 20, color=GRAY, hover_color=YELLOW,
-                                    action=game_screen)
-            settinginit_button = Button(screen, 80, 500, 100, 50, "설정 초기화", 20, color=GRAY, hover_color=YELLOW,
-                                        action=setting_screen)
-            settingsave_button = Button(screen, SCREEN_WIDTH // 2 + 200, 500, 100, 50, "설정 저장", 20, color=GRAY,
-                                        hover_color=YELLOW, action=quit_game)
+        # 조작키 설정, 설정 초기화, 설정 저장 버튼
+        control_button = Button(screen, 80, 400, 100, 50, "조작키 설정", 20, color=GRAY, hover_color=YELLOW,
+                                action=game_screen)
+        settinginit_button = Button(screen, 80, 500, 100, 50, "설정 초기화", 20, color=GRAY, hover_color=YELLOW,
+                                    action=setting_screen)
+        settingsave_button = Button(screen, SCREEN_WIDTH // 2 + 200, 500, 100, 50, "설정 저장", 20, color=GRAY,
+                                    hover_color=YELLOW, action=quit_game)
 
-            buttons = [control_button, settinginit_button, settingsave_button]
+        buttons = [control_button, settinginit_button, settingsave_button]
 
-            pygame.display.update()
+        pygame.display.update()
 
 
 # 일시정지 함수
@@ -346,5 +393,9 @@ def pause():
 
 
 if __name__ == '__main__':
-    uno = UNOGame()
-    uno.main_menu()
+    # uno = UNOGame()
+    # uno.main_menu()
+    uno = game()
+    uno.set_deck()
+    print(uno.card_deck)
+    print(len(uno.card_deck)-76)
