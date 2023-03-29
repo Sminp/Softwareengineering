@@ -1,8 +1,10 @@
+# 3/29 김나연 수정사항 -> difficulty 0,1에서 1,5로 수정 , 우노버튼,현재 색깔 수정 필요
 import sys
 import random
 import pygame
 import loadcard
 import computer
+from UNO import * 
 from pygame.locals import *
 from constant import *
 
@@ -37,9 +39,13 @@ class game():
         self.card_deck = []
         self.player = [[0] for i in range(0, self.playernum)]
         self.waste_group = pygame.sprite.RenderPlain()
+        self.waste_card = []
+        
         self.rotate = 0
         self.uno = 0
         self.screen.fill(WHITE)
+        self.playing_game = True
+
         pygame.display.update()
 
     # 텍스트 형식
@@ -80,7 +86,7 @@ class game():
     # 게임 시작 화면 - 덱 구성, 플레이어에게 카드 지급, 플레이어 숫자마다 카드 위치 다 다름 -> 5명까지 설정해야함
     def set_window(self):
         self.set_deck()
-        if self.difficulty == 0:
+        if self.difficulty == 1:
             random.shuffle(self.card_deck)
             for player in range(0, self.playernum):
                 card = []
@@ -89,7 +95,7 @@ class game():
                     card.append(temp)
                 self.player[player] = card
         # 수정하기 - 집에서
-        if self.difficulty == 1:
+        if self.difficulty == 5:
             card_num = self.card_deck[:76]
             card_skill = self.card_deck[76:]
             random.shuffle(self.card_num)
@@ -97,11 +103,12 @@ class game():
             card = []
             for number in range(0, 7):
                 if random.random() < 76/164:
-                    temp = card_num.pop(number)
+                    temp = self.card_num.pop(number)
                 else:
                     temp = card_skill.pop(number)
                 card.append(temp)
                 self.player[player] = card
+
         deck = loadcard.Card('back', (350, 300))
         self.deck_group = pygame.sprite.RenderPlain(deck)
 
@@ -284,6 +291,22 @@ class game():
         com1_text = self.text_format("COM1", 'Berlin Sans FB', 30, (0, 0, 0))
         self.screen.blit(com1_text, (235, 18))
         self.waste_group.draw(self.screen)
+        if len(self.waste_card) == 0:
+            pygame.draw.rect(self.screen,BLACK,(500,500,100,100))
+        else :  
+            print(self.waste_card[-1])
+            w_name = self.waste_card[-1]
+            w_name = w_name.split('_')
+            if w_name[0] == 'wild': 
+                pygame.draw.rect(self.screen,BLACK,(500,500,100,100))
+            elif w_name[0] == "red":
+                pygame.draw.rect(self.screen,RED,(500,500,100,100))
+            elif w_name[0] == "yellow":
+                pygame.draw.rect(self.screen,YELLOW,(500,500,100,100))
+            elif w_name[0] == "blue":
+                pygame.draw.rect(self.screen,BLUE,(500,500,100,100))
+            elif w_name[0] == "green":
+                pygame.draw.rect(self.screen,GREEN,(500,500,100,100))
 
     # 낼 수 있는지 확인
     def check_card(self, sprite):
@@ -364,7 +387,7 @@ class game():
 
         return True
 
-    # 지금 덱 중에서 가장 숫자가 많은 색깔 구함 -> 컴퓨터가 wild 카드 사용할 때 사용
+    # 지금 덱 중에서 가장 숫자가 많은 색깔 구함 -> 컴퓨터가 wild 카드 사용할 때 사용 , 여기 수정해야함 그 숫자없는 카드가 없긴해 
     def most_num_color(self, card_deck):
         r = 0
         y = 0
@@ -390,8 +413,8 @@ class game():
     # 변경할 색 선택
     def pick_color(self):
         # 뒤에 이미지 -> 빼거나 대체
-        color_popup = loadcard.Popup('pickcolor', (400, 300))
-        popup_group = pygame.sprite.RenderPlain(color_popup)
+        color_popup = loadcard.Popup('pickcolor', (400, 300)) #이거 빼야함
+        popup_group = pygame.sprite.RenderPlain(color_popup) #이거 빼야함
         red = loadcard.Popup('red', (306, 320))
         yellow = loadcard.Popup('yellow', (368, 320))
         green = loadcard.Popup('green', (432, 320))
@@ -473,14 +496,8 @@ class game():
     def playgame(self):
         self.now_turn = 0
         self.waste_card = []
-        # 좌표 알기 위한 선 따기
-        for i in range(0, 900, 100):
-            pygame.draw.line(self.screen, BLACK, (0, i), (900, i))
-            pygame.draw.line(self.screen, BLACK, (i, 0), (i, 700))
-        while True:
-            self.mouse_pos = pygame.mouse.get_pos()
-            print(self.mouse_pos)
-            pygame.time.wait(500)
+  
+        while self.playing_game:
             if len(self.user_group) == 0:
                 self.restart()
                 return
@@ -615,25 +632,35 @@ class game():
                     self.now_turn = self.next_turn(self.now_turn)
                     pygame.display.update()
 
+            # 수정중
             for event in pygame.event.get():
+                # mouse_pos = pygame.mouse.get_pos()
+                # for sprite in self.user_group:
+                #     if sprite.get_rect().collidepoint(mouse_pos): 
+                #         pygame.draw.rect(self.screen,YELLOW,sprite.get_rect())
+
+           
                 if event.type == QUIT:
                     pygame.quit()
                     sys.exit()
 
                 if event.type == KEYDOWN:
+                    # if event.key == K_ESCAPE:
+                    #     return
                     if event.key == K_ESCAPE:
-                        return
+                        self.pause()
+                        self.printwindow()
 
                 if event.type == MOUSEBUTTONUP:
                     if self.now_turn == 0:
                         self.select_player(self.now_turn)
                         mouse_pos = pygame.mouse.get_pos()
                         for sprite in self.user_group:
-                            if sprite.get_rect().collidepoint(mouse_pos):
+                            if sprite.get_rect().collidepoint(mouse_pos): 
                                 if self.check_card(sprite):
                                     # pygame.mixer.pre_init(44100, -16, 1, 512)
                                     pygame.init()
-                                    # card = pygame.mixer.Sound('./sound/deal_card.wav')
+                                    # card = pygame.mixer.Sound('./sound/deal_card.wav') 
                                     self.user_group.remove(sprite)
                                     for temp in self.user_group:
                                         temp.move(sprite.getposition())
@@ -648,6 +675,8 @@ class game():
                                 self.get_from_deck(self.now_turn)
                                 self.now_turn = self.next_turn(self.now_turn)
                                 break
+
+    
             pygame.display.update()
 
     # 카드 뽑음
@@ -758,3 +787,24 @@ class game():
         self.waste_card.append(sprite.get_name())
         self.set_lastcard(self.lastcard0, sprite.getposition())
         self.printwindow()
+
+    def pause(self):
+        
+        paused = True
+        self.playing_game = False
+
+        while paused:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                if event.type == pygame.MOUSEBUTTONDOWN:  # 마우스 클릭시 다시 시작
+                    self.playing_game = True
+                    paused = False
+            pygame.draw.rect(self.screen, WHITE, (SCREEN_WIDTH / 2 - 200, SCREEN_HEIGHT / 3 - 100, 400, 400))
+            pygame.draw.rect(self.screen, BLACK, (SCREEN_WIDTH / 2 - 200, SCREEN_HEIGHT / 3 - 100, 400, 400), 5)
+            close_text = self.text_format("PAUSE", 'Berlin Sans FB', 80, (255, 51, 0))
+            self.screen.blit(close_text, (230, 220))
+        
+            pygame.display.update()
+
+
