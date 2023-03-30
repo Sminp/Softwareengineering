@@ -1,16 +1,15 @@
+
 import pygame
-from constant import *
 from pygame.locals import *
 import math
 
 
-# 카드 좌표는 center기준
 class Card(pygame.sprite.Sprite):
     def __init__(self, name, position):
         pygame.sprite.Sprite.__init__(self)
         self.name = name
-        self.image = pygame.image.load('image/card_img/' + name + '.png')
-        self.image = pygame.transform.scale(self.image, CARD_SIZE)
+        self.image = pygame.image.load('./image/card_img/' + name + '.png')
+        self.image = pygame.transform.scale(self.image, (80, 100))
         self.orig_pos = position
         self.position = position
         self.user_rotation = 30
@@ -78,7 +77,7 @@ class Popup(pygame.sprite.Sprite):
     def __init__(self, name, position):
         pygame.sprite.Sprite.__init__(self)
         self.name = name
-        self.image = pygame.image.load('image/'+name+'.png')
+        self.image = pygame.image.load('./image/card_img/' + name + '.png')
         self.position = position
         self.rect = self.image.get_rect()
         self.rect.center = self.position
