@@ -22,7 +22,7 @@ class AI():
             elif len(card) < 3 or len(now) < 3:
                 if card[0] == now[0]:
                     return item
-                elif card[1] == now[1]:
+                elif card[1] == now[1]: # 여기에서 자꾸 오류나는데 wild카드 낼 때 문제인듯 card[1]이 없어서? 그럼 wild 카드에 뒤에 .이나 무슨 표시를 넣어야할듯?
                     return item
             else:
                 if card[0] == now[0]:
