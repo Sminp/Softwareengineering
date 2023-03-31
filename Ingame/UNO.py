@@ -42,17 +42,10 @@ class UNOGame():
         self.screen.blit(self.background, (0, 0))
 
         # 기본 버튼이 1 (왼쪽 시작 버튼) - 해결하면 지우기
-        selected = 1
+        selected = 0
 
         menu = True
 
-        # 좌표, 크기 다 바꿔야함
-        start_button = Button(self.screen, 300, 500, "./image/TitleImage/StartButton.png",100, 100)
-
-        menu_button = Button(self.screen, 400, 500, "./image/TitleImage/MenuButton.png", 100, 100)
-
-        end_button = Button(self.screen, 500, 500, "./image/TitleImage/EndButton.png", 100, 100)
-        button_list = [start_button, menu_button, end_button]
         
         while menu:
             # 안정적으로 소리가 나오기 위한 코드 - 이해하면 지우기
@@ -60,6 +53,15 @@ class UNOGame():
             pygame.init()
             # 효과음 넣기 - 해결하면 지우기
             # sound = pygame.mixer.Sound('./sound/menu.wav')
+            self.screen.blit(self.background, (0, 0))
+            start_button = Button(self.screen, 400 - 200, 400, "./image/TitleImage/StartButton.png", 200, 200)
+            menu_button = Button(self.screen, 400 - 100, 400 - 30, "./image/TitleImage/MenuButton.png", 200, 200)
+            end_button = Button(self.screen, 400, 400, "./image/TitleImage/EndButton.png", 200, 200)
+            button_list = [start_button, menu_button, end_button]
+            self.mouse_pos = pygame.mouse.get_pos()
+            pygame.draw.rect(self.screen, YELLOW,
+                             [button_list[selected].x, button_list[selected].y, button_list[selected].width,
+                              button_list[selected].height], 5)
 
             # 이벤트를 발생시키는 입력
             for event in pygame.event.get():
@@ -67,15 +69,40 @@ class UNOGame():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
-                
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_LEFT:
+                        # sound.play()
+                        if selected <= 0:
+                            selected = 0
+                        else:
+                            selected = selected - 1
+                    elif event.key == pygame.K_RIGHT:
+                        if selected >= 2:
+                            selected = 2
+                        else:
+                            selected += 1
+                    elif event.key == pygame.K_RETURN:
+                        if selected == 0:
+                            self.lobby_screen()
+                        elif selected == 1:
+                            pass
+                        else:
+                            pygame.quit()
+                            sys.exit()
                 # 마우스 입력
                 if event.type == pygame.MOUSEBUTTONUP:
-                    mouse_pos= pygame.mouse.get_pos()
-                    if button_list[0].x <= mouse_pos[0] <= button_list[0].width + button_list[0].x and button_list[0].y <= mouse_pos[1] <= button_list[0].y+button_list[0].height:
+                    if button_list[0].x <= self.mouse_pos[0] <= button_list[0].width + button_list[0].x and \
+                            button_list[
+                                0].y <= self.mouse_pos[1] <= button_list[0].y + button_list[0].height:
                         self.lobby_screen()
-                    if button_list[1].x <= mouse_pos[0] <= button_list[1].width + button_list[1].x and button_list[1].y <= mouse_pos[1] <= button_list[1].y+button_list[1].height:
-                        self.setting_screen()
-                    if button_list[2].x <= mouse_pos[0] <= button_list[2].width + button_list[2].x and button_list[2].y <= mouse_pos[1] <= button_list[2].y+button_list[2].height:
+                    if button_list[1].x <= self.mouse_pos[0] <= button_list[1].width + button_list[1].x and \
+                            button_list[
+                                1].y <= self.mouse_pos[1] <= button_list[1].y + button_list[1].height:
+                        pass
+                        # 설정화면 함수 연결하기
+                    if button_list[2].x <= self.mouse_pos[0] <= button_list[2].width + button_list[2].x and \
+                            button_list[
+                                2].y <= self.mouse_pos[1] <= button_list[2].y + button_list[2].height:
                         pygame.quit()
                         sys.exit()
                         
