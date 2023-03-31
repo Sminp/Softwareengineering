@@ -3,7 +3,7 @@ import random
 import pygame
 import loadcard
 import computer
-from UNO import * 
+from UNO import *
 from pygame.locals import *
 from constant import *
 from UNO import Button
@@ -11,24 +11,11 @@ from UNO import Button
 
 class game():
     def __init__(self, playernum=2, difficulty=1):  # 초기값 임시로 설정 - 지우기
-        # 임시로 설정
         pygame.init()
-        # self.background = pygame.image.load("./image/PlayingBackground.png")
         self.screen_width = SCREEN_WIDTH
         self.screen_height = SCREEN_HEIGHT
-        # self.background_Color = WHITE
-        # self.playernum = 2
-        # self.difficulty = 1
-        # self.font = MALGUNGOTHIC
         self.clock = pygame.time.Clock()
-        self.FPS = 0.1
-        # self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
-        # # self.screen.fill(self.background_Color)
-        # # self.screen.blit(self.background, (-30, -30))
-        # self.background = pygame.transform.scale(self.background, (self.screen_width, self.screen_height))
-        # self.screen.blit(self.background, (0, 0))
-        # self.mouse_pos = pygame.mouse.get_pos()
-        # pygame.display.update()
+        self.FPS = 30
 
         self.playernum = playernum
         self.difficulty = difficulty
@@ -38,7 +25,7 @@ class game():
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         self.screen.blit(self.background, (0, 0))
         self.color = {1: 'red', 2: 'yellow', 3: 'green', 4: 'blue', 5: 'wild'}
-        self.skill = {11: '_pass', 12: '_reverse', 13: '_plus_two', 14: '_basic', 15: '_plus_four', 16:'_change'}
+        self.skill = {11: '_pass', 12: '_reverse', 13: '_plus_two', 14: '_basic', 15: '_plus_four', 16: '_change'}
         self.card_deck = []
         self.player = [[0] for i in range(0, self.playernum)]
         self.waste_group = pygame.sprite.RenderPlain()
@@ -93,6 +80,7 @@ class game():
     def set_window(self):
         self.set_deck()
         print(self.set_deck)
+        # 나중에 변경
         if self.difficulty == 1:
             random.shuffle(self.card_deck)
             for player in range(0, self.playernum):
@@ -101,19 +89,27 @@ class game():
                     temp = self.card_deck.pop(number)
                     card.append(temp)
                 self.player[player] = card
-        # 수정하기 - 집에서 
-        if self.difficulty == 5:
-            card_num = self.card_deck[:76]
-            card_skill = self.card_deck[76:]
+        elif self.difficulty == 5:
+            self.card_num = self.card_deck[:76]
+            self.card_skill = self.card_deck[76:]
             random.shuffle(self.card_num)
-            random.shuffle(self.card_skill())
+            random.shuffle(self.card_skill)
             card = []
             for number in range(0, 7):
-                if random.random() < 76/164:
+                if random.random() < 76 / 120:
                     temp = self.card_num.pop(number)
                 else:
-                    temp = card_skill.pop(number)
+                    temp = self.card_skill.pop(number)
                 card.append(temp)
+            self.player[0] = card
+            for player in range(1, self.playernum):
+                card = []
+                for number in range(0, 7):
+                    if random.random() < 76 / 164:
+                        temp = self.card_num.pop(number)
+                    else:
+                        temp = self.card_skill.pop(number)
+                    card.append(temp)
                 self.player[player] = card
 
         deck = loadcard.Card('back', (350, 300))
@@ -299,30 +295,30 @@ class game():
         self.screen.blit(com1_text, (235, 18))
         self.waste_group.draw(self.screen)
         if len(self.waste_card) == 0:
-            pygame.draw.rect(self.screen,BLACK,(500,500,100,100))
-        else :  
+            pygame.draw.rect(self.screen, BLACK, (500, 500, 100, 100))
+        else:
             w_name = self.waste_card[-1]
             w_name = w_name.split('_')
-            if w_name[0] == 'wild': 
-                pygame.draw.rect(self.screen,BLACK,(500,500,100,100))
+            if w_name[0] == 'wild':
+                pygame.draw.rect(self.screen, BLACK, (500, 500, 100, 100))
             elif w_name[0] == "red":
                 if len(w_name) > 1:
                     if w_name[1] == 'yellow':
-                        pygame.draw.rect(self.screen,RED,(500,500,50,100))
-                        pygame.draw.rect(self.screen,YELLOW,(550,500,50,100))
+                        pygame.draw.rect(self.screen, RED, (500, 500, 50, 100))
+                        pygame.draw.rect(self.screen, YELLOW, (550, 500, 50, 100))
                 else:
-                    pygame.draw.rect(self.screen,RED,(500,500,100,100))
+                    pygame.draw.rect(self.screen, RED, (500, 500, 100, 100))
             elif w_name[0] == "yellow":
-                pygame.draw.rect(self.screen,YELLOW,(500,500,100,100))
+                pygame.draw.rect(self.screen, YELLOW, (500, 500, 100, 100))
             elif w_name[0] == "blue":
                 if len(w_name) > 1:
                     if w_name[1] == 'green':
-                        pygame.draw.rect(self.screen,BLUE,(500,500,50,100))
-                        pygame.draw.rect(self.screen,GREEN,(550,500,50,100))
+                        pygame.draw.rect(self.screen, BLUE, (500, 500, 50, 100))
+                        pygame.draw.rect(self.screen, GREEN, (550, 500, 50, 100))
                 else:
-                    pygame.draw.rect(self.screen,BLUE,(500,500,100,100))
+                    pygame.draw.rect(self.screen, BLUE, (500, 500, 100, 100))
             elif w_name[0] == "green":
-                pygame.draw.rect(self.screen,GREEN,(500,500,100,100))
+                pygame.draw.rect(self.screen, GREEN, (500, 500, 100, 100))
 
     # 낼 수 있는지 확인
     def check_card(self, sprite):
@@ -339,7 +335,7 @@ class game():
                 if w_name[0] == name[0]: return True
                 if len(name) > 1 and len(w_name) > 1:
                     if w_name[1] == name[1]: return True
-                    if w_name[1] == name[0] or w_name[0] == name[1] : return True
+                    if w_name[1] == name[0] or w_name[0] == name[1]: return True
             else:
                 if w_name[0] == name[0]: return True
                 if w_name[2] == name[2]: return True
@@ -350,7 +346,7 @@ class game():
     # if name[0] 해서 기능 추가
     def card_skill(self, sprite):
         name = sprite.get_name()
-        name = name.split('_')          
+        name = name.split('_')
         if name[1] == 'pass':
             pygame.time.wait(500)
             self.now_turn = self.next_turn(self.now_turn)
@@ -363,23 +359,29 @@ class game():
                     self.rotate = 1
                 else:
                     self.rotate = 0
-        elif name[1] == 'change' :   # change 구현   - 지금 상태 바뀌기는 하는데 화면에 카드 표시가 안뜸
+        elif name[1] == 'change':  # change 구현   - 지금 상태 바뀌기는 하는데 화면에 카드 표시가 안뜸
             if self.now_turn == 0:
                 index = self.pick_player()
-                self.player[0] , self.player[index] = self.player[index], self.player[0]
-                print( self.player[0] , self.player[index])
+                self.player[0], self.player[index] = self.player[index], self.player[0]
+                print(self.player[0], self.player[index])
             elif self.now_turn == 1:
                 pygame.time.wait(500)
-                self.player[1] , self.player[self.check_card_num(self.player)] = self.player[self.check_card_num(self.player)], self.player[1]
-                print(self.player[1] , self.player[self.check_card_num(self.player)])
+                self.player[1], self.player[self.check_card_num(self.player)] = self.player[
+                                                                                    self.check_card_num(self.player)], \
+                                                                                self.player[1]
+                print(self.player[1], self.player[self.check_card_num(self.player)])
             elif self.now_turn == 2:
                 pygame.time.wait(500)
-                self.player[2] , self.player[self.check_card_num(self.player)] = self.player[self.check_card_num(self.player)], self.player[2]
-                print(self.player[2] , self.player[self.check_card_num(self.player)])
+                self.player[2], self.player[self.check_card_num(self.player)] = self.player[
+                                                                                    self.check_card_num(self.player)], \
+                                                                                self.player[2]
+                print(self.player[2], self.player[self.check_card_num(self.player)])
             elif self.now_turn == 3:
                 pygame.time.wait(500)
-                self.player[3] , self.player[self.check_card_num(self.player)] = self.player[self.check_card_num(self.player)], self.player[3]
-                print(self.player[3] , self.player[self.check_card_num(self.player)])
+                self.player[3], self.player[self.check_card_num(self.player)] = self.player[
+                                                                                    self.check_card_num(self.player)], \
+                                                                                self.player[3]
+                print(self.player[3], self.player[self.check_card_num(self.player)])
 
         elif name[1] == 'plus':
             if name[2] == 'two':
@@ -477,22 +479,22 @@ class game():
                             self.printwindow()
                             loop = False
         return 0
-    
+
     # change 카드를 컴퓨터 플레이어가 선택할 때 제일 카드가 적은 플레이어 선택
-    def check_card_num(self,player_deck_list):
-        shortest_list = min(player_deck_list,key=len)
-        print("작동") # 두번작동 
+    def check_card_num(self, player_deck_list):
+        shortest_list = min(player_deck_list, key=len)
+        print("작동")  # 두번작동
         return player_deck_list.index(shortest_list)
-       
 
     # change 카드 사용할 때 바꿀 플레이어 선택
     def pick_player(self):
-        pick_player_button = [Button(self.screen,350,100+i*120,"./image/button_img.png",100,100)for i in range(self.playernum-1)]
+        pick_player_button = [Button(self.screen, 350, 100 + i * 120, "./image/button_img.png", 100, 100) for i in
+                              range(self.playernum - 1)]
         index = 0
 
         loop = True
         while loop:
-            for i in range(self.playernum-1):
+            for i in range(self.playernum - 1):
                 pick_player_button[i].show_botton()
             pygame.display.update()
             for event in pygame.event.get():
@@ -501,16 +503,16 @@ class game():
                     sys.exit()
                 if event.type == MOUSEBUTTONUP:
                     mouse_pos = pygame.mouse.get_pos()
-                    for i in range(self.playernum-1):
-                        if pick_player_button[i].x <= mouse_pos[0] <= pick_player_button[i].width + pick_player_button[i].x and pick_player_button[i].y <= mouse_pos[1] <= pick_player_button[i].y+pick_player_button[i].height:
+                    for i in range(self.playernum - 1):
+                        if pick_player_button[i].x <= mouse_pos[0] <= pick_player_button[i].width + pick_player_button[
+                            i].x and pick_player_button[i].y <= mouse_pos[1] <= pick_player_button[i].y + \
+                                pick_player_button[i].height:
                             index = i
-                            print("바꿀사람:{}".format(index+1))
+                            print("바꿀사람:{}".format(index + 1))
                             self.printwindow()
                             loop = False
-        
-        return index+1
-                    
 
+        return index + 1
 
     # 다음 차례 플레이어에게 카드 뽑게 함 -> draw 카드
     def give_card(self, card_num):
@@ -565,7 +567,7 @@ class game():
     def playgame(self):
         self.now_turn = 0
         self.waste_card = []
-  
+
         while self.playing_game:
             if len(self.user_group) == 0:
                 self.restart()
@@ -703,7 +705,7 @@ class game():
 
             # 수정중
             for event in pygame.event.get():
-            
+
                 if event.type == QUIT:
                     pygame.quit()
                     sys.exit()
@@ -720,7 +722,7 @@ class game():
                         self.select_player(self.now_turn)
                         mouse_pos = pygame.mouse.get_pos()
                         for sprite in self.user_group:
-                            if sprite.get_rect().collidepoint(mouse_pos): 
+                            if sprite.get_rect().collidepoint(mouse_pos):
                                 if self.check_card(sprite):
                                     # pygame.mixer.pre_init(44100, -16, 1, 512)
                                     pygame.init()
@@ -740,9 +742,6 @@ class game():
                                 self.now_turn = self.next_turn(self.now_turn)
                                 break
 
-                        
-
-    
             pygame.display.update()
 
     # 카드 뽑음
@@ -855,7 +854,7 @@ class game():
         self.printwindow()
 
     def pause(self):
-        
+
         paused = True
         self.playing_game = False
 
@@ -870,7 +869,5 @@ class game():
             pygame.draw.rect(self.screen, BLACK, (SCREEN_WIDTH / 2 - 200, SCREEN_HEIGHT / 3 - 100, 400, 400), 5)
             close_text = self.text_format("PAUSE", 'Berlin Sans FB', 80, (255, 51, 0))
             self.screen.blit(close_text, (230, 220))
-        
+
             pygame.display.update()
-
-
