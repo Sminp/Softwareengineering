@@ -109,31 +109,31 @@ class Slider:
     # 버튼 클래스
 
 
-class Button:
-    def __init__(self, screen, x, y, width, height, text, font_size=30, font_name='malgungothic', color=WHITE,
-                 hover_color=GRAY, action=None):
-        self.rect = pygame.Rect(x, y, width, height)
-        self.text = text
-        self.color = color
-        self.hover_color = hover_color
-        self.action = action
-        self.screen = screen
+# class Button:
+#     def __init__(self, screen, x, y, width, height, text, font_size=30, font_name='malgungothic', color=WHITE,
+#                  hover_color=GRAY, action=None):
+#         self.rect = pygame.Rect(x, y, width, height)
+#         self.text = text
+#         self.color = color
+#         self.hover_color = hover_color
+#         self.action = action
+#         self.screen = screen
 
-        mouse = pygame.mouse.get_pos()
-        click = pygame.mouse.get_pressed()
+#         mouse = pygame.mouse.get_pos()
+#         click = pygame.mouse.get_pressed()
 
-        if x + width > mouse[0] > x and y + height > mouse[1] > y:
-            # 마우스를 버튼위에 올렸을 때 색깔 변함
-            pygame.draw.rect(screen, self.hover_color, self.rect)
-            if click[0] == 1 and action != None:
-                # 클릭하면 해당 버튼 기능 수행
-                action()
-        else:
-            pygame.draw.rect(screen, self.color, self.rect)
+#         if x + width > mouse[0] > x and y + height > mouse[1] > y:
+#             # 마우스를 버튼위에 올렸을 때 색깔 변함
+#             pygame.draw.rect(screen, self.hover_color, self.rect)
+#             if click[0] == 1 and action != None:
+#                 # 클릭하면 해당 버튼 기능 수행
+#                 action()
+#         else:
+#             pygame.draw.rect(screen, self.color, self.rect)
 
-        # 버튼의 text 설정
-        font = pygame.font.SysFont(font_name, font_size)
-        self.text_surf = font.render(self.text, True, BLACK)
-        self.text_rect = self.text_surf.get_rect()
-        self.text_rect.center = ((x + width / 2), (y + height / 2))
-        screen.blit(self.text_surf, self.text_rect)
+#         # 버튼의 text 설정
+#         font = pygame.font.SysFont(font_name, font_size)
+#         self.text_surf = font.render(self.text, True, BLACK)
+#         self.text_rect = self.text_surf.get_rect()
+#         self.text_rect.center = ((x + width / 2), (y + height / 2))
+#         screen.blit(self.text_surf, self.text_rect)
