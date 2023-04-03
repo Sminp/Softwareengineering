@@ -85,7 +85,7 @@ class UNOGame():
                         if selected == 0:
                             self.lobby_screen()
                         elif selected == 1:
-                            pass
+                            self.setting_screen()
                         else:
                             pygame.quit()
                             sys.exit()
@@ -98,8 +98,7 @@ class UNOGame():
                     if button_list[1].x <= self.mouse_pos[0] <= button_list[1].width + button_list[1].x and \
                             button_list[
                                 1].y <= self.mouse_pos[1] <= button_list[1].y + button_list[1].height:
-                        pass
-                        # 설정화면 함수 연결하기
+                        self.setting_screen()
                     if button_list[2].x <= self.mouse_pos[0] <= button_list[2].width + button_list[2].x and \
                             button_list[
                                 2].y <= self.mouse_pos[1] <= button_list[2].y + button_list[2].height:
