@@ -83,7 +83,8 @@ class UNOGame():
                             selected += 1
                     elif event.key == pygame.K_RETURN:
                         if selected == 0:
-                            self.lobby_screen()
+                            # self.lobby_screen()
+                            self.story()
                         elif selected == 1:
                             self.setting_screen()
                         else:
@@ -159,8 +160,6 @@ class UNOGame():
                         uno = game(result)
                         uno.startgame() 
             
-
-                        
                     for i in range(len(computer_rect)):
                         if i == 0 :
                             continue
@@ -211,6 +210,8 @@ class UNOGame():
             pygame.display.update()
 
     def setting_screen(self):
+
+        pygame.init()
         game_exit = False
 
         # 배경음, 효과음 slider
@@ -281,6 +282,62 @@ class UNOGame():
             buttons = [control_button, settinginit_button, settingsave_button]
 
             pygame.display.update()
+
+    def story(self):
+
+        pygame.init()
+        story = True
+        
+        font = pygame.font.SysFont("malgungothic", 50)
+        text = "스토리 모드"
+        text_surface = font.render(text, True, BLACK)
+        text_rect = text_surface.get_rect(center=(self.screen_width // 5, self.screen_height // 10))
+
+        story_map = [pygame.Rect((i*200+50,self.screen_height // 2 -25,50,50)) for i in range(4)]
+ 
+        while story:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    for i in range(len(story_map)):
+                        if story_map[i].collidepoint(event.pos):
+                            if i == 0 : 
+                                self.difficulty = 2
+                                print("A 지역 : 난이도 {}".format(self.difficulty))
+                                # 로비화면으로 전환 
+                            elif i == 1 :
+                                self.difficulty = 3
+                                self.playernum = 4
+                                print("B 지역: 플레이어 수 {}, 난이도 {}".format(self.playernum,self.difficulty))
+                                uno = game(self.playernum,self.difficulty)
+                                uno.startgame() 
+                            elif i == 2:
+                                self.difficulty = 4
+                                self.playernum = 3
+                                uno = game(self.playernum,self.difficulty)
+                                uno.startgame() 
+                                print("C 지역 : 플레이어 수 {}, 난이도 {}".format(self.playernum,self.difficulty))
+                            else:
+                                self.difficulty = 5 
+                                pass
+            
+            self.screen.fill(WHITE)
+            self.screen.blit(text_surface,text_rect)
+            for rect in story_map:
+                pygame.draw.rect(self.screen,BLACK,rect)
+
+            pygame.display.update()
+
+                            
+
+                  
+            
+
+
+
+
 
 
 # 버트 클래스
