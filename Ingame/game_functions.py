@@ -33,6 +33,7 @@ class game():
         self.rotate = 0
         self.uno = 0
         self.playing_game = True
+        self.game_turn = 1
 
         pygame.display.update()
 
@@ -79,9 +80,8 @@ class game():
     # 게임 시작 화면 - 덱 구성, 플레이어에게 카드 지급, 플레이어 숫자마다 카드 위치 다 다름 -> 5명까지 설정해야함
     def set_window(self):
         self.set_deck()
-        print(self.set_deck)
         # 나중에 변경
-        if self.difficulty == 1:
+        if self.difficulty == 1 or self.difficulty == 4:
             random.shuffle(self.card_deck)
             for player in range(0, self.playernum):
                 card = []
@@ -89,7 +89,7 @@ class game():
                     temp = self.card_deck.pop(number)
                     card.append(temp)
                 self.player[player] = card
-        elif self.difficulty == 5:
+        elif self.difficulty == 2:
             self.card_num = self.card_deck[:76]
             self.card_skill = self.card_deck[76:]
             random.shuffle(self.card_num)
@@ -109,6 +109,25 @@ class game():
                         temp = self.card_num.pop(number)
                     else:
                         temp = self.card_skill.pop(number)
+                    card.append(temp)
+                self.player[player] = card
+        elif self.difficulty == 3:
+            random.shuffle(self.card_deck)
+            card_temp = self.card_deck[0] # 첫번째 카드 미리 뽑아두기 
+            for player in range(0, self.playernum):
+                card = []
+                for number in range(0, len(self.card_deck)//self.playernum): # 모든 카드 같은 수 만큼 플레이어에게 분배
+                    temp = self.card_deck.pop(number)
+                    card.append(temp)
+                self.player[player] = card
+            self.card_deck.append(card_temp)
+        elif self.difficulty == 4:
+            random.shuffle(self.card_deck)
+            self.playernum = 3
+            for player in range(0, self.playernum):
+                card = []
+                for number in range(0, 7):
+                    temp = self.card_deck.pop(number)
                     card.append(temp)
                 self.player[player] = card
 
@@ -363,25 +382,25 @@ class game():
             if self.now_turn == 0:
                 index = self.pick_player()
                 self.player[0], self.player[index] = self.player[index], self.player[0]
-                print(self.player[0], self.player[index])
+                print(self.player[0],"==>", self.player[index])
             elif self.now_turn == 1:
                 pygame.time.wait(500)
                 self.player[1], self.player[self.check_card_num(self.player)] = self.player[
                                                                                     self.check_card_num(self.player)], \
                                                                                 self.player[1]
-                print(self.player[1], self.player[self.check_card_num(self.player)])
+                print(self.player[1],"==>", self.player[self.check_card_num(self.player)])
             elif self.now_turn == 2:
                 pygame.time.wait(500)
                 self.player[2], self.player[self.check_card_num(self.player)] = self.player[
                                                                                     self.check_card_num(self.player)], \
                                                                                 self.player[2]
-                print(self.player[2], self.player[self.check_card_num(self.player)])
+                print(self.player[2],"==>" ,self.player[self.check_card_num(self.player)])
             elif self.now_turn == 3:
                 pygame.time.wait(500)
                 self.player[3], self.player[self.check_card_num(self.player)] = self.player[
                                                                                     self.check_card_num(self.player)], \
                                                                                 self.player[3]
-                print(self.player[3], self.player[self.check_card_num(self.player)])
+                print(self.player[3],"==>", self.player[self.check_card_num(self.player)])
 
         elif name[1] == 'plus':
             if name[2] == 'two':
@@ -590,9 +609,11 @@ class game():
             self.select_player(self.now_turn)
             if self.now_turn == 1:
                 self.select_player(self.now_turn)
-                pygame.time.wait(700)
+                self.change_color()
+                self.game_turn += 1
+                pygame.time.wait(1000)
                 ai = computer.AI(2, self.player[1], self.waste_card)
-                if self.difficulty == 1:
+                if self.difficulty == 1 or self.difficulty == 4:
                     temp = ai.basicplay()
                 elif self.difficulty == 2:
                     next = self.get_next_player(self.now_turn)
@@ -629,9 +650,11 @@ class game():
 
             elif self.now_turn == 2:
                 self.select_player(self.now_turn)
-                pygame.time.wait(700)
+                self.change_color()
+                self.game_turn += 1
+                pygame.time.wait(1000)
                 ai = computer.AI(3, self.player[2], self.waste_card)
-                if self.difficulty == 1:
+                if self.difficulty == 1 or self.difficulty == 4:
                     temp = ai.basicplay()
                 elif self.difficulty == 2:
                     next = self.get_next_player(self.now_turn)
@@ -666,9 +689,11 @@ class game():
                     pygame.display.update()
             elif self.now_turn == 3:
                 self.select_player(self.now_turn)
-                pygame.time.wait(700)
+                self.change_color()
+                self.game_turn += 1
+                pygame.time.wait(1000)
                 ai = computer.AI(4, self.player[3], self.waste_card)
-                if self.difficulty == 1:
+                if self.difficulty == 1 or self.difficulty == 4:
                     temp = ai.basicplay()
                 elif self.difficulty == 2:
                     next = self.get_next_player(self.now_turn)
@@ -703,7 +728,6 @@ class game():
                     self.now_turn = self.next_turn(self.now_turn)
                     pygame.display.update()
 
-            # 수정중
             for event in pygame.event.get():
 
                 if event.type == QUIT:
@@ -720,6 +744,9 @@ class game():
                 if event.type == MOUSEBUTTONUP:
                     if self.now_turn == 0:
                         self.select_player(self.now_turn)
+                        self.change_color()
+                        self.game_turn += 1
+                        pygame.time.wait(1000)
                         mouse_pos = pygame.mouse.get_pos()
                         for sprite in self.user_group:
                             if sprite.get_rect().collidepoint(mouse_pos):
@@ -871,3 +898,14 @@ class game():
             self.screen.blit(close_text, (230, 220))
 
             pygame.display.update()
+
+    def change_color(self):
+        if self.difficulty == 4 and self.game_turn % 5 == 0:
+            print("실행")
+            colors = ["red", "yellow", "green", "blue"]
+            random_name = colors[random.randint(0,3)]
+            radnom_card = loadcard.Card(random_name, (430, 300))
+            self.waste_card.append(random_name)
+            self.waste_group.add(radnom_card)
+            print("바뀐 색:"+random_name)
+            self.printwindow()
