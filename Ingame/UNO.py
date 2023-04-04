@@ -8,52 +8,57 @@ import math
 img_basic_address = './image/'
 
 
+# 텍스트 구현
+def text_format(message, text_font, text_size, text_color):
+    new_font = pygame.font.SysFont(text_font, text_size)
+    new_text = new_font.render(message, pygame.K_0, text_color)  # pygame.K_0가 의미하는 것은?
+    return new_text
+
+
+def background_img_load(filename: str, size=(SCREEN_WIDTH, SCREEN_HEIGHT)) -> object:
+    background_img = pygame.image.load(filename)
+    return pygame.transform.scale(background_img, (size[0], size[1]))
+
+
+def terminate():
+    pygame.quit()
+    sys.exit()
+
+
 class UNOGame():
     """UNOGame 시작화면 밑 설정화면을 나타냅니다."""
 
     def __init__(self):
         pygame.init()
-        # self.background = pygame.image.load("Ingame/image/TitleImage/TitleBackground.jpg")
         self.screen_width = SCREEN_WIDTH
         self.screen_height = SCREEN_HEIGHT
-        self.background_Color = WHITE
-        self.playernum = 2
-        self.difficulty = 1
+        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+        self.background_color = WHITE
         self.font = MALGUNGOTHIC
+        self.player_num = 2
+        self.difficulty = 1
         self.clock = pygame.time.Clock()
         self.FPS = 30
-        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
-        self.screen.fill(self.background_Color)
-        # self.screen.blit(self.background, (0, 0))
+        self.screen.fill(self.background_color)
         self.mouse_pos = pygame.mouse.get_pos()
         pygame.display.update()
-
-    # 텍스트 구현
-    def text_format(self, message, textFont, textSize, textColor):
-        newFont = pygame.font.SysFont(textFont, textSize)
-        newText = newFont.render(message, pygame.K_0, textColor)
-        return newText
 
     # 시작 화면
     def main_menu(self):
         pygame.init()
-        self.screen_background_img = pygame.image.load("./image/TitleImage/TitleBackground.jpg")
-        self.background = pygame.transform.scale(self.screen_background_img, (800, 600))
-        self.screen.blit(self.background, (0, 0))
+        self.screen.blit(background_img_load("./image/TitleImage/TitleBackground.jpg"), (0, 0))
 
-        # 기본 버튼이 1 (왼쪽 시작 버튼) - 해결하면 지우기
         selected = 0
 
         menu = True
 
-        
         while menu:
             # 안정적으로 소리가 나오기 위한 코드 - 이해하면 지우기
             # pygame.mixer.pre_init(44100, -16, 1, 512)
             pygame.init()
             # 효과음 넣기 - 해결하면 지우기
             # sound = pygame.mixer.Sound('./sound/menu.wav')
-            self.screen.blit(self.background, (0, 0))
+            self.screen.blit(background_img_load("./image/TitleImage/TitleBackground.jpg"), (0, 0))
             start_button = Button(self.screen, 400 - 200, 400, "./image/TitleImage/StartButton.png", 200, 200)
             menu_button = Button(self.screen, 400 - 100, 400 - 30, "./image/TitleImage/MenuButton.png", 200, 200)
             end_button = Button(self.screen, 400, 400, "./image/TitleImage/EndButton.png", 200, 200)
@@ -67,8 +72,7 @@ class UNOGame():
             for event in pygame.event.get():
                 # 창 버튼
                 if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
+                    terminate()
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_LEFT:
                         # sound.play()
@@ -105,76 +109,72 @@ class UNOGame():
                                 2].y <= self.mouse_pos[1] <= button_list[2].y + button_list[2].height:
                         pygame.quit()
                         sys.exit()
-                        
-
 
             pygame.display.update()
             self.clock.tick(self.FPS)
             pygame.display.set_caption("UNO!")
 
     def lobby_screen(self):
-    
+
         pygame.init()
 
-        self.background = pygame.image.load("./image/PlayingBackground.png")
-        self.background = pygame.transform.scale(self.background,(800,700))
-        self.screen.blit(self.background,(0,0))
+        self.screen.blit(background_img_load("./image/PlayingBackground.png"), (0, 0))
 
-        font = pygame.font.SysFont("malgungothic", 25)
+        font = pygame.font.SysFont(self.font, 25)
         text = "player"
         text_surface = font.render(text, True, (0, 0, 0))
         text_rect = text_surface.get_rect(center=(self.screen_width // 2 + 70, self.screen_height // 2 + 150))
 
         computer_rect = []
         for i in range(5):
-            rect = pygame.Rect(0,100*i+(i+1)*((self.screen_height-500)/6),150,110)
+            rect = pygame.Rect(0, 100 * i + (i + 1) * ((self.screen_height - 500) / 6), 150, 110)
             if i == 0:
                 label = "computer1"
             else:
                 label = "add"
-            computer_rect.append([rect,label])
+            computer_rect.append([rect, label])
 
         # 아직 게임 시작 버튼이 없어서 못 넣음 
         gamestart_button = Button(self.screen, 350, 150, "./image/button_img.png", 200, 100)
-        
+
         input_active = False
         lobby = True
 
         while lobby:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    mouse_pos= pygame.mouse.get_pos()
+                    terminate()
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    mouse_pos = pygame.mouse.get_pos()
                     if text_rect.collidepoint(event.pos):
                         input_active = True
                     else:
                         input_active = False
 
-                    if gamestart_button.x <= mouse_pos[0] <= gamestart_button.width + gamestart_button.x and gamestart_button.y <= mouse_pos[1] <= gamestart_button.y+gamestart_button.height:
+                    if gamestart_button.x <= mouse_pos[
+                        0] <= gamestart_button.width + gamestart_button.x and gamestart_button.y <= mouse_pos[
+                        1] <= gamestart_button.y + gamestart_button.height:
                         result = 1
-                        for rect,text in computer_rect:
-                          if text != "add":
-                              result += 1
-                        uno = game(result)
-                        uno.startgame() 
-            
+                        for rect, text in computer_rect:
+                            if text != "add":
+                                result += 1
+                        uno = Game(result)
+                        uno.startgame()
+
                     for i in range(len(computer_rect)):
-                        if i == 0 :
+                        if i == 0:
                             continue
                         else:
                             if computer_rect[i][0].collidepoint(event.pos):
-                                if computer_rect[i][1] == "add" and computer_rect[i-1][1] != "add":
-                                    computer_rect[i][1]  = "computer{}".format(i+1)
+                                if computer_rect[i][1] == "add" and computer_rect[i - 1][1] != "add":
+                                    computer_rect[i][1] = "computer{}".format(i + 1)
                                 else:
                                     if i == 4:
                                         computer_rect[i][1] = "add"
                                     else:
-                                        if computer_rect[i+1][1] == "add":
+                                        if computer_rect[i + 1][1] == "add":
                                             computer_rect[i][1] = "add"
-                    
-  
+
                 elif event.type == pygame.KEYDOWN:
                     if input_active:
                         if event.key == pygame.K_RETURN:
@@ -186,26 +186,26 @@ class UNOGame():
                         text_surface = font.render(text, True, BLACK)
                         text_rect.size = text_surface.get_size()
 
-            self.screen.blit(self.background,(0,0))
+            self.screen.blit(background_img_load("./image/PlayingBackground.png"), (0, 0))
             self.screen.blit(text_surface, text_rect)
             gamestart_button.show_botton()
 
-
             for rect, label in computer_rect:
-                pygame.draw.rect(self.screen,WHITE,rect)
+                pygame.draw.rect(self.screen, WHITE, rect)
                 label_surface = font.render(label, True, BLACK)
-                self.screen.blit(label_surface,(rect.x + 10 , rect.y +10))
+                self.screen.blit(label_surface, (rect.x + 10, rect.y + 10))
 
             if input_active:
-                pygame.draw.line(self.screen,BLACK,(text_rect.x+text_rect.w,text_rect.y),(text_rect.x+text_rect.w,text_rect.y+text_rect.h),2)
+                pygame.draw.line(self.screen, BLACK, (text_rect.x + text_rect.w, text_rect.y),
+                                 (text_rect.x + text_rect.w, text_rect.y + text_rect.h), 2)
             else:
-                self.screen.blit(self.background,(0,0))
+                self.screen.blit(background_img_load("./image/PlayingBackground.png"), (0, 0))
                 self.screen.blit(text_surface, text_rect)
                 gamestart_button.show_botton()
                 for rect, label in computer_rect:
-                    pygame.draw.rect(self.screen,WHITE,rect)
+                    pygame.draw.rect(self.screen, WHITE, rect)
                     label_surface = font.render(label, True, BLACK)
-                    self.screen.blit(label_surface,(rect.x + 10 , rect.y +10))
+                    self.screen.blit(label_surface, (rect.x + 10, rect.y + 10))
 
             pygame.display.update()
 
@@ -213,6 +213,7 @@ class UNOGame():
 
         pygame.init()
         game_exit = False
+        selected = 1
 
         # 배경음, 효과음 slider
         backgroundsound_slider = Slider(self.screen, 300, (250, 180), (0, 100))
@@ -221,8 +222,7 @@ class UNOGame():
         while not game_exit:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
+                    terminate()
 
                 backgroundsound_slider.operate(event)
                 soundeffect_slider.operate(event)
@@ -234,7 +234,7 @@ class UNOGame():
                         if selected <= 1:
                             selected = 1
                         else:
-                            selected = selected 
+                            selected = selected
                     elif event.key == pygame.K_RIGHT:
                         # sound.play()
                         if selected >= 3:
@@ -256,12 +256,12 @@ class UNOGame():
 
             # 설정화면 텍스트 표시
 
-            setting_text=self.text_format("설정 화면",MALGUNGOTHIC,50,BLACK)
-            self.screen.blit(setting_text,(80,50))
+            setting_text = text_format("설정 화면", MALGUNGOTHIC, 50, BLACK)
+            self.screen.blit(setting_text, (80, 50))
 
             # 화면 설정 텍스트 표시 ==>> 텍스트 표시 함수를 좀 고쳐야 함
-            screen_setting_text=self.text_format("화면설정",MALGUNGOTHIC,50,BLACK)
-            self.screen.blit(screen_setting_text,(80, 300))
+            screen_setting_text = text_format("화면설정", MALGUNGOTHIC, 50, BLACK)
+            self.screen.blit(screen_setting_text, (80, 300))
 
             # 화면 설정 버튼 - 변수명 바꿔야 함
             gamestart_button = Button(self.screen, 600, 50, "./image/button_img.png", 100, 50)
@@ -287,60 +287,50 @@ class UNOGame():
 
         pygame.init()
         story = True
-        
-        font = pygame.font.SysFont("malgungothic", 50)
+
+        font = pygame.font.SysFont(self.font, 50)
         text = "스토리 모드"
         text_surface = font.render(text, True, BLACK)
         text_rect = text_surface.get_rect(center=(self.screen_width // 5, self.screen_height // 10))
 
-        story_map = [pygame.Rect((i*200+50,self.screen_height // 2 -25,50,50)) for i in range(4)]
- 
+        story_map = [pygame.Rect((i * 200 + 50, self.screen_height // 2 - 25, 50, 50)) for i in range(4)]
+
         while story:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    terminate()
+                if event.type == pygame.MOUSEBUTTONDOWN:
                     for i in range(len(story_map)):
                         if story_map[i].collidepoint(event.pos):
-                            if i == 0 : 
+                            if i == 0:
                                 self.difficulty = 2
                                 print("A 지역 : 난이도 {}".format(self.difficulty))
                                 # 로비화면으로 전환 
-                            elif i == 1 :
+                            elif i == 1:
                                 self.difficulty = 3
-                                self.playernum = 4
-                                print("B 지역: 플레이어 수 {}, 난이도 {}".format(self.playernum,self.difficulty))
-                                uno = game(self.playernum,self.difficulty)
-                                uno.startgame() 
+                                self.player_num = 4
+                                print("B 지역: 플레이어 수 {}, 난이도 {}".format(self.player_num, self.difficulty))
+                                uno = Game(self.player_num, self.difficulty)
+                                uno.startgame()
                             elif i == 2:
                                 self.difficulty = 4
-                                self.playernum = 3
-                                uno = game(self.playernum,self.difficulty)
-                                uno.startgame() 
-                                print("C 지역 : 플레이어 수 {}, 난이도 {}".format(self.playernum,self.difficulty))
+                                self.player_num = 3
+                                uno = Game(self.player_num, self.difficulty)
+                                uno.startgame()
+                                print("C 지역 : 플레이어 수 {}, 난이도 {}".format(self.player_num, self.difficulty))
                             else:
-                                self.difficulty = 5 
+                                self.difficulty = 5
                                 pass
-            
+
             self.screen.fill(WHITE)
-            self.screen.blit(text_surface,text_rect)
+            self.screen.blit(text_surface, text_rect)
             for rect in story_map:
-                pygame.draw.rect(self.screen,BLACK,rect)
+                pygame.draw.rect(self.screen, BLACK, rect)
 
             pygame.display.update()
 
-                            
 
-                  
-            
-
-
-
-
-
-
-# 버트 클래스
+# 버튼 클래스 안에 하이라이트 그림 넣으면 안되려나?
 # 버튼 클래스
 class Button:
     def __init__(self, screen, x, y, img, width, height):
@@ -378,6 +368,8 @@ class Button:
         # self.textRect.center = ((x + width/2),(y + height/2))
         # screen.blit(self.textSurf, self.textRect)
 
+    def cliked(self):
+        self.screen.blit(self.img, (self.x, self.y - 5))
 
 
 # 카드 뒤집는 애니메이션 구현
@@ -407,10 +399,6 @@ class Button:
             screen.blit(img_after, [450 + 20 - tmr * 2 / 45 * 10, 200])
 """
 
-
 if __name__ == '__main__':
     uno = UNOGame()
     uno.main_menu()
-
-    # uno = game()
-    # uno.startgame()

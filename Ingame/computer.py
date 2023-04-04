@@ -1,44 +1,44 @@
-import pygame
-from pygame.locals import *
-
 temp = []
 
 
 class AI():
-    def __init__(self, playernum, playerdeck, wastecard):
-        print(playerdeck)
-        self.playernum = playernum
-        self.playerdeck = playerdeck
-        self.nowcard = wastecard[-1]
-        self.wastes = wastecard
+    def __init__(self, player_num, player_deck, waste_card):
+        print(player_deck)
+        self.player_num = player_num
+        self.player_deck = player_deck
+        self.now_card = waste_card[-1]
+        self.wastes = waste_card
 
-    def basicplay(self):
-        now = self.nowcard.split('_')
-        for item in self.playerdeck:
+    def basic_play(self):
+        now = self.now_card.split('_')
+        for item in self.player_deck:
             card = item.split('_')
-            if now[0] == 'wild': return item
+            if now[0] == 'wild':
+                return item
             if len(now) == 1:
-                if card[0] == now[0]: return item
+                if card[0] == now[0]:
+                    return item
             elif len(card) < 3 or len(now) < 3:
                 if card[0] == now[0]:
                     return item
-                elif card[1] == now[1]: # 여기에서 자꾸 오류나는데 wild카드 낼 때 문제인듯 card[1]이 없어서? 그럼 wild 카드에 뒤에 .이나 무슨 표시를 넣어야할듯?
+                elif card[1] == now[1]:  # 여기에서 자꾸 오류나는데 wild카드 낼 때 문제인듯 card[1]이 없어서? 그럼 wild 카드에 뒤에 .이나 무슨 표시를 넣어야할듯?
                     return item
             else:
                 if card[0] == now[0]:
                     return item
                 elif card[2] == now[2]:
                     return item
-        for item in self.playerdeck:
+        for item in self.player_deck:
             card = item.split('_')
             if card[0] == 'wild':
                 return item
         return 0
 
-    def advancedplay(self, next_user):
-        now = self.nowcard.split('_')
+    # difficulty 2
+    def advanced_play(self, next_user):
+        now = self.now_card.split('_')
         solution = []
-        for item in self.playerdeck:
+        for item in self.player_deck:
             card = item.split('_')
             if len(next_user) < 3:
                 if len(card) == 3:
@@ -46,11 +46,11 @@ class AI():
                         return item
                     elif card[2] == 2:
                         return item
-        if len(self.playerdeck) == 1:
-            return self.playerdeck[0]
+        if len(self.player_deck) == 1:
+            return self.player_deck[0]
         result = self.find_solution(now)
         if result is None:
-            for item in self.playerdeck:
+            for item in self.player_deck:
                 card = item.split('_')
                 if card[0] == 'wild':
                     result = item
@@ -60,29 +60,33 @@ class AI():
 
     def find_solution(self, now):
         temp = []
-        for item in self.playerdeck:
+        for item in self.player_deck:
             item_ = item.split('_')
             if len(item_) == 2:
-                if len(now) == 1:
-                    if item_[0] == now[0]: temp.append(item)
+                if len(now) == 1: # wild, red, blue, green, yellow
+                    if item_[0] == now[0]:
+                        temp.append(item)
                 if len(now) == 2:
                     if item_[0] == now[0]:
                         temp.append(item)
                     elif item_[1] == now[1]:
                         temp.append(item)
                 if len(now) == 3:
-                    if item_[0] == now[0]: temp.append(item)
+                    if item_[0] == now[0]:
+                        temp.append(item)
             if len(item_) == 3:
                 if item_[0] != 'wild':
                     if item_[0] == now[0]:
-                        if self.playernum == 2:
-                            if self.check_same_color(item_[0]): temp.append(item)
+                        if self.player_num == 2:
+                            if self.check_same_color(item_[0]):
+                                temp.append(item)
                         else:
                             temp.append(item)
                     if len(now) == 3:
                         if item_[2] == now[2]:
-                            if self.playernum == 2:
-                                if self.check_same_color(item_[0]): temp.append(item)
+                            if self.player_num == 2:
+                                if self.check_same_color(item_[0]):
+                                    temp.append(item)
                             else:
                                 temp.append(item)
                 elif item_[0] == 'wild':
@@ -113,10 +117,10 @@ class AI():
 
     def check_same_color(self, color):
         sum = 0
-        for item in self.playerdeck:
+        for item in self.player_deck:
             item_ = item.split('_')
             if item_[0] == color:
-                sum = sum + 1
+                sum += 1
         if sum > 1:
             return True
         else:
