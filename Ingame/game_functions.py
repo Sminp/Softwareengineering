@@ -422,7 +422,7 @@ class Game():
                     
 
                     # 마지막 카드 위치 처음으로 
-                    self.lastcard0 = (140,500)
+                    self.lastcard0 = (130,500)
                     self.lastcard1 = (230,100)
 
                     # 플레이어 초기화
@@ -1085,7 +1085,8 @@ class Game():
     def put_waste_group(self, sprite):
         self.waste_group.add(sprite)
         self.waste_card.append(sprite.get_name())
-        self.set_lastcard(self.lastcard0, sprite.getposition())
+        if len(self.waste_card) != 1:
+            self.set_lastcard(self.lastcard0, sprite.getposition())
         self.print_window()
 
     def pause(self):
