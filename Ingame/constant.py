@@ -9,6 +9,7 @@ SCREEN_HEIGHT = 600
 
 # 글꼴
 MALGUNGOTHIC = "malgungothic"
+BERLIN = 'Berlin Sans FB'
 
 # 색상
 WHITE = (255, 255, 255)
