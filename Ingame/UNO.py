@@ -120,8 +120,8 @@ class UNOGame():
         self.screen.blit(background_img_load("./image/PlayingBackground.png"), (0, 0))
 
         font = pygame.font.SysFont(self.font, 25)
-        text = "player"
-        text_surface = font.render(text, True, (0, 0, 0))
+        name_text = "player"
+        text_surface = font.render(name_text, True, (0, 0, 0))
         text_rect = text_surface.get_rect(center=(self.screen_width // 2 + 70, self.screen_height // 2 + 150))
 
         computer_rect = []
@@ -158,8 +158,7 @@ class UNOGame():
                         for rect, text in computer_rect:
                             if text != "add":
                                 result += 1
-                        # 외부랑 이름 같이서 일단 변경했어
-                        uno_ = Game(result)
+                        uno_ = Game(result,player_name=name_text)
                         uno_.startgame()
 
                     for i in range(len(computer_rect)):
@@ -181,10 +180,10 @@ class UNOGame():
                         if event.key == pygame.K_RETURN:
                             input_active = False
                         elif event.key == pygame.K_BACKSPACE:
-                            text = text[:-1]
+                            name_text = name_text[:-1]
                         else:
-                            text += event.unicode
-                        text_surface = font.render(text, True, BLACK)
+                            name_text += event.unicode
+                        text_surface = font.render(name_text, True, BLACK)
                         text_rect.size = text_surface.get_size()
 
             self.screen.blit(background_img_load("./image/PlayingBackground.png"), (0, 0))
