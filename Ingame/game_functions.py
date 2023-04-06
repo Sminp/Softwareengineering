@@ -1,6 +1,7 @@
 import sys
 import random
 import pygame
+import math
 import loadcard
 import computer
 from pygame.locals import *
@@ -30,22 +31,26 @@ class Game():
         self.uno = 0
         self.playing_game = True
         self.game_turn = 1
-        self.num_card = []
-        self.skill_card = []
+        self.uno_button = Button(self.screen, 500, 300, "./image/UnoButton.png", 30, 30)
+        self.first_show = True
+        self.two_first_show = True
+        self.time = 0
+        self.active = False
 
         pygame.display.update()
 
     # 카드 생성
-    def set_deck(self):
+    def set_deck(self) -> list:
+        card_deck = []
         for color_idx in range(1, 5):
             card = self.color[color_idx]
             now_card = card + '_0'
-            self.card_deck.append(now_card)
+            card_deck.append(now_card)
             for card_number in range(1, 10):
                 now_card = card + "_" + str(card_number)
                 iterate = 0
                 while iterate != 2:
-                    self.card_deck.append(now_card)
+                    card_deck.append(now_card)
                     iterate += 1
         for color_idx in range(1, 5):
             card = self.color[color_idx]
@@ -56,21 +61,22 @@ class Game():
                     self.card_deck.append(now_card)
                     iterate += 1
         # 짧게 바꿔도 됨
-        self.card_deck.append("red_yellow")
-        self.card_deck.append("red_yellow")
-        self.card_deck.append("blue_green")
-        self.card_deck.append("blue_green")
+        card_deck.append("red_yellow")
+        card_deck.append("red_yellow")
+        card_deck.append("blue_green")
+        card_deck.append("blue_green")
         card = 'wild'
         for card_number in range(14, 17):
             now_card = card + self.skill[card_number]
             iterate = 0
             while iterate != 4:
-                self.card_deck.append(now_card)
+                card_deck.append(now_card)
                 iterate += 1
+        return card_deck
 
     # 게임 시작 화면 - 덱 구성, 플레이어에게 카드 지급, 플레이어 숫자마다 카드 위치 다 다름 -> 5명까지 설정해야함
     def set_window(self):
-        self.set_deck()
+        self.card_deck = self.set_deck()
         if self.difficulty == 1 or self.difficulty == 4:
             random.shuffle(self.card_deck)
             for player in range(0, self.player_num):
@@ -80,22 +86,23 @@ class Game():
                     card.append(temp)
                 self.player[player] = card
         elif self.difficulty == 2:
-            self.num_card = self.card_deck[:76]
-            self.skill_card = self.card_deck[76:]
-            random.shuffle(self.num_card)
-            random.shuffle(self.skill_card)
+            num_card = self.card_deck[:76]
+            skill_card = self.card_deck[76:]
+            random.shuffle(num_card)
+            random.shuffle(skill_card)
             for player in range(1, self.player_num):
                 card = []
                 for number in range(0, 7):
                     if random.random() < 76 / 164:
-                        temp = self.num_card.pop(number)
+                        temp = num_card.pop(number)
                     else:
-                        temp = self.skill_card.pop(number)
+                        temp = skill_card.pop(number)
                     card.append(temp)
                 self.player[player] = card
-            card = []
-            self.card_deck = self.num_card + self.skill_card
+            self.card_deck = num_card + skill_card
+            del num_card, skill_card
             random.shuffle(self.card_deck)
+            card = []
             for number in range(7):
                 temp = self.card_deck.pop(number)
                 card.append(temp)
@@ -123,13 +130,14 @@ class Game():
         deck = loadcard.Card('back', (350, 300))
         self.deck_group = pygame.sprite.RenderPlain(deck)
 
+        # 이거 왜 있어? init? 혹시 몰라서야?
         player_deck = self.player[0]
         init_card = []
         for item in player_deck:
             cards = loadcard.Card(item, (400, 300))
             init_card.append(cards)
 
-        for i in range(0, len(self.player)):
+        for i in range(len(self.player)):
             player_deck = self.player[i]
             if i == 0:
                 user_card = []
@@ -137,33 +145,35 @@ class Game():
                     cards = loadcard.Card(item, (400, 300))
                     user_card.append(cards)
             elif i == 1:
-                self.com1_card = []
-                for item in player_deck:
+                com1_card = []
+                for _ in player_deck:
                     cards = loadcard.Card('back', (400, 300))
                     cards.rotation(180)
-                    self.com1_card.append(cards)
+                    com1_card.append(cards)
             elif i == 2:
-                self.com2_card = []
-                for item in player_deck:
+                com2_card = []
+                for _ in player_deck:
                     cards = loadcard.Card('back', (400, 300))
                     cards.rotation(270)
-                    self.com2_card.append(cards)
+                    com2_card.append(cards)
             else:
-                self.com3_card = []
-                for item in player_deck:
+                com3_card = []
+                for _ in player_deck:
                     cards = loadcard.Card('back', (400, 300))
                     cards.rotation(90)
-                    self.com3_card.append(cards)
+                    com3_card.append(cards)
+
         setting = True
-        settinguser = 1;
-        settingcom1 = 1;
-        settingcom3 = 1;
-        settingcom2 = 1
+        setting_user = 1
+        setting_com1 = 1
+        setting_com2 = 1
+        setting_com3 = 1
+        # 이게 뭐지?
         if self.player_num == 3:
-            settingcom3 = 0
-        if self.player_num == 2:
-            settingcom3 = 0
-            settingcom2 = 0
+            setting_com3 = 0
+        elif self.player_num == 2:
+            setting_com3 = 0
+            setting_com2 = 0
 
         while setting:
             for event in pygame.event.get():
@@ -179,49 +189,50 @@ class Game():
                 i += 1
             self.user_group = pygame.sprite.RenderPlain(*temp_list)
 
+            # 이거 마지막 카드 겹쳐서 뒤로 갈까봐 한거야
             self.lastcard0 = temp_list[-1].getposition()
             if self.lastcard0 == (200 + 70 * (len(temp_list) - 1), 500):
-                settinguser = 0
+                setting_user = 0
 
             i = 0
             temp_list = []
             setting = True
-            for item in self.com1_card:
+            for item in com1_card:
                 item.update((270 + 40 * i, 100))
                 temp_list.append(item)
                 i += 1
             self.com1_group = pygame.sprite.RenderPlain(*temp_list)
             self.lastcard1 = temp_list[-1].getposition()
             if self.lastcard1 == (270 + 40 * (len(temp_list) - 1), 100):
-                settingcom1 = 0
+                setting_com1 = 0
 
             if self.player_num >= 3:
                 i = 0
                 temp_list = []
                 setting = True
-                for item in self.com2_card:
+                for item in com2_card:
                     item.update((80, 170 + 40 * i))
                     temp_list.append(item)
                     i += 1
                 self.com2_group = pygame.sprite.RenderPlain(*temp_list)
                 self.lastcard2 = temp_list[-1].getposition()
                 if self.lastcard2 == (80, 170 + 40 * (len(temp_list) - 1)):
-                    settingcom2 = 0
+                    setting_com2 = 0
 
             if self.player_num == 4:
                 i = 0
                 temp_list = []
                 setting = True
-                for item in self.com3_card:
+                for item in com3_card:
                     item.update((710, 170 + 40 * i))
                     temp_list.append(item)
                     i += 1
                 self.com3_group = pygame.sprite.RenderPlain(*temp_list)
                 self.lastcard3 = temp_list[-1].getposition()
                 if self.lastcard3 == (710, 170 + 40 * (len(temp_list) - 1)):
-                    settingcom3 = 0
+                    setting_com3 = 0
 
-            if settinguser == 0 and settingcom1 == 0 and settingcom2 == 0 and settingcom3 == 0:
+            if setting_user == 0 and setting_com1 == 0 and setting_com2 == 0 and setting_com3 == 0:
                 setting = False
 
             # #pygame.mixer.pre_init(44100, -16, 1, 512)
@@ -233,21 +244,21 @@ class Game():
             pygame.display.update()
 
     # 플레이어 이름 표시
-    def next_turn(self, now_turn):
+    def next_turn(self, now_turn: int) -> int:
         if now_turn == 0:
-            user_text = text_format("ME", 'Berlin Sans FB', 30, (0, 0, 0))
+            user_text = text_format("ME", BERLIN, 30, (0, 0, 0))
             self.screen.blit(user_text, (165, 420))
 
         elif now_turn == 1:
-            com1_text = text_format("COM1", 'Berlin Sans FB', 30, (0, 0, 0))
+            com1_text = text_format("COM1", BERLIN, 30, (0, 0, 0))
             self.screen.blit(com1_text, (235, 18))
 
         elif now_turn == 2:
-            com2_text = text_format("COM2", 'Berlin Sans FB', 30, (0, 0, 0))
+            com2_text = text_format("COM2", BERLIN, 30, (0, 0, 0))
             self.screen.blit(com2_text, (45, 100))
 
         elif now_turn == 3:
-            com3_text = text_format("COM3", 'Berlin Sans FB', 30, (0, 0, 0))
+            com3_text = text_format("COM3", BERLIN, 30, (0, 0, 0))
             self.screen.blit(com3_text, (675, 100))
         temp = self.get_next_player(now_turn)
         return temp
@@ -268,36 +279,36 @@ class Game():
     # 지금 현재 턴인 플레이어 표시
     def select_player(self, now_turn):
         if now_turn == 0:
-            user_text = text_format("ME", 'Berlin Sans FB', 30, (255, 242, 0))
+            user_text = text_format("ME", BERLIN, 30, (255, 242, 0))
             self.screen.blit(user_text, (165, 420))
         elif now_turn == 1:
-            com1_text = text_format("COM1", 'Berlin Sans FB', 30, (255, 242, 0))
+            com1_text = text_format("COM1", BERLIN, 30, (255, 242, 0))
             self.screen.blit(com1_text, (235, 18))
         elif now_turn == 2:
-            com2_text = text_format("COM2", 'Berlin Sans FB', 30, (255, 242, 0))
+            com2_text = text_format("COM2", BERLIN, 30, (255, 242, 0))
             self.screen.blit(com2_text, (45, 100))
         else:
-            com3_text = text_format("COM3", 'Berlin Sans FB', 30, (255, 242, 0))
+            com3_text = text_format("COM3", BERLIN, 30, (255, 242, 0))
             self.screen.blit(com3_text, (675, 100))
         pygame.display.update()
 
-    # 플레이어 이름 표시
-    def print_window(self):
+    # 플레이어 이름 표시 초기화
+    def print_window(self, active=1):
         self.screen.blit(background_img_load("./image/PlayingBackground.png"), (0, 0))
         self.deck_group.draw(self.screen)
         self.user_group.draw(self.screen)
         self.com1_group.draw(self.screen)
         if self.player_num >= 3:
             self.com2_group.draw(self.screen)
-            com2_text = text_format("COM2", 'Berlin Sans FB', 30, (0, 0, 0))
+            com2_text = text_format("COM2", BERLIN, 30, (0, 0, 0))
             self.screen.blit(com2_text, (45, 100))
         if self.player_num == 4:
             self.com3_group.draw(self.screen)
-            com3_text = text_format("COM3", 'Berlin Sans FB', 30, (0, 0, 0))
+            com3_text = text_format("COM3", BERLIN, 30, (0, 0, 0))
             self.screen.blit(com3_text, (675, 100))
-        user_text = text_format("ME", 'Berlin Sans FB', 30, (0, 0, 0))
+        user_text = text_format("ME", BERLIN, 30, (0, 0, 0))
         self.screen.blit(user_text, (165, 420))
-        com1_text = text_format("COM1", 'Berlin Sans FB', 30, (0, 0, 0))
+        com1_text = text_format("COM1", BERLIN, 30, (0, 0, 0))
         self.screen.blit(com1_text, (235, 18))
         self.waste_group.draw(self.screen)
         if len(self.waste_card) == 0:
@@ -329,6 +340,10 @@ class Game():
                     pygame.draw.rect(self.screen, BLUE, (500, 500, 100, 100))
             elif w_name[0] == "green":
                 pygame.draw.rect(self.screen, GREEN, (500, 500, 100, 100))
+            if active:
+                self.show_uno()
+            else:
+                self.uno_button.cliked()
 
     # 낼 수 있는지 확인
     def check_card(self, sprite):
@@ -396,21 +411,18 @@ class Game():
                 print(self.player[0], "==>", self.player[index])
             elif self.now_turn == 1:
                 pygame.time.wait(500)
-                self.player[1], self.player[self.check_card_num(self.player)] = self.player[
-                                                                                    self.check_card_num(self.player)], \
-                                                                                self.player[1]
+                self.player[1], self.player[self.check_card_num(self.player)] \
+                    = self.player[self.check_card_num(self.player)], self.player[1]
                 print(self.player[1], "==>", self.player[self.check_card_num(self.player)])
             elif self.now_turn == 2:
                 pygame.time.wait(500)
-                self.player[2], self.player[self.check_card_num(self.player)] = self.player[
-                                                                                    self.check_card_num(self.player)], \
-                                                                                self.player[2]
+                self.player[2], self.player[self.check_card_num(self.player)] \
+                    = self.player[self.check_card_num(self.player)], self.player[2]
                 print(self.player[2], "==>", self.player[self.check_card_num(self.player)])
             elif self.now_turn == 3:
                 pygame.time.wait(500)
-                self.player[3], self.player[self.check_card_num(self.player)] = self.player[
-                                                                                    self.check_card_num(self.player)], \
-                                                                                self.player[3]
+                self.player[3], self.player[self.check_card_num(self.player)] \
+                    = self.player[self.check_card_num(self.player)], self.player[3]
                 print(self.player[3], "==>", self.player[self.check_card_num(self.player)])
 
         elif name[1] == 'plus':
@@ -434,7 +446,7 @@ class Game():
         else:
             if self.now_turn != 0:
                 return False
-
+        self.show_uno()
         return True
 
     # 지금 덱 중에서 가장 숫자가 많은 색깔 구함 -> 컴퓨터가 wild 카드 사용할 때 사용 , 여기 수정해야함 그 숫자없는 카드가 없긴해 
@@ -504,10 +516,88 @@ class Game():
         print("작동")  # 두번작동
         return player_deck_list.index(shortest_list)
 
-    # # uno 확인 함수 def check_uno(self) -> bool: if self.player_num == 2: if len(self.player[0]) == 1 or len(
-    # self.player[1]) == 1: return True elif self.player_num == 3: if len(self.player[0]) == 1 or len(self.player[1])
-    # == 1 or len(self.player[2]) == 1: return True elif self.player_num == 3: if len(self.player[0]) == 1 or len(
-    # self.player[1]) == 1 or len(self.player[2]) == 1 or len(self.player[3]) == 1: return True return False
+    def check_two(self) -> bool:
+        if self.player_num <= 2:
+            len_min = min(len(self.user_group), len(self.player[1]))
+            if 1 <= len_min <= 2:
+                return True
+        elif self.player_num == 3:
+            len_min = min(len(self.user_group), len(self.player[1]), len(self.player[2]))
+            if 1 <= len_min <= 2:
+                return True
+        elif self.player_num == 4:
+            len_min = min(len(self.user_group), len(self.player[1]), len(self.player[2]), len(self.player[3]))
+            if 1 <= len_min <= 2:
+                return True
+        return False
+
+    def check_uno(self) -> bool:
+        if self.player_num <= 2:
+            len_min = min(len(self.user_group), len(self.player[1]))
+            if len_min == 1:
+                return True
+        elif self.player_num == 3:
+            len_min = min(len(self.user_group), len(self.player[1]), len(self.player[2]))
+            if len_min == 1:
+                return True
+        elif self.player_num == 4:
+            len_min = min(len(self.user_group), len(self.player[1]), len(self.player[2]), len(self.player[3]))
+            if len_min == 1:
+                return True
+        return False
+
+    def set_uno_timer(self) -> bool:
+        if self.difficulty == 1:
+            self.time = random.randint(500, 1000)
+        elif self.difficulty == 2:
+            self.time = random.randint(300, 1000)
+        else:
+            self.time = random.randint(0, 1000)
+        return True
+
+    def uno_clicked(self, active=1):
+        if active:
+            for event in pygame.event.get():
+                if event.type == MOUSEBUTTONUP:
+                    mouse_pos = pygame.mouse.get_pos()
+                    if 500 <= mouse_pos[0] <= 530 and 300 <= mouse_pos[1] <= 330:
+                        return True
+        return False
+
+    def show_uno(self) -> object:
+        if self.check_two():
+            if self.check_uno() and self.two_first_show:
+                self.uno_button.cliked()
+                self.print_window(0)
+                if self.first_show:
+                    self.set_uno_timer()
+                    print(self.time)
+                    self.first_show = False
+                    self.active = True
+                self.time -= 1
+                if self.time <= 0:
+                    if self.now_turn == 0:
+                        self.get_from_deck(self.now_turn)
+                        pygame.time.wait(1000)
+                        pygame.display.update()
+                    self.two_first_show = False
+                    return 0
+                elif self.uno_clicked(self.active):
+                    print("YEAH")
+                    self.two_first_show = False
+                    self.active = False
+                    if self.now_turn == 0:
+                        pass
+                    else:
+                        self.get_from_deck(self.now_turn)
+                        pygame.time.wait(1000)
+                        pygame.display.update()
+                return 0
+            else:
+                self.uno_button.show_botton()
+            self.two_first_show = True
+            return 0
+        self.first_show = True
 
     # change 카드 사용할 때 바꿀 플레이어 선택
     def pick_player(self):
@@ -553,13 +643,13 @@ class Game():
 
         if len(self.user_group) == 0:
             # win.play()
-            close_text = text_format("YOU WIN!", 'Berlin Sans FB', 80, (255, 51, 0))
-            press_text = text_format("Press SPACE to REPLAY", 'Berlin Sans FB', 35, (255, 51, 0))
+            close_text = text_format("YOU WIN!", BERLIN, 80, (255, 51, 0))
+            press_text = text_format("Press SPACE to REPLAY", BERLIN, 35, (255, 51, 0))
             self.screen.blit(close_text, (230, 220))
         else:
             # lose.play()
-            close_text = text_format("YOU LOSE!", 'Berlin Sans FB', 80, (255, 51, 0))
-            press_text = text_format("Press SPACE to REPLAY", 'Berlin Sans FB', 35, (255, 51, 0))
+            close_text = text_format("YOU LOSE!", BERLIN, 80, (255, 51, 0))
+            press_text = text_format("Press SPACE to REPLAY", BERLIN, 35, (255, 51, 0))
             self.screen.blit(close_text, (212, 220))
 
         self.screen.blit(press_text, (228, 330))
@@ -575,7 +665,7 @@ class Game():
                         return
         return 0
 
-    def no_temp(self, now_turn):
+    def no_temp(self, now_turn: int):
         self.get_from_deck(now_turn)
         self.print_window()
         self.now_turn = self.next_turn(self.now_turn)
@@ -615,30 +705,7 @@ class Game():
             if len(self.card_deck) == 0:
                 self.set_deck()
 
-            # if self.check_uno():
-            #     tmr += 1
-            #     uno_button = Button(self.screen, 500, 300, "./image/button_img.png", 30, 30)
-            #     if self.now_turn == 0:
-            #         if self.uno_clicked():
-            #             uno_button.cliked()
-            #             pygame.time.wait(1000)
-            #         else:
-            #             self.get_from_deck(self.now_turn)
-            #             pygame.display.update()
-            #     # 수정잉
-            #     if self.difficulty == 1:
-            #         if tmr >= 60:
-            #             uno_button.cliked()
-            #         else:
-            #             self.get_from_deck(self.now_turn)
-            #             pygame.display.update()
-            #     elif self.difficulty == 2:
-            #         if tmr >= 45:
-            #             uno_button.cliked()
-            #         else:
-            #             self.get_from_deck(self.now_turn)
-            #             pygame.display.update()
-
+            self.show_uno()
             self.select_player(self.now_turn)
             if self.now_turn == 0 and len(self.waste_card) == 0:
                 temp = loadcard.Card(self.card_deck.pop(), (430, 300))
@@ -785,23 +852,23 @@ class Game():
                         self.game_turn += 1
                         pygame.time.wait(1000)
                         for sprite in self.user_group:
-                            if sprite.get_rect().collidepoint(mouse_pos):
-                                if self.check_card(sprite):
-                                    # pygame.mixer.pre_init(44100, -16, 1, 512)
-                                    pygame.init()
-                                    # card = pygame.mixer.Sound('./sound/deal_card.wav') 
-                                    self.user_group.remove(sprite)
-                                    for temp in self.user_group:
-                                        temp.move(sprite.getposition())
-                                    sprite.setposition(430, 300)
-                                    # card.play()
-                                    self.put_waste_group(sprite)
-                                    self.card_skill(sprite)
-                                    self.now_turn = self.next_turn(self.now_turn)
-                                    break
+                            if sprite.get_rect().collidepoint(mouse_pos) and self.check_card(sprite):
+                                # pygame.mixer.pre_init(44100, -16, 1, 512)
+                                pygame.init()
+                                # card = pygame.mixer.Sound('./sound/deal_card.wav')
+                                self.user_group.remove(sprite)
+                                for temp in self.user_group:
+                                    temp.move(sprite.getposition())
+                                sprite.setposition(430, 300)
+                                # card.play()
+                                self.put_waste_group(sprite)
+                                self.card_skill(sprite)
+                                self.now_turn = self.next_turn(self.now_turn)
+                                break
                         for sprite in self.deck_group:
                             if sprite.get_rect().collidepoint(mouse_pos):
                                 self.get_from_deck(self.now_turn)
+                                self.show_uno()
                                 self.now_turn = self.next_turn(self.now_turn)
                                 break
 
@@ -812,7 +879,12 @@ class Game():
         # pygame.mixer.pre_init(44100, -16, 1, 512)
         pygame.init()
         # deck = pygame.mixer.Sound('./sound/from_deck.wav')
-        item = self.card_deck.pop(0)
+        if self.card_deck:
+            item = self.card_deck.pop(0)
+        else:
+            random.shuffle(self.waste_card)
+            self.card_deck = self.waste_card[:-1]
+            item = self.card_deck.pop()
         # deck.play()
         if now_turn == 0:
             temp = loadcard.Card(item, (400, 300))
@@ -940,16 +1012,8 @@ class Game():
             print("실행")
             colors = ["red", "yellow", "green", "blue"]
             random_name = colors[random.randint(0, 3)]
-            radnom_card = loadcard.Card(random_name, (430, 300))
+            random_card = loadcard.Card(random_name, (430, 300))
             self.waste_card.append(random_name)
-            self.waste_group.add(radnom_card)
+            self.waste_group.add(random_card)
             print("바뀐 색:" + random_name)
             self.print_window()
-
-    def uno_clicked(self, clicked=False):
-        for event in pygame.event.get():
-            if event.type == MOUSEBUTTONUP:
-                mouse_pos = pygame.mouse.get_pos()
-                if 500 <= mouse_pos[0] <= 530 and 300 <= mouse_pos[1] <= 330:
-                    return True
-        return False
