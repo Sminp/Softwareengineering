@@ -3,7 +3,6 @@ import sys
 from game_functions import *
 from constant import *
 from settings import *
-import math
 
 img_basic_address = './image/'
 
@@ -37,8 +36,6 @@ class UNOGame():
         self.font = MALGUNGOTHIC
         self.player_num = 2
         self.difficulty = 1
-        self.clock = pygame.time.Clock()
-        self.FPS = 30
         self.screen.fill(self.background_color)
         self.mouse_pos = pygame.mouse.get_pos()
         pygame.display.update()
@@ -63,6 +60,9 @@ class UNOGame():
             menu_button = Button(self.screen, 400 - 100, 400 - 30, "./image/TitleImage/MenuButton.png", 200, 200)
             end_button = Button(self.screen, 400, 400, "./image/TitleImage/EndButton.png", 200, 200)
             button_list = [start_button, menu_button, end_button]
+            start_button.show_botton()
+            menu_button.show_botton()
+            end_button.show_botton()
             self.mouse_pos = pygame.mouse.get_pos()
             pygame.draw.rect(self.screen, YELLOW,
                              [button_list[selected].x, button_list[selected].y, button_list[selected].width,
@@ -111,7 +111,6 @@ class UNOGame():
                         sys.exit()
 
             pygame.display.update()
-            self.clock.tick(self.FPS)
             pygame.display.set_caption("UNO!")
 
     def lobby_screen(self):
@@ -136,6 +135,7 @@ class UNOGame():
 
         # 아직 게임 시작 버튼이 없어서 못 넣음 
         gamestart_button = Button(self.screen, 350, 150, "./image/button_img.png", 200, 100)
+        gamestart_button.show_botton()
 
         input_active = False
         lobby = True
@@ -158,8 +158,9 @@ class UNOGame():
                         for rect, text in computer_rect:
                             if text != "add":
                                 result += 1
-                        uno = Game(result)
-                        uno.startgame()
+                        # 외부랑 이름 같이서 일단 변경했어
+                        uno_ = Game(result)
+                        uno_.startgame()
 
                     for i in range(len(computer_rect)):
                         if i == 0:
@@ -216,16 +217,16 @@ class UNOGame():
         selected = 1
 
         # 배경음, 효과음 slider
-        backgroundsound_slider = Slider(self.screen, 300, (250, 180), (0, 100))
-        soundeffect_slider = Slider(self.screen, 300, (250, 250), (0, 100))
+        backgrounder_slider = Slider(self.screen, 300, (250, 180), (0, 100))
+        sound_effect_slider = Slider(self.screen, 300, (250, 250), (0, 100))
 
         while not game_exit:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     terminate()
 
-                backgroundsound_slider.operate(event)
-                soundeffect_slider.operate(event)
+                backgrounder_slider.operate(event)
+                sound_effect_slider.operate(event)
 
                 # 키보드 버튼
                 if event.type == pygame.KEYDOWN:
@@ -268,17 +269,24 @@ class UNOGame():
             sizefull_button = Button(self.screen, 270, 315, "./image/button_img.png", 100, 50)
             size16_button = Button(self.screen, 420, 315, "./image/button_img.png", 100, 50)
             size4_button = Button(self.screen, 570, 315, "./image/button_img.png", 100, 50)
+            gamestart_button.show_botton()
+            sizefull_button.show_botton()
+            size16_button.show_botton()
+            size4_button.show_botton()
 
             # 배경음, 효과음 그림
-            backgroundsound_slider.draw()
-            backgroundsound_slider.draw_value('배경음', (130, 180))
-            soundeffect_slider.draw()
-            soundeffect_slider.draw_value('효과음', (130, 250))
+            backgrounder_slider.draw()
+            backgrounder_slider.draw_value('배경음', (130, 180))
+            sound_effect_slider.draw()
+            sound_effect_slider.draw_value('효과음', (130, 250))
 
             # 조작키 설정, 설정 초기화, 설정 저장 버튼
             control_button = Button(self.screen, 80, 400, "./image/button_img.png", 100, 50)
             settinginit_button = Button(self.screen, 80, 500, "./image/button_img.png", 100, 50)
             settingsave_button = Button(self.screen, SCREEN_WIDTH // 2 + 200, 500, "./image/button_img.png", 100, 50)
+            control_button.show_botton()
+            settinginit_button.show_botton()
+            settingsave_button.show_botton()
             buttons = [control_button, settinginit_button, settingsave_button]
 
             pygame.display.update()
@@ -343,8 +351,7 @@ class Button:
 
         self.img = pygame.transform.scale(pygame.image.load(img), [width, height])
         # self.action = action
-
-        self.screen.blit(self.img, (x, y))
+        self.cliked_num = 0
 
     def show_botton(self):
         self.screen.blit(self.img, (self.x, self.y))
@@ -369,35 +376,12 @@ class Button:
         # screen.blit(self.textSurf, self.textRect)
 
     def cliked(self):
-        self.screen.blit(self.img, (self.x, self.y - 5))
+        self.screen.blit(self.img, (self.x, self.y -5))
+        self.cliked_num += 1
 
+    def check_cliked_num(self):
+        pass
 
-# 카드 뒤집는 애니메이션 구현
-"""
-        # 타이머 설정
-        tmr += 1
-        if tmr == 90:
-            tmr = 0
-        # 타이머 계산도 다시
-        txt = font.render(str(10 - tmr // 10 - 1), True, WHITE)
-        screen.blit(txt, [400, 10])
-        clock.tick(30)
-
-        # 이거는 전환하는 거 확인하려고 만든거
-        if tmr < 45:
-            selected_img = pygame.image.load(CARD_IMAGE_LIST[-1])
-            img_before = pygame.transform.scale(selected_img,
-                                                [CARD_WIDTH * math.cos(math.radians(tmr * 2)), CARD_HEIGHT])
-            img_before_rect = img_before.get_rect()
-            screen.blit(img_before, [350 + tmr * 2 / 45 * 50, 200])
-        else:
-            up_img = pygame.image.load(uno_deck_dic[discards[-1]])
-            img_after = pygame.transform.scale(up_img,
-                                               [CARD_WIDTH * math.sin(math.radians(tmr * 2 - 90)), CARD_HEIGHT])
-            img_after_rect = img_after.get_rect()
-            # 와 계산은 나중에
-            screen.blit(img_after, [450 + 20 - tmr * 2 / 45 * 10, 200])
-"""
 
 if __name__ == '__main__':
     uno = UNOGame()
