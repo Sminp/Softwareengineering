@@ -30,13 +30,14 @@ class Game():
         self.rotate = 0
         self.uno = 0
         self.playing_game = True
-        self.game_turn = 1
+        self.game_turn = 0
         self.uno_button = Button(self.screen, 500, 300, "./image/UnoButton.png", 30, 30)
         self.first_show = True
         self.two_first_show = True
         self.time = 0
         self.active = False
         self.player_name = player_name
+        self.first = True
         pygame.display.update()
 
     # 카드 생성
@@ -263,8 +264,17 @@ class Game():
         temp = self.get_next_player(now_turn)
         return temp
 
+    def get_next_turn(self):
+        if self.first:
+            self.game_turn += 1
+            self.change_color()
+            pygame.time.wait(1000)
+            print("turn", self.game_turn)
+            self.first = False
+
     # 플레이어 턴 인덱스 넘어가지 않도록 함
     def get_next_player(self, now_turn):
+        self.first = True
         if self.rotate == 0 and now_turn + 1 == self.player_num:
             return 0
         elif self.rotate == 1 and now_turn - 1 < 0:
@@ -641,7 +651,7 @@ class Game():
             self.time = random.randint(0, 1000)
         return True
 
-    def uno_clicked(self, active=1):
+    def uno_clicked(self, active=False):
         if active:
             for event in pygame.event.get():
                 if event.type == MOUSEBUTTONUP:
@@ -660,30 +670,37 @@ class Game():
                     print(self.time)
                     self.first_show = False
                     self.active = True
-                self.time -= 1
+                self.time -= 10
                 if self.time <= 0:
                     if self.now_turn == 0:
                         self.get_from_deck(self.now_turn)
                         pygame.time.wait(1000)
                         pygame.display.update()
                     self.two_first_show = False
+                    print("컴퓨터")
                     return 0
                 elif self.uno_clicked(self.active):
                     print("YEAH")
-                    self.two_first_show = False
-                    self.active = False
                     if self.now_turn == 0:
                         pass
                     else:
                         self.get_from_deck(self.now_turn)
                         pygame.time.wait(1000)
                         pygame.display.update()
+                        self.two_first_show = False
+                        self.active = False
+                        return 0
+                    print(1)
+                    self.two_first_show = False
+                    self.active = False
+                    print(self.two_first_show)
+                    return 0
                 return 0
             else:
                 self.uno_button.show_botton()
             self.two_first_show = True
-            return 0
-        self.first_show = True
+            self.first_show = True
+
 
     # change 카드 사용할 때 바꿀 플레이어 선택
     def pick_player(self):
@@ -805,11 +822,11 @@ class Game():
 
                 # 일단 +2,+4 가 처음 카드로 나오면 첫 플레이어가 먹게 해둠
 
+            self.get_next_turn()
+
             if self.now_turn == 1:
                 self.select_player(self.now_turn)
                 pygame.time.wait(1000)
-                self.change_color()
-                self.game_turn += 1
                 pygame.time.wait(1000)
                 ai = computer.AI(2, self.player[1], self.waste_card)
                 if self.difficulty == 1 or self.difficulty == 4:
@@ -850,8 +867,6 @@ class Game():
             elif self.now_turn == 2:
                 self.select_player(self.now_turn)
                 pygame.time.wait(1000)
-                self.change_color()
-                self.game_turn += 1
                 pygame.time.wait(1000)
                 ai = computer.AI(3, self.player[2], self.waste_card)
                 if self.difficulty == 1 or self.difficulty == 4:
@@ -891,8 +906,6 @@ class Game():
             elif self.now_turn == 3:
                 self.select_player(self.now_turn)
                 pygame.time.wait(1000)
-                self.change_color()
-                self.game_turn += 1
                 pygame.time.wait(1000)
                 ai = computer.AI(4, self.player[3], self.waste_card)
                 if self.difficulty == 1 or self.difficulty == 4:
@@ -946,9 +959,6 @@ class Game():
                     mouse_pos = pygame.mouse.get_pos()
                     if self.now_turn == 0:
                         self.select_player(self.now_turn)
-                        self.change_color()
-                        self.game_turn += 1
-                        pygame.time.wait(1000)
                         for sprite in self.user_group:
                             if sprite.get_rect().collidepoint(mouse_pos) and self.check_card(sprite):
                                 # pygame.mixer.pre_init(44100, -16, 1, 512)
@@ -970,7 +980,6 @@ class Game():
                                 self.show_uno()
                                 self.now_turn = self.next_turn(self.now_turn)
                                 break
-
             pygame.display.update()
 
     # 카드 뽑음
@@ -1109,7 +1118,7 @@ class Game():
             pygame.display.update()
 
     def change_color(self):
-        if self.difficulty == 4 and self.game_turn % 5 == 0:
+        if self.difficulty == 4 and self.game_turn % 5 == 0 and self.game_turn != 0:
             print("실행")
             colors = ["red", "yellow", "green", "blue"]
             random_name = colors[random.randint(0, 3)]
