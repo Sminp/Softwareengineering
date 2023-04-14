@@ -7,6 +7,7 @@ import computer
 from pygame.locals import *
 from constant import *
 from UNO import Button, background_img_load, text_format, terminate
+import time
 
 
 class Game():
@@ -32,8 +33,9 @@ class Game():
         self.playing_game = True
         self.game_turn = 0
         self.uno_button = Button(self.screen, 500, 300, "./image/UnoButton.png", 30, 30)
-        self.first_show = True
-        self.two_first_show = True
+
+        # self.first_show = True
+        # self.two_first_show = True
         self.time = 0
         self.active = False
         self.player_name = player_name
@@ -303,11 +305,13 @@ class Game():
         pygame.display.update()
 
     # 플레이어 이름 표시 초기화
-    def print_window(self, active=1):
+    # def print_window(self, active=1):
+    def print_window(self):
         self.screen.blit(background_img_load("./image/PlayingBackground.png"), (0, 0))
         self.deck_group.draw(self.screen)
         self.user_group.draw(self.screen)
         self.com1_group.draw(self.screen)
+        self.uno_button.show_botton()
         if self.player_num >= 3:
             self.com2_group.draw(self.screen)
             com2_text = text_format("COM2", BERLIN, 30, (0, 0, 0))
@@ -350,10 +354,10 @@ class Game():
                     pygame.draw.rect(self.screen, BLUE, (500, 500, 100, 100))
             elif w_name[0] == "green":
                 pygame.draw.rect(self.screen, GREEN, (500, 500, 100, 100))
-            if active:
-                self.show_uno()
-            else:
-                self.uno_button.cliked()
+            # if active:
+            #     self.show_uno()
+            # else:
+            #     self.uno_button.cliked()
 
     # 낼 수 있는지 확인
     def check_card(self, sprite):
@@ -371,7 +375,7 @@ class Game():
             if len(name) < 3 or len(w_name) < 3:
                 if w_name[0] == name[0]:
                     return True
-                if len(name) > 1 and len(w_name) > 1:
+                if len(name) > 1 :
                     if w_name[1] == name[1]:
                         return True
                     if w_name[1] == name[0] or w_name[0] == name[1]:
@@ -496,29 +500,12 @@ class Game():
                 #     self.player[0],self.player[2] = self.player[2], self.player[0]
                 
             elif self.now_turn == 1:
-                pygame.time.wait(500)
-                if self.check_card_num(self.player) == 0:
-                    self.player[0],self.player[1] = self.player[1], self.player[0]
-                    temp = self.user_group
-                    temp1 = self.com1_group
-                    self.com1_group = temp
-                    self.user_group = temp1
-                    self.user_group.draw(self.screen)
-                    self.com1_group.draw(self.screen)
+                pass
                 # elif self.check_card_num(self.player) == 1: # 이렇게 다 하나하나 해야해서..
             elif self.now_turn == 2:
-                pygame.time.wait(500)
-                self.player[2], self.player[self.check_card_num(self.player)] = self.player[
-                                                                                    self.check_card_num(self.player)], \
-                                                                                self.player[2]
-                print(self.player[2],"==>" ,self.player[2])
+                pass
             elif self.now_turn == 3:
-                pygame.time.wait(500)
-                self.player[3], self.player[self.check_card_num(self.player)] = self.player[
-                                                                                    self.check_card_num(self.player)], \
-                                                                                self.player[3]
-                print(self.player[3],"==>", self.player[3])
-                pygame.time.wait(500)
+                pass
                 self.now_turn = self.next_turn(self.now_turn)
 
         elif name[1] == 'plus':
@@ -539,11 +526,11 @@ class Game():
             # select = pygame.mixer.Sound('./sound/select.wav')
             # select.play()
             self.pick_color_card()
-        else:
-            if self.now_turn != 0:
-                return False
-        self.show_uno()
-        return True
+        # else:
+        #     if self.now_turn != 0:
+        #         return False
+        # self.show_uno()
+        # return True
 
     # 지금 덱 중에서 가장 숫자가 많은 색깔 구함 -> 컴퓨터가 wild 카드 사용할 때 사용 , 여기 수정해야함 그 숫자없는 카드가 없긴해 
     def most_num_color(self, card_deck):
@@ -612,20 +599,20 @@ class Game():
         print("작동")  # 두번작동
         return player_deck_list.index(shortest_list)
 
-    def check_two(self) -> bool:
-        if self.player_num <= 2:
-            len_min = min(len(self.user_group), len(self.player[1]))
-            if 1 <= len_min <= 2:
-                return True
-        elif self.player_num == 3:
-            len_min = min(len(self.user_group), len(self.player[1]), len(self.player[2]))
-            if 1 <= len_min <= 2:
-                return True
-        elif self.player_num == 4:
-            len_min = min(len(self.user_group), len(self.player[1]), len(self.player[2]), len(self.player[3]))
-            if 1 <= len_min <= 2:
-                return True
-        return False
+    # def check_two(self) -> bool:
+    #     if self.player_num <= 2:
+    #         len_min = min(len(self.user_group), len(self.player[1]))
+    #         if 1 <= len_min <= 2:
+    #             return True
+    #     elif self.player_num == 3:
+    #         len_min = min(len(self.user_group), len(self.player[1]), len(self.player[2]))
+    #         if 1 <= len_min <= 2:
+    #             return True
+    #     elif self.player_num == 4:
+    #         len_min = min(len(self.user_group), len(self.player[1]), len(self.player[2]), len(self.player[3]))
+    #         if 1 <= len_min <= 2:
+    #             return True
+    #     return False
 
     def check_uno(self) -> bool:
         if self.player_num <= 2:
@@ -642,64 +629,64 @@ class Game():
                 return True
         return False
 
-    def set_uno_timer(self) -> bool:
-        if self.difficulty == 1:
-            self.time = random.randint(500, 1000)
-        elif self.difficulty == 2:
-            self.time = random.randint(300, 1000)
-        else:
-            self.time = random.randint(0, 1000)
-        return True
+    # def set_uno_timer(self) -> bool:
+    #     if self.difficulty == 1:
+    #         self.time = random.randint(500, 1000)
+    #     elif self.difficulty == 2:
+    #         self.time = random.randint(300, 1000)
+    #     else:
+    #         self.time = random.randint(0, 1000)
+    #     return True
 
-    def uno_clicked(self, active=False):
-        if active:
-            for event in pygame.event.get():
-                if event.type == MOUSEBUTTONUP:
-                    mouse_pos = pygame.mouse.get_pos()
-                    if 500 <= mouse_pos[0] <= 530 and 300 <= mouse_pos[1] <= 330:
-                        return True
-        return False
+    # def uno_clicked(self, active=False):
+    #     if active:
+    #         for event in pygame.event.get():
+    #             if event.type == MOUSEBUTTONUP:
+    #                 mouse_pos = pygame.mouse.get_pos()
+    #                 if 500 <= mouse_pos[0] <= 530 and 300 <= mouse_pos[1] <= 330:
+    #                     return True
+    #     return False
 
-    def show_uno(self) -> object:
-        if self.check_two():
-            if self.check_uno() and self.two_first_show:
-                self.uno_button.cliked()
-                self.print_window(0)
-                if self.first_show:
-                    self.set_uno_timer()
-                    print(self.time)
-                    self.first_show = False
-                    self.active = True
-                self.time -= 10
-                if self.time <= 0:
-                    if self.now_turn == 0:
-                        self.get_from_deck(self.now_turn)
-                        pygame.time.wait(1000)
-                        pygame.display.update()
-                    self.two_first_show = False
-                    print("컴퓨터")
-                    return 0
-                elif self.uno_clicked(self.active):
-                    print("YEAH")
-                    if self.now_turn == 0:
-                        pass
-                    else:
-                        self.get_from_deck(self.now_turn)
-                        pygame.time.wait(1000)
-                        pygame.display.update()
-                        self.two_first_show = False
-                        self.active = False
-                        return 0
-                    print(1)
-                    self.two_first_show = False
-                    self.active = False
-                    print(self.two_first_show)
-                    return 0
-                return 0
-            else:
-                self.uno_button.show_botton()
-            self.two_first_show = True
-            self.first_show = True
+    # def show_uno(self) -> object:
+    #     if self.check_two():
+    #         if self.check_uno() and self.two_first_show:
+    #             self.uno_button.cliked()
+    #             self.print_window(0)
+    #             if self.first_show:
+    #                 self.set_uno_timer()
+    #                 print(self.time)
+    #                 self.first_show = False
+    #                 self.active = True
+    #             self.time -= 10
+    #             if self.time <= 0:
+    #                 if self.now_turn == 0:
+    #                     self.get_from_deck(self.now_turn)
+    #                     pygame.time.wait(1000)
+    #                     pygame.display.update()
+    #                 self.two_first_show = False
+    #                 print("컴퓨터")
+    #                 return 0
+    #             elif self.uno_clicked(self.active):
+    #                 print("YEAH")
+    #                 if self.now_turn == 0:
+    #                     pass
+    #                 else:
+    #                     self.get_from_deck(self.now_turn)
+    #                     pygame.time.wait(1000)
+    #                     pygame.display.update()
+    #                     self.two_first_show = False
+    #                     self.active = False
+    #                     return 0
+    #                 print(1)
+    #                 self.two_first_show = False
+    #                 self.active = False
+    #                 print(self.two_first_show)
+    #                 return 0
+    #             return 0
+    #         else:
+    #             self.uno_button.show_botton()
+    #         self.two_first_show = True
+    #         self.first_show = True
 
 
     # change 카드 사용할 때 바꿀 플레이어 선택
@@ -811,7 +798,7 @@ class Game():
             if len(self.card_deck) == 0:
                 self.set_deck()
 
-            self.show_uno()
+            # self.show_uno()
             self.select_player(self.now_turn)
             if self.now_turn == 0 and len(self.waste_card) == 0:
                 temp = loadcard.Card(self.card_deck.pop(), (430, 300))
@@ -860,8 +847,12 @@ class Game():
                         pygame.display.update()
                         continue
                     self.card_skill(t_card)
-                    self.print_window()
-                    self.now_turn = self.next_turn(self.now_turn)
+                    if len(self.com1_group) == 1:
+                        pygame.display.update()
+                        self.check_uno_button()
+                    else:
+                        self.print_window()
+                        self.now_turn = self.next_turn(self.now_turn)
                     pygame.display.update()
 
             elif self.now_turn == 2:
@@ -972,14 +963,21 @@ class Game():
                                 # card.play()
                                 self.put_waste_group(sprite)
                                 self.card_skill(sprite)
-                                self.now_turn = self.next_turn(self.now_turn)
+                                if len(self.user_group) == 1 : # 카드 내고 한장 남음
+                                    pygame.display.update()
+                                    self.check_uno_button()
+                                    # self.uno_click[0] = True
+                                else :
+                                    self.now_turn = self.next_turn(self.now_turn)
                                 break
                         for sprite in self.deck_group:
                             if sprite.get_rect().collidepoint(mouse_pos):
                                 self.get_from_deck(self.now_turn)
-                                self.show_uno()
+                                # self.show_uno()
                                 self.now_turn = self.next_turn(self.now_turn)
                                 break
+
+                        
             pygame.display.update()
 
     # 카드 뽑음
@@ -1127,3 +1125,69 @@ class Game():
             self.waste_group.add(random_card)
             print("바뀐 색:" + random_name)
             self.print_window()
+
+    def check_uno_button(self):
+        print("한장 남음!")
+        uno = True
+        start_time = time.time()
+        while uno: # 여기
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                if event.type == MOUSEBUTTONUP:
+                    mouse_pos = pygame.mouse.get_pos()
+                    if 500 <= mouse_pos[0] <= 530 and 300 <= mouse_pos[1] <= 330:
+                        print("버튼 누름!")
+                        end_time = time.time()
+                        com_time = random.randint(1,3)
+                        if (end_time - start_time) > com_time:
+                            if self.now_turn == 0: # 유저 턴일 때 
+                                print("느리게 누름!")
+                                uno_text = text_format("uno", BERLIN, 30, (0, 0, 0))
+                                self.screen.blit(uno_text, (45, 100))
+                                self.get_from_deck(self.now_turn)
+                                self.now_turn = self.next_turn(self.now_turn)
+                                uno = False
+                            else : # 컴퓨터 턴일때 유저가 느리게 누름
+                                print("유저가 느리게 누름")
+                                self.now_turn = self.next_turn(self.now_turn)
+                                uno = False
+                        else : 
+                            if self.now_turn == 0: # 유저 턴일 때 
+                                print("빠르게 누름!")
+                                self.now_turn = self.next_turn(self.now_turn)
+                                uno = False
+                            else : # 컴퓨터 턴일 때 유저가 빠르게 누름 
+                                print("유저가 빠르게 누름!")
+                                self.get_from_deck(self.now_turn)
+                                self.now_turn = self.next_turn(self.now_turn)
+                                uno = False
+            if (time.time() - start_time) > 3 :
+                if self.now_turn == 0 : # 그냥 버튼 안누르고 있을 때 5초 지나면 한 장 먹음 
+                    print("컴퓨터가 누름")
+                    self.get_from_deck(self.now_turn)
+                    self.now_turn = self.next_turn(self.now_turn)
+                    uno = False
+                else:  # 이건 컴퓨터가 1장 남았을 때 유저가 버튼을 안 누르고 있는 경우
+                    if self.player_num == 2: # 유저랑 컴퓨터 1명만 있는 경우 컴퓨터가 uno버튼 누른걸로 판단
+                        print("컴퓨터가 누름")
+                        self.now_turn = self.next_turn(self.now_turn)
+                        uno = False
+                    else: # 다른 컴퓨터랑 경쟁 
+                        com_time = random.randint(0,1) # 그냥 0,1로 했어요..
+                        if com_time == 1: # 빠르게 누른 경우 
+                            print("컴퓨터가 누름")
+                            self.now_turn = self.next_turn(self.now_turn)
+                            uno = False
+                        else: # 느리게 누른 경우 - 카드 뽑음
+                            print("컴퓨터가 못 누름")
+                            self.get_from_deck(self.now_turn)
+                            self.now_turn = self.next_turn(self.now_turn)
+                            uno = False
+            pygame.display.update()
+
+
+
+
+
+
