@@ -61,8 +61,8 @@ class Slider:
         self.color1 = main_color  # 선 색
         self.color2 = button_color  # 버튼색
 
-        button = pygame.rect.Rect(int(self.x + 9 / 20 * self.length), int(self.y - 1 / 20 * self.length),
-                                  int(self.length * 1 / 10), int(self.length * 1 / 10))
+        button = pygame.rect.Rect(int(self.x + 18 / 40 * self.length), int(self.y - 1 / 40 * self.length),
+                                  int(self.length * 1 / 20), int(self.length * 1 / 20))
 
         self.value = (self.max + self.min) / 2  # 값의 초기값
         self.button_rect = button
@@ -101,10 +101,10 @@ class Slider:
     def draw_value(self, name, pos, color=BLACK, size=20):
         FONT = pygame.font.SysFont("malgungothic", size)
         text1 = FONT.render("{} : {}".format(name, int(self.value)), True, color)
-        text_rect = text1.get_rect()
-        text_rect.center = pos
+        # text_rect = text1.get_rect()
+        # text_rect.center = pos
 
-        self.screen.blit(text1, text_rect)
+        self.screen.blit(text1, pos)
 
     # 버튼 클래스
 

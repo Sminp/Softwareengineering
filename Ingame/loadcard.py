@@ -5,11 +5,12 @@ import math
 
 
 class Card(pygame.sprite.Sprite):
-    def __init__(self, name, position):
+    def __init__(self, name, position, size):
         pygame.sprite.Sprite.__init__(self)
         self.name = name
         self.image = pygame.image.load('./image/card_img/' + name + '.png')
-        self.image = pygame.transform.scale(self.image, (80, 100))
+        self.size = size
+        self.image = pygame.transform.scale(self.image, size)
         self.orig_pos = position
         self.position = position
         self.user_rotation = 30

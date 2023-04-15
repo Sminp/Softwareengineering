@@ -5,6 +5,9 @@ import pygame
 # 화면 크기
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
+
+#SCREEN_WIDTH2 = 1280
+#SCREEN_HEIGHT2 = 720
 # SCREEN = (SCREEN_WIDTH, SCREEN_HEIGHT)            # 이건 많이 안 쓸 것 같아서 일단 보류
 
 # 글꼴

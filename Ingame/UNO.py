@@ -25,7 +25,7 @@ def terminate():
 
 
 class UNOGame():
-    """UNOGame 시작화면 밑 설정화면을 나타냅니다."""
+    """UNOGame 시작화면 및 설정화면을 나타냅니다."""
 
     def __init__(self):
         pygame.init()
@@ -119,14 +119,14 @@ class UNOGame():
 
         self.screen.blit(background_img_load("./image/PlayingBackground.png"), (0, 0))
 
-        font = pygame.font.SysFont(self.font, 25)
+        font = pygame.font.SysFont(self.font, 30)
         name_text = "player"
-        text_surface = font.render(name_text, True, (0, 0, 0))
-        text_rect = text_surface.get_rect(center=(self.screen_width // 2 + 70, self.screen_height // 2 + 150))
+        text_surface = font.render(name_text, True, WHITE)
+        text_rect = text_surface.get_rect(center=(self.screen_width *(3/5), self.screen_height *(2/3)))
 
         computer_rect = []
         for i in range(5):
-            rect = pygame.Rect(0, 100 * i + (i + 1) * ((self.screen_height - 500) / 6), 150, 110)
+            rect = pygame.Rect(0, 100 * i + (i + 1) * ((self.screen_height - 500) / 6), self.screen_width/5, self.screen_height/6)
             if i == 0:
                 label = "computer1"
             else:
@@ -134,7 +134,7 @@ class UNOGame():
             computer_rect.append([rect, label])
 
         # 아직 게임 시작 버튼이 없어서 못 넣음 
-        gamestart_button = Button(self.screen, 350, 150, "./image/button_img.png", 200, 100)
+        gamestart_button = Button(self.screen, self.screen_width*(1/2), self.screen_height*(1/4), "./image/button_img.png", 200, 100)
         gamestart_button.show_botton()
 
         input_active = False
@@ -183,7 +183,7 @@ class UNOGame():
                             name_text = name_text[:-1]
                         else:
                             name_text += event.unicode
-                        text_surface = font.render(name_text, True, BLACK)
+                        text_surface = font.render(name_text, True, WHITE)
                         text_rect.size = text_surface.get_size()
 
             self.screen.blit(background_img_load("./image/PlayingBackground.png"), (0, 0))
@@ -196,7 +196,7 @@ class UNOGame():
                 self.screen.blit(label_surface, (rect.x + 10, rect.y + 10))
 
             if input_active:
-                pygame.draw.line(self.screen, BLACK, (text_rect.x + text_rect.w, text_rect.y),
+                pygame.draw.line(self.screen, WHITE, (text_rect.x + text_rect.w, text_rect.y),
                                  (text_rect.x + text_rect.w, text_rect.y + text_rect.h), 2)
             else:
                 self.screen.blit(background_img_load("./image/PlayingBackground.png"), (0, 0))
@@ -216,8 +216,8 @@ class UNOGame():
         selected = 1
 
         # 배경음, 효과음 slider
-        backgrounder_slider = Slider(self.screen, 300, (250, 180), (0, 100))
-        sound_effect_slider = Slider(self.screen, 300, (250, 250), (0, 100))
+        backgrounder_slider = Slider(self.screen, self.screen_width/2, (self.screen_width*(3/10), self.screen_height*(4/13)), (0, 100))
+        sound_effect_slider = Slider(self.screen, self.screen_width/2, (self.screen_width*(3/10), self.screen_height*(6/15)), (0, 100))
 
         while not game_exit:
             for event in pygame.event.get():
@@ -256,18 +256,18 @@ class UNOGame():
 
             # 설정화면 텍스트 표시
 
-            setting_text = text_format("설정 화면", MALGUNGOTHIC, 50, BLACK)
-            self.screen.blit(setting_text, (80, 50))
+            setting_text = text_format("SETTING", MALGUNGOTHIC, 35, BLACK)
+            self.screen.blit(setting_text, (self.screen_width*(1/8), self.screen_height*(1/7)))
 
             # 화면 설정 텍스트 표시 ==>> 텍스트 표시 함수를 좀 고쳐야 함
-            screen_setting_text = text_format("화면설정", MALGUNGOTHIC, 50, BLACK)
-            self.screen.blit(screen_setting_text, (80, 300))
+            screen_setting_text = text_format("화면크기", MALGUNGOTHIC, 20, BLACK)
+            self.screen.blit(screen_setting_text, (self.screen_width*(1/8), self.screen_height*(1/2)))
 
             # 화면 설정 버튼 - 변수명 바꿔야 함
             gamestart_button = Button(self.screen, 600, 50, "./image/button_img.png", 100, 50)
-            sizefull_button = Button(self.screen, 270, 315, "./image/button_img.png", 100, 50)
-            size16_button = Button(self.screen, 420, 315, "./image/button_img.png", 100, 50)
-            size4_button = Button(self.screen, 570, 315, "./image/button_img.png", 100, 50)
+            sizefull_button = Button(self.screen, self.screen_width*(3/10), self.screen_height*(1/2), "./image/button_img.png", 100, 50)
+            size16_button = Button(self.screen, self.screen_width*(5/10), self.screen_height*(1/2), "./image/button_img.png", 100, 50)
+            size4_button = Button(self.screen, self.screen_width*(7/10), self.screen_height*(1/2), "./image/button_img.png", 100, 50)
             gamestart_button.show_botton()
             sizefull_button.show_botton()
             size16_button.show_botton()
@@ -275,14 +275,14 @@ class UNOGame():
 
             # 배경음, 효과음 그림
             backgrounder_slider.draw()
-            backgrounder_slider.draw_value('배경음', (130, 180))
+            backgrounder_slider.draw_value('배경음', (self.screen_width*(1/8), self.screen_height*(2/7)))
             sound_effect_slider.draw()
-            sound_effect_slider.draw_value('효과음', (130, 250))
+            sound_effect_slider.draw_value('효과음', (self.screen_width*(1/8), self.screen_height*(3/8)))
 
             # 조작키 설정, 설정 초기화, 설정 저장 버튼
-            control_button = Button(self.screen, 80, 400, "./image/button_img.png", 100, 50)
-            settinginit_button = Button(self.screen, 80, 500, "./image/button_img.png", 100, 50)
-            settingsave_button = Button(self.screen, SCREEN_WIDTH // 2 + 200, 500, "./image/button_img.png", 100, 50)
+            control_button = Button(self.screen, self.screen_width*(1/8), self.screen_height*(5/8), "./image/button_img.png", 100, 50)
+            settinginit_button = Button(self.screen, self.screen_width*(1/8), self.screen_height*(6/8), "./image/button_img.png", 100, 50)
+            settingsave_button = Button(self.screen, self.screen_width*(7/10), self.screen_height*(6/8), "./image/button_img.png", 100, 50)
             control_button.show_botton()
             settinginit_button.show_botton()
             settingsave_button.show_botton()
@@ -349,6 +349,7 @@ class Button:
         self.height = height
 
         self.img = pygame.transform.scale(pygame.image.load(img), [width, height])
+        self.rect = self.img.get_rect()
         # self.action = action
         self.cliked_num = 0
 
@@ -380,6 +381,9 @@ class Button:
 
     def check_cliked_num(self):
         pass
+    
+    def get_rect(self):
+        return self.rect
 
 
 if __name__ == '__main__':
