@@ -37,6 +37,34 @@ class AI():
             if card[0] == 'wild':
                 return item
         return 0
+    
+    # difficulty 5
+    def special_play(self):
+        now = self.now_card.split('_')
+        for item in self.player_deck:
+            card = item.split('_')
+            # 색 고려
+            # if now[0] == "red" or now[0] == "yellow": 
+            #     if card[0] == "red" or card[0] == "yellow":
+            #         if now[1] != '0' and card[1] != '0':
+            #             if (int(now[1]) % int(card[1])) == 0 or  (int(card[1]) % int(now[1])) == 0:
+            #                 return item
+            #         else:
+            #             return item
+            # else: 
+            #     if now[0] == "blue" or now[0] == "green":
+            #         if now[1] != '0' and card[1] != '0':
+            #             if (int(now[1]) % int(card[1])) == 0 or  (int(card[1]) % int(now[1])) == 0:
+            #                 return item
+            #         else:
+            #             return item
+            # 색 고려 x
+            if now[1] != '0' and card[1] != '0':
+                if (int(now[1]) % int(card[1])) == 0 or  (int(card[1]) % int(now[1])) == 0:
+                    return item
+            else:
+                return item
+        return 0
 
     # difficulty 2
     def advanced_play(self, next_user):

@@ -36,11 +36,13 @@ class UNOGame():
         self.font = MALGUNGOTHIC
         self.player_num = 2
         self.difficulty = 1
+        self.story_screen = False
         self.screen.fill(self.background_color)
         self.mouse_pos = pygame.mouse.get_pos()
         self.keysetting = 1
         self.menu = True
         pygame.display.update()
+        
 
     # 시작 화면
     def main_menu(self):
@@ -60,9 +62,9 @@ class UNOGame():
             menu_button = Button(self.screen, 400 - 100, 400 - 30, "./image/TitleImage/MenuButton.png", 200, 200)
             end_button = Button(self.screen, 400, 400, "./image/TitleImage/EndButton.png", 200, 200)
             button_list = [start_button, menu_button, end_button]
-            start_button.show_botton()
-            menu_button.show_botton()
-            end_button.show_botton()
+            start_button.show_button()
+            menu_button.show_button()
+            end_button.show_button()
             self.mouse_pos = pygame.mouse.get_pos()
             pygame.draw.rect(self.screen, YELLOW,
                              [button_list[selected].x, button_list[selected].y, button_list[selected].width,
@@ -148,7 +150,7 @@ class UNOGame():
 
         # 아직 게임 시작 버튼이 없어서 못 넣음 
         gamestart_button = Button(self.screen, self.screen_width*(1/2), self.screen_height*(1/4), "./image/button_img.png", 200, 100)
-        gamestart_button.show_botton()
+        gamestart_button.show_button()
 
         input_active = False
         lobby = True
@@ -201,7 +203,7 @@ class UNOGame():
 
             self.screen.blit(background_img_load("./image/PlayingBackground.png"), (0, 0))
             self.screen.blit(text_surface, text_rect)
-            gamestart_button.show_botton()
+            gamestart_button.show_button()
 
             for rect, label in computer_rect:
                 pygame.draw.rect(self.screen, WHITE, rect)
@@ -214,7 +216,7 @@ class UNOGame():
             else:
                 self.screen.blit(background_img_load("./image/PlayingBackground.png"), (0, 0))
                 self.screen.blit(text_surface, text_rect)
-                gamestart_button.show_botton()
+                gamestart_button.show_button()
                 for rect, label in computer_rect:
                     pygame.draw.rect(self.screen, WHITE, rect)
                     label_surface = font.render(label, True, BLACK)
@@ -275,6 +277,7 @@ class UNOGame():
                     if sizefull_button.get_rect().collidepoint(mouse_pos): 
                         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.FULLSCREEN)
                     elif size16_button.get_rect().collidepoint(mouse_pos):
+                        print("zmf")
                         self.screen_width = 1280
                         self.screen_height = 720
                         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
@@ -324,10 +327,10 @@ class UNOGame():
             sizefull_button = Button(self.screen, self.screen_width*(3/10), self.screen_height*(1/2), "./image/setting image/full.jpg", 100, 50)
             size16_button = Button(self.screen, self.screen_width*(5/10), self.screen_height*(1/2), "./image/setting image/169.jpg", 100, 50)
             size4_button = Button(self.screen, self.screen_width*(7/10), self.screen_height*(1/2), "./image/setting image/43.jpg", 100, 50)
-            close_button.show_botton()
-            sizefull_button.show_botton()
-            size16_button.show_botton()
-            size4_button.show_botton()
+            close_button.show_button()
+            sizefull_button.show_button()
+            size16_button.show_button()
+            size4_button.show_button()
 
             # 배경음, 효과음 그림
             backgrounder_slider.draw()
@@ -339,13 +342,13 @@ class UNOGame():
             control_button = Button(self.screen, self.screen_width*(1/8), self.screen_height*(7/11), "./image/setting image/keysetting.jpg", 100, 50)
             settinginit_button = Button(self.screen, self.screen_width*(1/8), self.screen_height*(6/8), "./image/setting image/settinginit.jpg", 100, 50)
             settingsave_button = Button(self.screen, self.screen_width*(8/11), self.screen_height*(6/8), "./image/setting image/settingsave.jpg", 100, 50)
-            control_button.show_botton()
-            settinginit_button.show_botton()
-            settingsave_button.show_botton()
+            control_button.show_button()
+            settinginit_button.show_button()
+            settingsave_button.show_button()
             buttons = [control_button, settinginit_button, settingsave_button]
             
             settingcolor_button = Button(self.screen, self.screen_width*(8/11), self.screen_height*(7/11), "./image/setting image/rect.jpg", 100, 50)
-            settingcolor_button.show_botton()
+            settingcolor_button.show_button()
             pygame.draw.rect(self.screen, BLACK, rect)
 
             pygame.display.update()
@@ -372,8 +375,8 @@ class UNOGame():
                         self.keysetting = 2
                         key_select = False
                         
-            setting_key1.show_botton()
-            setting_key2.show_botton()
+            setting_key1.show_button()
+            setting_key2.show_button()
                         
             pygame.display.update()
                     
@@ -381,7 +384,7 @@ class UNOGame():
     def story(self):
 
         pygame.init()
-        story = True
+        self.story = True
 
         font = pygame.font.SysFont(self.font, 50)
         text = "스토리 모드"
@@ -390,7 +393,7 @@ class UNOGame():
 
         story_map = [pygame.Rect((i * 200 + 50, self.screen_height // 2 - 25, 50, 50)) for i in range(4)]
 
-        while story:
+        while self.story:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     terminate()
@@ -398,29 +401,51 @@ class UNOGame():
                     for i in range(len(story_map)):
                         if story_map[i].collidepoint(event.pos):
                             if i == 0:
-                                self.difficulty = 2
-                                print("A 지역 : 난이도 {}".format(self.difficulty))
-                                # 로비화면으로 전환 
+                                self.yes_no(2,2)
                             elif i == 1:
-                                self.difficulty = 3
-                                self.player_num = 4
-                                print("B 지역: 플레이어 수 {}, 난이도 {}".format(self.player_num, self.difficulty))
-                                uno = Game(self.player_num, self.difficulty)
-                                uno.startgame()
+                                self.yes_no(3,3)
                             elif i == 2:
-                                self.difficulty = 4
-                                self.player_num = 3
-                                uno = Game(self.player_num, self.difficulty)
-                                uno.startgame()
-                                print("C 지역 : 플레이어 수 {}, 난이도 {}".format(self.player_num, self.difficulty))
+                                self.yes_no(2,4)
                             else:
-                                self.difficulty = 5
-                                pass
+                                self.yes_no(3,5)      
 
             self.screen.fill(WHITE)
             self.screen.blit(text_surface, text_rect)
             for rect in story_map:
                 pygame.draw.rect(self.screen, BLACK, rect)
+
+            pygame.display.update()
+
+    # 지역 선택하면 플레이할 건지 물어보는 창
+    def yes_no(self,player_num,difficulty):
+        yes_no = True
+        self.story_screen = False
+        
+        yes_button = Button(self.screen, self.screen_width*(3/7), self.screen_height*(2/5), "./image/button_img.png", 100, 50)
+        no_button = Button(self.screen, self.screen_width*(3/7), self.screen_height*(2/5)+100, "./image/button_img.png", 100, 50)
+
+        while yes_no:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    terminate()
+                if event.type == pygame.MOUSEBUTTONDOWN:  # 마우스 클릭시 다시 시작
+                    mouse_pos = pygame.mouse.get_pos()
+                    if yes_button.get_rect().collidepoint(mouse_pos):
+                        self.player_num = player_num
+                        self.difficulty = difficulty
+                        uno = Game(self.player_num, self.difficulty)
+                        uno.startgame()
+                        yes_no = False
+                    elif no_button.get_rect().collidepoint(mouse_pos):
+                        self.story_screen = True
+                        yes_no = False
+            pygame.draw.rect(self.screen, WHITE, (self.screen_width / 2 - 200, self.screen_height / 3 - 100, 400, 400))
+            pygame.draw.rect(self.screen, BLACK, (self.screen_width / 2 - 200, self.screen_height / 3 - 100, 400, 400), 5)
+            ask_text = text_format("대전을 시작하겠습니까?", MALGUNGOTHIC, 30, BLACK)
+            ask_text_rect = ask_text.get_rect(center=(self.screen_width/2,self.screen_height/3))
+            yes_button.show_button()
+            no_button.show_button()
+            self.screen.blit(ask_text, ask_text_rect)
 
             pygame.display.update()
 
@@ -442,7 +467,7 @@ class Button:
         self.rect.center = self.position
         self.cliked_num = 0
 
-    def show_botton(self):
+    def show_button(self):
         self.screen.blit(self.img, (self.x, self.y))
 
         # mouse = pygame.mouse.get_pos()
@@ -473,6 +498,8 @@ class Button:
     
     def get_rect(self):
         return self.rect
+    
+    
 
 
 if __name__ == '__main__':

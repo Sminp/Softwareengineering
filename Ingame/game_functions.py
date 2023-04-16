@@ -33,7 +33,7 @@ class Game():
         self.playing_game = True
         self.game_turn = 0
         self.uno_button = Button(self.screen, self.screen_width*(3/4), self.screen_height*(1/3), "./image/UnoButton.png", self.screen_height*(1/20),self.screen_height*(1/20))
-
+        self.time_limit = 10  #-> 시간 제한 설정 
         # self.first_show = True
         # self.two_first_show = True
         self.time = 0
@@ -45,42 +45,54 @@ class Game():
     # 카드 생성
     def set_deck(self) -> list:
         card_deck = []
-        for color_idx in range(1, 5):
-            card = self.color[color_idx]
-            now_card = card + '_0'
-            card_deck.append(now_card)
-            for card_number in range(1, 10):
-                now_card = card + "_" + str(card_number)
-                iterate = 0
-                while iterate != 2:
-                    card_deck.append(now_card)
-                    iterate += 1
-        for color_idx in range(1, 5):
-            card = self.color[color_idx]
-            for card_number in range(11, 14):
+        if self.difficulty != 5 :
+            for color_idx in range(1, 5):
+                card = self.color[color_idx]
+                now_card = card + '_0'
+                card_deck.append(now_card)
+                for card_number in range(1, 10):
+                    now_card = card + "_" + str(card_number)
+                    iterate = 0
+                    while iterate != 2:
+                        card_deck.append(now_card)
+                        iterate += 1
+            for color_idx in range(1, 5):
+                card = self.color[color_idx]
+                for card_number in range(11, 14):
+                    now_card = card + self.skill[card_number]
+                    iterate = 0
+                    while iterate != 2:
+                        self.card_deck.append(now_card)
+                        iterate += 1
+            # 짧게 바꿔도 됨
+            card_deck.append("red_yellow")
+            card_deck.append("red_yellow")
+            card_deck.append("blue_green")
+            card_deck.append("blue_green")
+            card = 'wild'
+            for card_number in range(14, 17):
                 now_card = card + self.skill[card_number]
                 iterate = 0
-                while iterate != 2:
-                    self.card_deck.append(now_card)
+                while iterate != 4:
+                    card_deck.append(now_card)
                     iterate += 1
-        # 짧게 바꿔도 됨
-        card_deck.append("red_yellow")
-        card_deck.append("red_yellow")
-        card_deck.append("blue_green")
-        card_deck.append("blue_green")
-        card = 'wild'
-        for card_number in range(14, 17):
-            now_card = card + self.skill[card_number]
-            iterate = 0
-            while iterate != 4:
+        else : # 스토리 D구역 카드 - 기술 카드 제외
+            for color_idx in range(1, 5):
+                card = self.color[color_idx]
+                now_card = card + '_0'
                 card_deck.append(now_card)
-                iterate += 1
+                for card_number in range(1, 10):
+                    now_card = card + "_" + str(card_number)
+                    iterate = 0
+                    while iterate != 2:
+                        card_deck.append(now_card)
+                        iterate += 1
         return card_deck
 
     # 게임 시작 화면 - 덱 구성, 플레이어에게 카드 지급, 플레이어 숫자마다 카드 위치 다 다름 -> 5명까지 설정해야함
     def set_window(self):
         self.card_deck = self.set_deck()
-        if self.difficulty == 1 or self.difficulty == 4:
+        if self.difficulty == 1 :
             random.shuffle(self.card_deck)
             for player in range(0, self.player_num):
                 card = []
@@ -121,6 +133,15 @@ class Game():
                 self.player[player] = card
             self.card_deck.append(card_temp)
         elif self.difficulty == 4:
+            random.shuffle(self.card_deck)
+            self.player_num = 2
+            for player in range(0, self.player_num):
+                card = []
+                for number in range(0, 7):
+                    temp = self.card_deck.pop(number)
+                    card.append(temp)
+                self.player[player] = card
+        elif self.difficulty == 5:
             random.shuffle(self.card_deck)
             self.player_num = 3
             for player in range(0, self.player_num):
@@ -201,12 +222,12 @@ class Game():
             temp_list = []
             setting = True
             for item in com1_card:
-                item.update((270 + 10 * i, 100))
+                item.update((30 + 10 * i, 90))
                 temp_list.append(item)
                 i += 1
             self.com1_group = pygame.sprite.RenderPlain(*temp_list)
             self.lastcard1 = temp_list[-1].getposition()
-            if self.lastcard1 == (270 + 10 * (len(temp_list) - 1), 100):
+            if self.lastcard1 == (30 + 10 * (len(temp_list) - 1), 90):
                 setting_com1 = 0
 
             if self.player_num >= 3:
@@ -314,14 +335,14 @@ class Game():
             rect = pygame.Rect(0, 100 * i + (i + 1) * ((self.screen_height - 500) / 6), self.screen_width/5, self.screen_height/6)
             computer_rect.append([rect, "computer{}".format(i+1)])
         self.screen.blit(background_img_load("./image/PlayingBackground.png"), (0, 0))
-        self.deck_group.draw(self.screen)
-        self.user_group.draw(self.screen)
-        self.com1_group.draw(self.screen)
-        self.uno_button.show_botton()
         for rect, label in computer_rect:
             pygame.draw.rect(self.screen, WHITE, rect)
             label_text = text_format(label,MALGUNGOTHIC,20,BLACK)
             self.screen.blit(label_text, (rect.x + 10, rect.y + 10))
+        self.deck_group.draw(self.screen)
+        self.user_group.draw(self.screen)
+        self.com1_group.draw(self.screen)
+        self.uno_button.show_button()
         if self.player_num >= 3:
             self.com2_group.draw(self.screen)
             com2_text = text_format("COM2", BERLIN, 30, (0, 0, 0))
@@ -365,10 +386,6 @@ class Game():
                     pygame.draw.rect(self.screen, BLUE, (self.screen_width*(3/4), self.screen_height*(1/3)-self.screen_height*(1/20), self.screen_height*(1/20), self.screen_height*(1/20)))
             elif w_name[0] == "green":
                 pygame.draw.rect(self.screen, GREEN, (self.screen_width*(3/4), self.screen_height*(1/3)-self.screen_height*(1/20), self.screen_height*(1/20), self.screen_height*(1/20)))
-            # if active:
-            #     self.show_uno()
-            # else:
-            #     self.uno_button.cliked()
 
     # 낼 수 있는지 확인
     def check_card(self, sprite):
@@ -379,23 +396,31 @@ class Game():
             name = name.split('_')
             w_name = self.waste_card[-1]
             w_name = w_name.split('_')
-            if w_name[0] == 'wild':
-                return True
-            if name[0] == 'wild':
-                return True
-            if len(name) < 3 or len(w_name) < 3:
-                if w_name[0] == name[0]:
+            if self.difficulty == 5:
+                if w_name[1] != '0' and name[1] != '0': 
+                    if (int(w_name[1]) % int(name[1])) == 0 or  (int(name[1]) % int(w_name[1])) == 0:
+                        return True
+                else:
                     return True
-                if len(name) > 1 :
-                    if w_name[1] == name[1]:
-                        return True
-                    if w_name[1] == name[0] or w_name[0] == name[1]:
-                        return True
+                    
             else:
-                if w_name[0] == name[0]:
+                if w_name[0] == 'wild':
                     return True
-                if w_name[2] == name[2]:
+                if name[0] == 'wild':
                     return True
+                if len(name) < 3 or len(w_name) < 3:
+                    if w_name[0] == name[0]:
+                        return True
+                    if len(name) > 1 :
+                        if w_name[1] == name[1]:
+                            return True
+                        if w_name[1] == name[0] or w_name[0] == name[1]:
+                            return True
+                else:
+                    if w_name[0] == name[0]:
+                        return True
+                    if w_name[2] == name[2]:
+                        return True
 
         return False
 
@@ -640,65 +665,6 @@ class Game():
                 return True
         return False
 
-    # def set_uno_timer(self) -> bool:
-    #     if self.difficulty == 1:
-    #         self.time = random.randint(500, 1000)
-    #     elif self.difficulty == 2:
-    #         self.time = random.randint(300, 1000)
-    #     else:
-    #         self.time = random.randint(0, 1000)
-    #     return True
-
-    # def uno_clicked(self, active=False):
-    #     if active:
-    #         for event in pygame.event.get():
-    #             if event.type == MOUSEBUTTONUP:
-    #                 mouse_pos = pygame.mouse.get_pos()
-    #                 if 500 <= mouse_pos[0] <= 530 and 300 <= mouse_pos[1] <= 330:
-    #                     return True
-    #     return False
-
-    # def show_uno(self) -> object:
-    #     if self.check_two():
-    #         if self.check_uno() and self.two_first_show:
-    #             self.uno_button.cliked()
-    #             self.print_window(0)
-    #             if self.first_show:
-    #                 self.set_uno_timer()
-    #                 print(self.time)
-    #                 self.first_show = False
-    #                 self.active = True
-    #             self.time -= 10
-    #             if self.time <= 0:
-    #                 if self.now_turn == 0:
-    #                     self.get_from_deck(self.now_turn)
-    #                     pygame.time.wait(1000)
-    #                     pygame.display.update()
-    #                 self.two_first_show = False
-    #                 print("컴퓨터")
-    #                 return 0
-    #             elif self.uno_clicked(self.active):
-    #                 print("YEAH")
-    #                 if self.now_turn == 0:
-    #                     pass
-    #                 else:
-    #                     self.get_from_deck(self.now_turn)
-    #                     pygame.time.wait(1000)
-    #                     pygame.display.update()
-    #                     self.two_first_show = False
-    #                     self.active = False
-    #                     return 0
-    #                 print(1)
-    #                 self.two_first_show = False
-    #                 self.active = False
-    #                 print(self.two_first_show)
-    #                 return 0
-    #             return 0
-    #         else:
-    #             self.uno_button.show_botton()
-    #         self.two_first_show = True
-    #         self.first_show = True
-
 
     # change 카드 사용할 때 바꿀 플레이어 선택
     def pick_player(self):
@@ -709,7 +675,7 @@ class Game():
         loop = True
         while loop:
             for i in range(self.player_num - 1):
-                pick_player_button[i].show_botton()
+                pick_player_button[i].show_button()
             pygame.display.update()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -836,6 +802,8 @@ class Game():
                     else:
                         next_ = self.player[next]
                     temp = ai.advanced_play(next_)
+                elif self.difficulty == 5:
+                    temp = ai.special_play()
                 if temp == 0 or temp is None:
                     self.no_temp(1)
                 else:
@@ -853,10 +821,11 @@ class Game():
                     self.waste_group.add(t_card)
                     self.print_window()
                     pygame.display.update()
-                    if self.difficulty == 2 and self.card_skill(t_card):
-                        self.print_window()
-                        pygame.display.update()
-                        continue
+                    # 이거 왜 있는거지? 이거 있어서 4장 먹는게 아니라 8장 먹어져
+                    # if self.difficulty == 2 and self.card_skill(t_card): 
+                    #     self.print_window()
+                    #     pygame.display.update()
+                    #     continue
                     self.card_skill(t_card)
                     if len(self.com1_group) == 1:
                         pygame.display.update()
@@ -880,6 +849,8 @@ class Game():
                     else:
                         next_ = self.player[next]
                     temp = ai.advanced_play(next_)
+                elif self.difficulty == 5:
+                    temp = ai.special_play()
                 if temp == 0 or temp is None:
                     self.no_temp(2)
                 else:
@@ -919,6 +890,8 @@ class Game():
                     else:
                         next_ = self.player[next]
                     temp = ai.advanced_play(next_)
+                elif self.difficulty == 5:
+                    temp = ai.special_play()
                 if temp == 0 or temp is None:
                     self.no_temp(3)
                 else:
@@ -1127,7 +1100,7 @@ class Game():
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         self.playing_game = True
-                        pause = False
+                        paused = False
            
             pygame.draw.rect(self.screen, WHITE, (self.screen_width / 2 - 200, self.screen_height / 3 - 100, 400, 400))
             pygame.draw.rect(self.screen, BLACK, (self.screen_width / 2 - 200, self.screen_height / 3 - 100, 400, 400), 5)
@@ -1135,8 +1108,8 @@ class Game():
             close_text_rect = close_text.get_rect(center=(self.screen_width/2,self.screen_height/3))
             setting_button = Button(self.screen, self.screen_width*(3/7), self.screen_height*(2/5), "./image/button_img.png", 200, 100)
             exit_button = Button(self.screen, self.screen_width*(3/7), self.screen_height*(2/5)+100, "./image/button_img.png", 200, 100)
-            setting_button.show_botton()
-            exit_button.show_botton()
+            setting_button.show_button()
+            exit_button.show_button()
             self.screen.blit(close_text, close_text_rect)
 
             pygame.display.update()
