@@ -1124,6 +1124,10 @@ class Game():
                         pass
                     elif exit_button.get_rect().collidepoint(mouse_pos):
                         pygame.quit()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        self.playing_game = True
+                        pause = False
            
             pygame.draw.rect(self.screen, WHITE, (self.screen_width / 2 - 200, self.screen_height / 3 - 100, 400, 400))
             pygame.draw.rect(self.screen, BLACK, (self.screen_width / 2 - 200, self.screen_height / 3 - 100, 400, 400), 5)

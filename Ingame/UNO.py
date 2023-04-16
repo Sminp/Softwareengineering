@@ -38,6 +38,8 @@ class UNOGame():
         self.difficulty = 1
         self.screen.fill(self.background_color)
         self.mouse_pos = pygame.mouse.get_pos()
+        self.keysetting = 1
+        self.menu = True
         pygame.display.update()
 
     # 시작 화면
@@ -47,9 +49,7 @@ class UNOGame():
 
         selected = 0
 
-        menu = True
-
-        while menu:
+        while self.menu:
             # 안정적으로 소리가 나오기 위한 코드 - 이해하면 지우기
             # pygame.mixer.pre_init(44100, -16, 1, 512)
             pygame.init()
@@ -74,17 +74,30 @@ class UNOGame():
                 if event.type == pygame.QUIT:
                     terminate()
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_LEFT:
-                        # sound.play()
-                        if selected <= 0:
-                            selected = 0
-                        else:
-                            selected = selected - 1
-                    elif event.key == pygame.K_RIGHT:
-                        if selected >= 2:
-                            selected = 2
-                        else:
-                            selected += 1
+                    if self.keysetting == 1:
+                        if event.key == pygame.K_LEFT:
+                            # sound.play()
+                            if selected <= 0:
+                                selected = 0
+                            else:
+                                selected = selected - 1
+                        elif event.key == pygame.K_RIGHT:
+                            if selected >= 2:
+                                selected = 2
+                            else:
+                                selected += 1
+                    if self.keysetting == 2:
+                        if event.key == pygame.K_a:
+                            # sound.play()
+                            if selected <= 0:
+                                selected = 0
+                            else:
+                                selected = selected - 1
+                        elif event.key == pygame.K_d:
+                            if selected >= 2:
+                                selected = 2
+                            else:
+                                selected += 1
                     elif event.key == pygame.K_RETURN:
                         if selected == 0:
                             # self.lobby_screen()
@@ -212,18 +225,23 @@ class UNOGame():
     def setting_screen(self):
 
         pygame.init()
-        game_exit = False
+        setting = True
         selected = 1
+        
+        rect = pygame.Rect(self.screen_width*(8/11), self.screen_height*(7/11), 50, 50)
 
         # 배경음, 효과음 slider
+        
         backgrounder_slider = Slider(self.screen, self.screen_width/2, (self.screen_width*(3/10), self.screen_height*(4/13)), (0, 100))
         sound_effect_slider = Slider(self.screen, self.screen_width/2, (self.screen_width*(3/10), self.screen_height*(6/15)), (0, 100))
 
-        while not game_exit:
+        while setting:
+        
+            
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     terminate()
-
+                    
                 backgrounder_slider.operate(event)
                 sound_effect_slider.operate(event)
 
@@ -251,24 +269,62 @@ class UNOGame():
                         if selected >= 3:
                             # 버튼 입력 후 시작 함수 실행 - 해결하면 지우기
                             pass
+                        
+                if event.type == pygame.MOUSEBUTTONUP:
+                    mouse_pos = pygame.mouse.get_pos()
+                    if sizefull_button.get_rect().collidepoint(mouse_pos): 
+                        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.FULLSCREEN)
+                    elif size16_button.get_rect().collidepoint(mouse_pos):
+                        self.screen_width = 1280
+                        self.screen_height = 720
+                        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+                        backgrounder_slider.set_value(self.screen_width/2, (self.screen_width*(3/10), self.screen_height*(4/13)))
+                        sound_effect_slider.set_value(self.screen_width/2, (self.screen_width*(3/10), self.screen_height*(6/15)))
+                        rect.x = self.screen_width*(8/11)
+                        rect.y = self.screen_height*(7/11)
+                    elif size4_button.get_rect().collidepoint(mouse_pos):
+                        self.screen_width = 800
+                        self.screen_height = 600
+                        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+                        backgrounder_slider.set_value(self.screen_width/2, (self.screen_width*(3/10), self.screen_height*(4/13)))
+                        sound_effect_slider.set_value(self.screen_width/2, (self.screen_width*(3/10), self.screen_height*(6/15)))
+                        rect.x = self.screen_width*(8/11)
+                        rect.y = self.screen_height*(7/11)
+                    elif control_button.get_rect().collidepoint(mouse_pos):
+                        self.key_select_screen()
+                    elif close_button.get_rect().collidepoint(mouse_pos):
+                        self.main_menu()
+                        
+                    elif rect.collidepoint(mouse_pos):
+                        if rect.x == int(self.screen_width*(8/11)):
+                            rect.x += 50
+                            rect= pygame.Rect(rect.x, rect.y, rect.width, rect.height)
+                        elif rect.x == int(self.screen_width*(8/11)) + 50:
+                            rect.x -= 50
+                            rect= pygame.Rect(rect.x, rect.y, rect.width, rect.height)
+                       
 
-            self.screen.fill(WHITE)
+            
+            self.screen.blit(background_img_load("./image/setting image/settingbackground.jpg"), (0,0))
+            pygame.draw.rect(self.screen, WHITE, (self.screen_width*(1/9), self.screen_height*(2/8),self.screen_width*(7/9), self.screen_height*(6/10)))
+            
+            
 
             # 설정화면 텍스트 표시
 
-            setting_text = text_format("SETTING", MALGUNGOTHIC, 35, BLACK)
+            setting_text = text_format("SETTING", MALGUNGOTHIC, 35, WHITE)
             self.screen.blit(setting_text, (self.screen_width*(1/8), self.screen_height*(1/7)))
 
             # 화면 설정 텍스트 표시 ==>> 텍스트 표시 함수를 좀 고쳐야 함
             screen_setting_text = text_format("화면크기", MALGUNGOTHIC, 20, BLACK)
-            self.screen.blit(screen_setting_text, (self.screen_width*(1/8), self.screen_height*(1/2)))
+            self.screen.blit(screen_setting_text, (self.screen_width*(1/8), self.screen_height*(8/15)))
 
             # 화면 설정 버튼 - 변수명 바꿔야 함
-            gamestart_button = Button(self.screen, 600, 50, "./image/button_img.png", 100, 50)
-            sizefull_button = Button(self.screen, self.screen_width*(3/10), self.screen_height*(1/2), "./image/button_img.png", 100, 50)
-            size16_button = Button(self.screen, self.screen_width*(5/10), self.screen_height*(1/2), "./image/button_img.png", 100, 50)
-            size4_button = Button(self.screen, self.screen_width*(7/10), self.screen_height*(1/2), "./image/button_img.png", 100, 50)
-            gamestart_button.show_botton()
+            close_button = Button(self.screen, self.screen_width*(5/6), self.screen_height*(3/11), "./image/setting image/settingclose.png", 20, 20)
+            sizefull_button = Button(self.screen, self.screen_width*(3/10), self.screen_height*(1/2), "./image/setting image/full.jpg", 100, 50)
+            size16_button = Button(self.screen, self.screen_width*(5/10), self.screen_height*(1/2), "./image/setting image/169.jpg", 100, 50)
+            size4_button = Button(self.screen, self.screen_width*(7/10), self.screen_height*(1/2), "./image/setting image/43.jpg", 100, 50)
+            close_button.show_botton()
             sizefull_button.show_botton()
             size16_button.show_botton()
             size4_button.show_botton()
@@ -280,16 +336,48 @@ class UNOGame():
             sound_effect_slider.draw_value('효과음', (self.screen_width*(1/8), self.screen_height*(3/8)))
 
             # 조작키 설정, 설정 초기화, 설정 저장 버튼
-            control_button = Button(self.screen, self.screen_width*(1/8), self.screen_height*(5/8), "./image/button_img.png", 100, 50)
-            settinginit_button = Button(self.screen, self.screen_width*(1/8), self.screen_height*(6/8), "./image/button_img.png", 100, 50)
-            settingsave_button = Button(self.screen, self.screen_width*(7/10), self.screen_height*(6/8), "./image/button_img.png", 100, 50)
+            control_button = Button(self.screen, self.screen_width*(1/8), self.screen_height*(7/11), "./image/setting image/keysetting.jpg", 100, 50)
+            settinginit_button = Button(self.screen, self.screen_width*(1/8), self.screen_height*(6/8), "./image/setting image/settinginit.jpg", 100, 50)
+            settingsave_button = Button(self.screen, self.screen_width*(8/11), self.screen_height*(6/8), "./image/setting image/settingsave.jpg", 100, 50)
             control_button.show_botton()
             settinginit_button.show_botton()
             settingsave_button.show_botton()
             buttons = [control_button, settinginit_button, settingsave_button]
+            
+            settingcolor_button = Button(self.screen, self.screen_width*(8/11), self.screen_height*(7/11), "./image/setting image/rect.jpg", 100, 50)
+            settingcolor_button.show_botton()
+            pygame.draw.rect(self.screen, BLACK, rect)
 
             pygame.display.update()
-
+            
+    def key_select_screen(self):
+        key_select = True
+        
+        setting_key1 = Button(self.screen,self.screen_width*(1/3), self.screen_height*(1/3), "./image/button_img.png", 50, 50)
+        setting_key2 = Button(self.screen,self.screen_width*(1/3), self.screen_height*(2/3), "./image/button_img.png", 50, 50)
+        
+        while key_select:
+            pygame.draw.rect(self.screen, WHITE, (self.screen_width*(1/9), self.screen_height*(2/8),self.screen_width*(7/9), self.screen_height*(6/10)))
+            
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    terminate()
+                
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    mouse_pos = pygame.mouse.get_pos()
+                    if setting_key1.get_rect().collidepoint(mouse_pos):
+                        self.keysetting = 1
+                        key_select = False
+                    elif setting_key2.get_rect().collidepoint(mouse_pos):
+                        self.keysetting = 2
+                        key_select = False
+                        
+            setting_key1.show_botton()
+            setting_key2.show_botton()
+                        
+            pygame.display.update()
+                    
+        
     def story(self):
 
         pygame.init()
@@ -347,10 +435,11 @@ class Button:
         self.y = y
         self.width = width
         self.height = height
+        self.position = (x,y)
 
         self.img = pygame.transform.scale(pygame.image.load(img), [width, height])
         self.rect = self.img.get_rect()
-        # self.action = action
+        self.rect.center = self.position
         self.cliked_num = 0
 
     def show_botton(self):

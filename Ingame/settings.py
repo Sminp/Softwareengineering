@@ -25,11 +25,8 @@ def draw_text(screen, text, pos, size, font="malgungothic"):
 
 
 # 화면 설정 -> 사이즈마다 구현해야 함
-def screen_size():
-    screen_width = 1280
-    screen_height = 800
-    screen = pygame.display.set_mode((screen_width, screen_height))
-
+def screen_size(size: int):
+    pass
 
 # 조작키 설정
 def control_button_setting():
@@ -61,11 +58,19 @@ class Slider:
         self.color1 = main_color  # 선 색
         self.color2 = button_color  # 버튼색
 
-        button = pygame.rect.Rect(int(self.x + 18 / 40 * self.length), int(self.y - 1 / 40 * self.length),
+        self.button = pygame.rect.Rect(int(self.x + 18 / 40 * self.length), int(self.y - 1 / 40 * self.length),
                                   int(self.length * 1 / 20), int(self.length * 1 / 20))
 
         self.value = (self.max + self.min) / 2  # 값의 초기값
-        self.button_rect = button
+        self.button_rect = self.button
+        
+    def set_value(self, length, pos):
+        self.length = length
+        self.x, self.y = pos
+        self.button.x = int(self.x + 18 / 40 * self.length)
+        self.button.y = int(self.y - 1 / 40 * self.length)
+        self.button.width =  int(self.length * 1 / 20)
+        self.button.height =  int(self.length * 1 / 20)
 
     def draw(self):  # 선, 버튼을 스크린에 그림
         pygame.draw.line(self.screen, self.color1, (self.x, self.y), (self.x + self.length, self.y), 5)
