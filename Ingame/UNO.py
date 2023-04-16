@@ -149,7 +149,7 @@ class UNOGame():
             computer_rect.append([rect, label])
 
         # 아직 게임 시작 버튼이 없어서 못 넣음 
-        gamestart_button = Button(self.screen, self.screen_width*(1/2), self.screen_height*(1/4), "./image/button_img.png", 200, 100)
+        gamestart_button = Button(self.screen, self.screen_width*(2/5), self.screen_height*(1/4), "./image/playingImage/gamestartbutton.png", 300, 150)
         gamestart_button.show_button()
 
         input_active = False
