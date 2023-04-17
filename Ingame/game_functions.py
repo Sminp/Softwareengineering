@@ -21,7 +21,7 @@ class Game():
         self.player_num = player_num
         self.difficulty = difficulty
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
-        self.screen.blit(background_img_load("./image/PlayingBackground.png"), (0, 0))
+        self.screen.blit(background_img_load("./image/playing_background_image.png"), (0, 0))
         self.color = {1: 'red', 2: 'yellow', 3: 'green', 4: 'blue', 5: 'wild'}
         self.skill = {11: '_pass', 12: '_reverse', 13: '_plus_two', 14: '_basic', 15: '_plus_four', 16: '_change'}
         self.card_deck = []
@@ -330,7 +330,7 @@ class Game():
         for i in range(5):
             rect = pygame.Rect(0, 100 * i + (i + 1) * ((self.screen_height - 500) / 6), self.screen_width/5, self.screen_height/6)
             computer_rect.append(rect)
-        self.screen.blit(background_img_load("./image/PlayingBackground.png"), (0, 0))
+        self.screen.blit(background_img_load("./image/playing_background_image.png"), (0, 0))
         for rect in computer_rect:
             pygame.draw.rect(self.screen, WHITE, rect)
 
@@ -926,6 +926,8 @@ class Game():
 
                 if event.type == MOUSEBUTTONUP:
                     mouse_pos = pygame.mouse.get_pos()
+                    self.select_sound = pygame.mixer.Sound('./sound/card_sound.mp3')
+                    self.select_sound.play()
                     if self.now_turn == 0:
                         self.select_player(self.now_turn)
                         for sprite in self.user_group:
@@ -1126,7 +1128,7 @@ class Game():
                     pygame.quit()
                 if event.type == MOUSEBUTTONUP:
                     mouse_pos = pygame.mouse.get_pos()
-                    if 500 <= mouse_pos[0] <= 530 and 300 <= mouse_pos[1] <= 330:
+                    if self.uno_button.get_rect().collidepoint(mouse_pos):
                         print("버튼 누름!")
                         end_time = time.time()
                         com_time = random.randint(1,3)
@@ -1175,7 +1177,8 @@ class Game():
                             self.now_turn = self.next_turn(self.now_turn)
                             uno = False
             pygame.display.update()
-
+            
+            
 
 
 
