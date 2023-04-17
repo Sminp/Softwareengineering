@@ -278,6 +278,7 @@ class UNOGame():
                     if sizefull_button.get_rect().collidepoint(mouse_pos): 
                         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.FULLSCREEN)
                     elif size16_button.get_rect().collidepoint(mouse_pos):
+                        print("zmf")
                         self.screen_width = 1280
                         self.screen_height = 720
                         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
