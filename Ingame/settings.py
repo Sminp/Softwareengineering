@@ -110,6 +110,9 @@ class Slider:
         # text_rect.center = pos
 
         self.screen.blit(text1, pos)
+        
+    def get_value(self):
+        return self.value
 
     # 버튼 클래스
 

@@ -11,7 +11,7 @@ import time
 
 
 class Game():
-    def __init__(self, player_num=2, difficulty=1, player_name="ME"):  # 초기값 임시로 설정 - 지우기
+    def __init__(self, player_num=2, difficulty=1,player_name ="ME"):  # 화면 크기 넣기 
         pygame.init()
         self.screen_width = SCREEN_WIDTH
         self.screen_height = SCREEN_HEIGHT
@@ -21,7 +21,7 @@ class Game():
         self.player_num = player_num
         self.difficulty = difficulty
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
-        self.screen.blit(background_img_load("./image/PlayingBackground.png"), (0, 0))
+        self.screen.blit(background_img_load("./image/playing_background_image.png"), (0, 0))
         self.color = {1: 'red', 2: 'yellow', 3: 'green', 4: 'blue', 5: 'wild'}
         self.skill = {11: '_pass', 12: '_reverse', 13: '_plus_two', 14: '_basic', 15: '_plus_four', 16: '_change'}
         self.card_deck = []
@@ -287,29 +287,29 @@ class Game():
                 j = 0
                 for item in com1_card:
                     if i >= 12:
-                        item.update((self.screen_width * (1 / 30) + 10 * j, self.screen_height * (1 / 9)+self.screen_height * (1 / 30)))
+                        item.update((self.screen_width * (1 / 30) + 10 * j, self.screen_height * (1 / 10)+self.screen_height * (1 / 30)))
                         j += 1 
                         i += 1
                         temp_list.append(item)
                     else:
-                        item.update((self.screen_width * (1 / 30) + 10 * i, self.screen_height * (1 / 9)))
+                        item.update((self.screen_width * (1 / 30) + 10 * i, self.screen_height * (1 / 10)))
                         temp_list.append(item)
                         i += 1
                 self.com1_group = pygame.sprite.RenderPlain(*temp_list)
                 
                 self.lastcard1 = temp_list[-1].getposition()
                 if self.lastcard1 == (
-                self.screen_width * (1 / 30) + 10 * (len(temp_list) % 12 - 1), self.screen_height * (1 / 9)+self.screen_height * (1 / 30)):
+                self.screen_width * (1 / 30) + 10 * (len(temp_list) % 12 - 1), self.screen_height * (1 / 10)+self.screen_height * (1 / 30)):
                     setting_com1 = 0
             else:
                 for item in com1_card:
-                    item.update((self.screen_width * (1 / 30) + 10 * i, self.screen_height * (1 / 9)))
+                    item.update((self.screen_width * (1 / 30) + 10 * i, self.screen_height * (1 / 10)))
                     temp_list.append(item)
                     i += 1
                 self.com1_group = pygame.sprite.RenderPlain(*temp_list)
                 self.lastcard1 = temp_list[-1].getposition()
                 if self.lastcard1 == (
-                self.screen_width * (1 / 30) + 10 * (len(temp_list) - 1), self.screen_height * (1 / 9)):
+                self.screen_width * (1 / 30) + 10 * (len(temp_list) - 1), self.screen_height * (1 / 10)):
                     setting_com1 = 0
 
             if self.player_num >= 3:
@@ -528,7 +528,7 @@ class Game():
         for i in range(5):
             rect = pygame.Rect(0, 100 * i + (i + 1) * ((self.screen_height - 500) / 6), self.screen_width/5, self.screen_height/6)
             computer_rect.append(rect)
-        self.screen.blit(background_img_load("./image/PlayingBackground.png"), (0, 0))
+        self.screen.blit(background_img_load("./image/playing_background_image.png"), (0, 0))
         for rect in computer_rect:
             pygame.draw.rect(self.screen, WHITE, rect)
 
@@ -677,102 +677,184 @@ class Game():
 
     # card_skill 중 card change 함수
     def card_change(self, now_turn, pick_turn):
-        if pick_turn == 1:
-            print(f'바꾸기 전 player{now_turn} 덱 : {self.player[now_turn]}')
-            print(f'바꾸기 전 player{pick_turn} 덱 : {self.player[pick_turn]}')
+        
+        # 현재 턴의 플레이어 덱 임시 저장
+        temp_player = self.player[now_turn][:]
 
-            # 선택할 수 있는 player의 카드 임시 저장
-            temp_player = self.player[now_turn][:]
+        # 현재 턴의 플레이어 리스트 초기화
+        self.player[now_turn].clear()
 
-            # 마지막 카드 위치 처음으로 - if문으로 지정
-            if now_turn == 0 or pick_turn == 0:
-                self.lastcard0 = (130, 500)
-                if now_turn == 0:
-                    now_turn_lastcard = self.lastcard0
-                    now_group = self.user_group
-                else:
-                    pick_turn_lastcard = self.lastcard0
-                    pick_group = self.user_group
-            if now_turn == 1 or pick_turn == 1:
-                self.lastcard1 = (230, 100)
-                if now_turn == 1:
-                    now_turn_lastcard = self.lastcard1
-                    now_group = self.com1_group
-                else:
-                    pick_turn_lastcard = self.lastcard1
-                    pick_group = self.com1_group
-            if now_turn == 2 or pick_turn == 2:
-                # self.lastcard3 = (130, 500)
-                if now_turn == 2:
-                    now_turn_lastcard = self.lastcard2
-                    now_group = self.com2_group
-                else:
-                    pick_turn_lastcard = self.lastcard2
-                    pick_group = self.com2_group
-            if now_turn == 3 or pick_turn == 3:
-                # self.lastcard4 = (230, 100)
-                if now_turn == 3:
-                    now_turn_lastcard = self.lastcard3
-                    now_group = self.com3_group
-                else:
-                    pick_turn_lastcard = self.lastcard3
-                    pick_group = self.com3_group
+        # 현재 턴의 플레이어 덱 초기화 
+        match now_turn:
+            case 0:
+                self.lastcard0 = (self.screen_width/3 - self.screen_width/10 , self.screen_height * (7 / 9))
+                now_turn_lastcard = self.lastcard0
+                for sprite in self.user_group:
+                    self.user_group.remove(sprite)
+            case 1:
+                self.lastcard1 = (self.screen_width * (1 / 30) - 10 , self.screen_height * (1 / 10))
+                now_turn_lastcard = self.lastcard1
+                for sprite in self.com1_group:
+                    self.com1_group.remove(sprite)
+            case 2:
+                self.lastcard2 = (self.screen_width * (1 / 30) - 10, self.screen_height * (3 / 10))
+                now_turn_lastcard = self.lastcard2
+                for sprite in self.com2_group:
+                    self.com2_group.remove(sprite)
+            case 3:
+                self.lastcard3 = (self.screen_width * (1 / 30) - 10,self.screen_height * (1 / 2))
+                now_turn_lastcard = self.lastcard3
+                for sprite in self.com3_group:
+                    self.com3_group.remove(sprite)
+            case 4:
+                self.lastcard4 = (self.screen_width * (1 / 30) - 10,self.screen_height * (7 / 10))
+                now_turn_lastcard = self.lastcard4
+                for sprite in self.com4_group:
+                    self.com4_group.remove(sprite)
+            case _:
+                self.lastcard5 = (self.screen_width * (1 / 30) - 10,self.screen_height * (9 / 10))
+                now_turn_lastcard = self.lastcard5
+                for sprite in self.com5_group:
+                    self.com5_group.remove(sprite)
 
-            # 플레이어 초기화
-            self.player[now_turn].clear()
-            for sprite in now_group:
-                now_group.remove(sprite)
-
-            print(f'초기화 후 player{now_turn} 덱: {self.player[now_turn]}')
-
-            # 컴퓨터 덱을 플레이어 덱으로 - 기본은 0 플레이어인데 아마 변수 써서 할거야
+        # 현재 턴의 플레이어 덱에 목표 플레이어 덱 넣기
+        if now_turn == 0:
             for item in self.player[pick_turn]:
                 card = loadcard.Card(item, (400, 300), (self.screen_width / 10, self.screen_height / 6))
                 current_pos = now_turn_lastcard
-                if current_pos[0] >= 620:
-                    y = current_pos[1] + 80
-                    x = 200
+                if current_pos[0] >= self.screen_width*(28/30):
+                    y = current_pos[1] + self.screen_height / 7
+                    x = self.screen_width/3
                 else:
                     y = current_pos[1]
-                    x = current_pos[0] + 70
+                    x = current_pos[0] + self.screen_width/ 10
                 card.setposition(x, y)
-                now_turn_lastcard = (x, y)
-                now_group.add(card)
+                now_turn_lastcard = (x,y)
+                self.lastcard0 = (x, y)
+                self.user_group.add(card)
+        else:
+            for _ in range(len(self.player[pick_turn])):
+                card = loadcard.Card('back', (400, 300), (self.screen_width / 30, self.screen_height / 18))
+                current_pos = now_turn_lastcard
+                if current_pos[0] >= self.screen_width/30 + 110: # 110을 화면 비율에 맞게 바꿔야함 10 (카드 겹치는 길이) X 11 (최대 12장)
+                    y = current_pos[1] + self.screen_height/18
+                    x = self.screen_width/ 30
+                else:
+                    y = current_pos[1]
+                    x = current_pos[0] + 10
+                card.setposition(x, y)
+            
+                match now_turn:
+                    case 1:
+                        now_turn_lastcard = (x,y)
+                        self.lastcard1 = (x, y)
+                        self.com1_group.add(card)
+                    case 2:
+                        now_turn_lastcard = (x,y)
+                        self.lastcard2 = (x, y)
+                        self.com2_group.add(card)
+                    case 3:
+                        now_turn_lastcard = (x,y)
+                        self.lastcard3 = (x, y)
+                        self.com3_group.add(card)
+                    case 4:
+                        now_turn_lastcard = (x,y)
+                        self.lastcard4 = (x, y)
+                        self.com4_group.add(card)
+                    case _:
+                        now_turn_lastcard = (x,y)
+                        self.lastcard5 = (x, y)
+                        self.com5_group.add(card)
 
-            # 변수 이름 출력은 나중에
-            print(f'변경 후 {now_group}: {now_group}')
-            self.player[now_turn] = self.player[pick_turn][:]
-            print(f'변경 후 player{now_turn} 덱: {self.player[now_turn]}')
+        # 현재 턴인 플레이어 덱 리스트 목표 플레이어 덱 리스트로 변경
+        self.player[now_turn] = self.player[pick_turn][:]
 
-            # 컴퓨터 초기화
-            self.player[pick_turn].clear()
-            for sprite in pick_group:
-                pick_group.remove(sprite)
+        # 목표 플레이어 덱 초기화 
+        self.player[pick_turn].clear()
+        match pick_turn:
+            case 0:
+                self.lastcard0 = (self.screen_width/3 - self.screen_width/10 , self.screen_height * (7 / 9))
+                pick_turn_lastcard = self.lastcard0
+                for sprite in self.user_group:
+                    self.user_group.remove(sprite)
+            case 1:
+                self.lastcard1 = (self.screen_width * (1 / 30) - 10 , self.screen_height * (1 / 10))
+                pick_turn_lastcard = self.lastcard1
+                for sprite in self.com1_group:
+                    self.com1_group.remove(sprite)
+            case 2:
+                self.lastcard2 = (self.screen_width * (1 / 30) - 10, self.screen_height * (3 / 10))
+                pick_turn_lastcard = self.lastcard2
+                for sprite in self.com2_group:
+                    self.com2_group.remove(sprite)
+            case 3:
+                self.lastcard3 = (self.screen_width * (1 / 30) - 10,self.screen_height * (1 / 2))
+                pick_turn_lastcard = self.lastcard3
+                for sprite in self.com3_group:
+                    self.com3_group.remove(sprite)
+            case 4:
+                self.lastcard4 = (self.screen_width * (1 / 30) - 10,self.screen_height * (7 / 10))
+                pick_turn_lastcard = self.lastcard4
+                for sprite in self.com4_group:
+                    self.com4_group.remove(sprite)
+            case _:
+                self.lastcard5 = (self.screen_width * (1 / 30) - 10,self.screen_height * (9 / 10))
+                pick_turn_lastcard = self.lastcard5
+                for sprite in self.com5_group:
+                    self.com5_group.remove(sprite)
 
-            # 변수명 출력 안함
-            print(f'초기화 후 {pick_group}: {pick_group}')
-            print(f'초기화 후 player{pick_turn} : {self.player[pick_turn]}')
-            print("temp: {}".format(temp_player))
-
-            # 플레이어 덱을 컴퓨터 덱으로 - 기본 1 변수 활용해서 바꾸기
-            for i in range(len(temp_player)):
-                card = loadcard.Card("back", (400, 300), (self.screen_width / 10, self.screen_height / 6))
-                card.rotation(180)
+        # 목표 플레이어 덱에 현재 턴인 플레이어 덱 넣기 
+        if pick_turn == 0:
+            for item in temp_player:
+                card = loadcard.Card(item, (400, 300), (self.screen_width / 10, self.screen_height / 6))
                 current_pos = pick_turn_lastcard
-                if current_pos[0] >= 510:
-                    y = current_pos[1] + 40
-                    x = 270
+                if current_pos[0] >= self.screen_width*(28/30):
+                    y = current_pos[1] + self.screen_height/6
+                    x = self.screen_width/3
                 else:
                     y = current_pos[1]
-                    x = current_pos[0] + 40
+                    x = current_pos[0] + self.screen_width/ 10
                 card.setposition(x, y)
-                pick_turn_lastcard = (x, y)
-                self.com1_group.add(card)
-            self.player[pick_turn] = temp_player
-            print(f'변경 후 {pick_group}: {pick_group}')
-            print(f'변경 후 player{pick_turn} 덱: {self.player[pick_turn]}')
-            print(f'바꾼 후 player{now_turn} 덱: {self.player[now_turn]}')
-            print(f'바꾼 후 player{pick_turn} 덱: {self.player[pick_turn]}')
+                pick_turn_lastcard = (x,y)
+                self.lastcard0 = (x, y)
+                self.user_group.add(card)
+        else:
+            for _ in range(len(temp_player)):
+                card = loadcard.Card('back', (400, 300), (self.screen_width / 30, self.screen_height / 18))
+                current_pos = pick_turn_lastcard
+                if current_pos[0] >= self.screen_width/30 + 110: # 110을 화면 비율에 맞게 바꿔야함 10 (카드 겹치는 길이) X 11 (최대 12장)
+                    y = current_pos[1] + self.screen_height/18
+                    x = self.screen_width/30
+                else:
+                    y = current_pos[1]
+                    x = current_pos[0] + 10
+                card.setposition(x, y)
+            
+                match pick_turn:
+                    case 1:
+                        pick_turn_lastcard = (x,y)
+                        self.lastcard1 = (x, y)
+                        self.com1_group.add(card)
+                    case 2:
+                        pick_turn_lastcard = (x,y)
+                        self.lastcard2 = (x, y)
+                        self.com2_group.add(card)
+                    case 3:
+                        pick_turn_lastcard = (x,y)
+                        self.lastcard3 = (x, y)
+                        self.com3_group.add(card)
+                    case 4:
+                        pick_turn_lastcard = (x,y)
+                        self.lastcard4 = (x, y)
+                        self.com4_group.add(card)
+                    case _:
+                        pick_turn_lastcard = (x,y)
+                        self.lastcard5 = (x, y)
+                        self.com5_group.add(card)
+    
+        # 목표 플레이어 덱 리스트 현재 플레이어 덱 리스트로 변경            
+        self.player[pick_turn] = temp_player[:]
+        self.print_window()
 
     # 기능 카드 수행
     # if name[0] 해서 기능 추가
@@ -798,7 +880,6 @@ class Game():
             else:
                 index = self.least_num()
                 self.card_change(self.now_turn, index)
-            self.now_turn = self.next_turn(self.now_turn)
             self.print_window()
 
         elif name[1] == 'plus':
@@ -1313,6 +1394,8 @@ class Game():
                                     break
                 if event.type == MOUSEBUTTONUP:
                     mouse_pos = pygame.mouse.get_pos()
+                    self.select_sound = pygame.mixer.Sound('./sound/card_sound.mp3')
+                    self.select_sound.play()
                     if self.now_turn == 0:
                         self.select_player(self.now_turn)
                         for sprite in self.user_group:
@@ -1529,7 +1612,7 @@ class Game():
                     if setting_button.get_rect().collidepoint(mouse_pos):
                         pass
                     elif exit_button.get_rect().collidepoint(mouse_pos):
-                        pygame.quit()
+                        terminate()
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         self.playing_game = True
