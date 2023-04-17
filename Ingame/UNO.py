@@ -254,7 +254,7 @@ class UNOGame():
                         if selected <= 1:
                             selected = 1
                         else:
-                            selected = selected
+                            selected = selected - 1 
                     elif event.key == pygame.K_RIGHT:
                         # sound.play()
                         if selected >= 3:
@@ -271,13 +271,13 @@ class UNOGame():
                         if selected >= 3:
                             # 버튼 입력 후 시작 함수 실행 - 해결하면 지우기
                             pass
+
                         
                 if event.type == pygame.MOUSEBUTTONUP:
                     mouse_pos = pygame.mouse.get_pos()
                     if sizefull_button.get_rect().collidepoint(mouse_pos): 
                         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.FULLSCREEN)
                     elif size16_button.get_rect().collidepoint(mouse_pos):
-                        print("zmf")
                         self.screen_width = 1280
                         self.screen_height = 720
                         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
@@ -305,9 +305,7 @@ class UNOGame():
                         elif rect.x == int(self.screen_width*(8/11)) + 50:
                             rect.x -= 50
                             rect= pygame.Rect(rect.x, rect.y, rect.width, rect.height)
-                       
-
-            
+                    
             self.screen.blit(background_img_load("./image/setting image/settingbackground.jpg"), (0,0))
             pygame.draw.rect(self.screen, WHITE, (self.screen_width*(1/9), self.screen_height*(2/8),self.screen_width*(7/9), self.screen_height*(6/10)))
             
@@ -403,7 +401,7 @@ class UNOGame():
                             if i == 0:
                                 self.yes_no(2,2)
                             elif i == 1:
-                                self.yes_no(3,3)
+                                self.yes_no(6,3)
                             elif i == 2:
                                 self.yes_no(2,4)
                             else:

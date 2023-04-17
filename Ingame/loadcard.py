@@ -3,6 +3,8 @@ import pygame
 from pygame.locals import *
 import math
 
+from  constant import *
+
 
 class Card(pygame.sprite.Sprite):
     def __init__(self, name, position, size):
@@ -54,15 +56,15 @@ class Card(pygame.sprite.Sprite):
         i_x = compare_pos[0]
         i_y = compare_pos[1]
 
-        if x > i_x + 60 and y == i_y:
-            x -= 70
+        if x >= i_x + SCREEN_WIDTH / 10 and y == i_y:
+            x -= SCREEN_WIDTH / 10
 
         elif y > i_y:
-            if x <= 200:
-                x = 620
-                y = y - 80
+            if x <= SCREEN_WIDTH/3:
+                x = SCREEN_WIDTH*(28/30)
+                y = y - SCREEN_HEIGHT/7
             else:
-                x -= 70
+                x -= SCREEN_WIDTH/3
         self.position = (x, y)
         self.rect = self.image.get_rect()
         self.rect.center = self.position
