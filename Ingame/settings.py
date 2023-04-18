@@ -3,6 +3,15 @@
 from constant import *
 import sys
 import pygame
+import os
+
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
 
 
 # Rect를 빼고 모두다 좌표로 설정.
@@ -18,33 +27,14 @@ class Button:
         self.height = height
         self.position = (x, y)
 
-        self.img = pygame.transform.scale(pygame.image.load(img), [width, height])
+        self.img = pygame.transform.scale(pygame.image.load(resource_path(img)), [width, height])
         self.rect = self.img.get_rect()
-        self.rect.center = self.position
+        self.rect.center = (self.x + self.width/2),(self.y + self.height/2)
         self.cliked_num = 0
 
     def show_button(self):
         self.screen.blit(self.img, (self.x, self.y))
-
-        # mouse = pygame.mouse.get_pos()
-        # click = pygame.mouse.get_pressed()
-
-        # if x + width > mouse[0] > x and y + height > mouse[1] > y:
-        #     # 마우스를 버튼위에 올렸을 때 색깔 변함
-        #     pygame.draw.rect(screen, self.hover_color, self.rect)
-        #     if click[0] == 1 and action != None:
-        #         # 클릭하면 해당 버튼 기능 수행
-        #         action()
-        # else:
-        #     pygame.draw.rect(screen, self.color, self.rect)
-
-        # 버튼의 text 설정
-        # font = pygame.font.SysFont(font_name,font_size)
-        # self.textSurf = font.render(text,True,BLACK)
-        # self.textRect = self.textSurf.get_rect()
-        # self.textRect.center = ((x + width/2),(y + height/2))
-        # screen.blit(self.textSurf, self.textRect)
-
+        
     def cliked(self):
         self.screen.blit(self.img, (self.x, self.y - 5))
         self.cliked_num += 1

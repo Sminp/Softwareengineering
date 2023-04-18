@@ -18,7 +18,8 @@ class Game():
         self.screen_width = self.uno_game.screen_width
         self.screen_height = self.uno_game.screen_height
         self.screen = self.uno_game.screen
-        self.background_img_load = uno_game.background_img_load("./image/PlayingBackground.png")
+        self.background_img_load = uno_game.background_img_load("./image/playing_image/playing_background.png")
+        
         self.color = {1: 'red', 2: 'yellow', 3: 'green', 4: 'blue', 5: 'wild'}
         self.skill = {11: '_pass', 12: '_reverse', 13: '_plus_two', 14: '_basic', 15: '_plus_four', 16: '_change'}
         self.card_deck = []
@@ -30,7 +31,7 @@ class Game():
         self.playing_game = True
         self.game_turn = 0
         self.uno_button = Button(self.screen, self.screen_width * (3 / 4), self.screen_height * (1 / 3),
-                                 "./image/UnoButton.png", self.screen_height * (1 / 20), self.screen_height * (1 / 20))
+                                 "./image/playing_image/uno_button.png", self.screen_height * (1 / 20), self.screen_height * (1 / 20))
         self.time_limit = 10  # -> 시간 제한 설정
         # self.first_show = True
         # self.two_first_show = True
@@ -295,12 +296,12 @@ class Game():
                 for item in com1_card:
                     if i >= 12:
                         item.update((self.screen_width * (1 / 30) + 10 * j,
-                                     self.screen_height * (1 / 9) + self.screen_height * (1 / 30)))
+                                     self.screen_height * (1 / 10) + self.screen_height * (1 / 30)))
                         j += 1
                         i += 1
                         temp_list.append(item)
                     else:
-                        item.update((self.screen_width * (1 / 30) + 10 * i, self.screen_height * (1 / 9)))
+                        item.update((self.screen_width * (1 / 30) + 10 * i, self.screen_height * (1 / 10)))
                         temp_list.append(item)
                         i += 1
                 self.com1_group = pygame.sprite.RenderPlain(*temp_list)
@@ -308,18 +309,18 @@ class Game():
                     self.lastcard1 = temp_list[-1].getposition()
                 if self.lastcard1 == (
                         self.screen_width * (1 / 30) + 10 * (len(temp_list) % 12 - 1),
-                        self.screen_height * (1 / 9) + self.screen_height * (1 / 30)):
+                        self.screen_height * (1 / 10) + self.screen_height * (1 / 30)):
                     setting_com1 = 0
             else:
                 for item in com1_card:
-                    item.update((self.screen_width * (1 / 30) + 10 * i, self.screen_height * (1 / 9)))
+                    item.update((self.screen_width * (1 / 30) + 10 * i, self.screen_height * (1 / 10)))
                     temp_list.append(item)
                     i += 1
                 self.com1_group = pygame.sprite.RenderPlain(*temp_list)
                 if temp_list:
                     self.lastcard1 = temp_list[-1].getposition()
                 if self.lastcard1 == (
-                        self.screen_width * (1 / 30) + 10 * (len(temp_list) - 1), self.screen_height * (1 / 9)):
+                        self.screen_width * (1 / 30) + 10 * (len(temp_list) - 1), self.screen_height * (1 / 10)):
                     setting_com1 = 0
 
             if self.player_num >= 3:
@@ -1495,7 +1496,7 @@ class Game():
                                  (self.screen_width / 10, self.screen_height / 6))
             current_pos = self.lastcard0
             if current_pos[0] >= self.screen_width*(28/30):
-                y = current_pos[1] + self.screen_height/7
+                y = current_pos[1] + self.screen_height/10
                 x = self.screen_width*(1/3)
             else:
                 y = current_pos[1]
@@ -1581,59 +1582,49 @@ class Game():
         i_y = compare_pos[1]
 
         if self.now_turn == 0:
-            print("뽑고 나서랑 같은 지 확인 lastcard {}".format(lastcard))
-            print("낸 카드 compare_pos {}".format(compare_pos))
             if x >= i_x + self.screen_width / 10 and y == i_y:
-                print("같은 줄에 있고 낼 카드의 뒤에 있을 때 ")
                 x -= self.screen_width / 10
-                print("x : {}".format(x))
 
             elif y > i_y:
-                print("2줄이 있을 때 첫 줄 카드 제출")
-                print("x: {}".format(x))
                 if x <= self.screen_width / 3:
-                    print("현재 lastcard가 처음 위치")
-                    print("x : {}".format(x))
                     x = self.screen_width * (28 / 30)
-                    y = y - self.screen_height / 7  # 그 difficultiy 3일 때 싹다... 수정을...
-                    print("변경 후 x,y : {},{}".format(x, y))
+                    y = y - self.screen_height / 10 
                 else:
-                    print("첫카드 아닌경우")
                     x -= self.screen_width / 10
             self.lastcard0 = (x, y)
             print(self.lastcard0)
         elif self.now_turn == 1:
-            if x == self.screen_width * (1 / 6) and y > self.screen_height * (1 / 9):
+            if x == self.screen_width * (1 / 6) and y > self.screen_height * (1 / 10):
                 y -= self.screen_height * (1 / 30)
                 x = self.screen_width * (1 / 6)
             else:
                 x -= 10
             self.lastcard1 = (x, y)
         elif self.now_turn == 2:
-            if x == self.screen_width * (1 / 6) and y > self.screen_height * (1 / 9):
-                x -= self.screen_height * (1 / 30)
-                y = self.screen_width * (1 / 6)
+            if x == self.screen_width * (1 / 6) and y > self.screen_height * (3 / 10):
+                y -= self.screen_height * (1 / 30)
+                x = self.screen_width * (1 / 6)
             else:
                 x -= 10
             self.lastcard2 = (x, y)
         elif self.now_turn == 3:
-            if x == self.screen_width * (1 / 6) and y > self.screen_height * (1 / 9):
-                x -= self.screen_height * (1 / 30)
-                y = self.screen_width * (1 / 6)
+            if x == self.screen_width * (1 / 6) and y > self.screen_height * (1 / 2):
+                y -= self.screen_height * (1 / 30)
+                x = self.screen_width * (1 / 6)
             else:
                 x -= 10
             self.lastcard3 = (x, y)
         elif self.now_turn == 4:
-            if x == self.screen_width * (1 / 6) and y > self.screen_height * (1 / 9):
-                x -= self.screen_height * (1 / 30)
-                y = self.screen_width * (1 / 6)
+            if x == self.screen_width * (1 / 6) and y > self.screen_height * (7 / 10):
+                y -= self.screen_height * (1 / 30)
+                x = self.screen_width * (1 / 6)
             else:
                 x -= 10
             self.lastcard4 = (x, y)
         elif self.now_turn == 5:
-            if x == self.screen_width * (1 / 6) and y > self.screen_height * (1 / 9):
-                x -= self.screen_height * (1 / 30)
-                y = self.screen_width * (1 / 6)
+            if x == self.screen_width * (1 / 6) and y > self.screen_height * (9 / 10):
+                y -= self.screen_height * (1 / 30)
+                x = self.screen_width * (1 / 6)
             else:
                 x -= 10
             self.lastcard5 = (x, y)

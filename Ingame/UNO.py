@@ -50,13 +50,13 @@ class UNOGame():
 
     # 배경화면 로드 함수
     def background_img_load(self, filename: str) -> object:
-        background_img = pygame.image.load(filename)
+        background_img = pygame.image.load(resource_path(filename))
         return pygame.transform.scale(background_img, (self.screen_width, self.screen_height))
 
     # 시작 화면
     def main_menu(self):
         pygame.init()
-        self.screen.blit(background_img_load("./image/title_image/title_background.jpg"), (0, 0))
+        self.screen.blit(self.background_img_load("./image/title_image/title_background.jpg"), (0, 0))
         self.title_bgm = pygame.mixer.music.load('./sound/title_bgm.mp3')
         pygame.mixer.music.play(-1)
         
@@ -68,14 +68,14 @@ class UNOGame():
             pygame.mixer.pre_init(44100, -16, 1, 512)
             pygame.init()
             
-            self.screen.blit(background_img_load("./image/title_image/title_background.jpg"), (0, 0))
-            self.normal_button = Button(self.screen, self.screen_width*(1/4), self.screen_height*(5/8), "./image/title_image/title_menu_image/normalmode_button.png", 100, 230)
-            self.story_button = Button(self.screen,self.screen_width*(1/4)+100, self.screen_height*(5/8),"./image/title_image/title_menu_image/storymode_button.png",100,230)
-            self.setting_button = Button(self.screen, self.screen_width*(1/4)+200, self.screen_height*(5/8), "./image/title_image/title_menu_image/setting_button.png", 100, 230)
-            self.end_button = Button(self.screen, self.screen_width*(1/4)+300, self.screen_height*(5/8), "./image/title_image/title_menu_image/end_button.png", 100, 230)
+            self.screen.blit(self.background_img_load("./image/title_image/title_background.jpg"), (0, 0))
+            self.normal_button = Button(self.screen, self.screen_width*(1/4), self.screen_height*(5/8), "./image/title_image/normalmode_button.png", 100, 230)
+            self.story_button = Button(self.screen,self.screen_width*(1/4)+100, self.screen_height*(5/8),"./image/title_image/storymode_button.png",100,230)
+            self.setting_button = Button(self.screen, self.screen_width*(1/4)+200, self.screen_height*(5/8), "./image/title_image/setting_button.png", 100, 230)
+            self.end_button = Button(self.screen, self.screen_width*(1/4)+300, self.screen_height*(5/8), "./image/title_image/end_button.png", 100, 230)
             button_list = [self.normal_button, self.story_button, self.setting_button, self.end_button]
                         
-            self.normal_button.show_button()
+            self.normal_button.show_button() 
             self.story_button.show_button()
             self.setting_button.show_button()
             self.end_button.show_button()
@@ -151,7 +151,7 @@ class UNOGame():
         self.playing_bgm = pygame.mixer.music.load('./sound/playing_bgm.mp3')
         pygame.mixer.music.play(-1)
 
-        self.screen.blit(background_img_load("./image/playing_image/playing_background.png"), (0, 0))
+        self.screen.blit(self.background_img_load('./image/playing_image/playing_background.png'), (0, 0))
 
         font = pygame.font.SysFont(self.font, 30)
         name_text = "player"
@@ -219,7 +219,7 @@ class UNOGame():
                         text_surface = font.render(name_text, True, WHITE)
                         text_rect.size = text_surface.get_size()
 
-            self.screen.blit(background_img_load("./image/playing_background_image.png"), (0, 0))
+            self.screen.blit(self.background_img_load('./image/playing_image/playing_background.png'), (0, 0))
             self.screen.blit(text_surface, text_rect)
             gamestart_button.show_button()
 
@@ -232,7 +232,7 @@ class UNOGame():
                 pygame.draw.line(self.screen, WHITE, (text_rect.x + text_rect.w, text_rect.y),
                                  (text_rect.x + text_rect.w, text_rect.y + text_rect.h), 2)
             else:
-                self.screen.blit(background_img_load("./image/playing_background_image.png"), (0, 0))
+                self.screen.blit(self.background_img_load('./image/playing_image/playing_background.png'), (0, 0))
                 self.screen.blit(text_surface, text_rect)
                 gamestart_button.show_button()
                 for rect, label in computer_rect:
@@ -324,7 +324,7 @@ class UNOGame():
                        
 
             
-            self.screen.blit(background_img_load("./image/setting_image/settingbackground.jpg"), (0,0))
+            self.screen.blit(self.background_img_load("./image/setting_image/settingbackground.jpg"), (0,0))
             pygame.draw.rect(self.screen, WHITE, (self.screen_width*(1/9), self.screen_height*(2/8),self.screen_width*(7/9), self.screen_height*(6/10)))
             
             
@@ -406,7 +406,7 @@ class UNOGame():
 
         pygame.init()
         self.story = True
-        self.screen.blit(background_img_load("./image/mapimage/map_back.jpg"),(0,0))
+        self.screen.blit(self.background_img_load("./image/map_image/map_back.jpg"),(0,0))
        
 
         font = pygame.font.SysFont(self.font, 50)
