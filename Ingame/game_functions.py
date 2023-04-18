@@ -1088,7 +1088,7 @@ class Game():
 
                 if event.type == KEYDOWN:
                     if event.key == K_SPACE:
-                        self.startgame()
+                        self.uno_game.main_menu()
                         return
         return 0
 
@@ -1694,7 +1694,9 @@ class Game():
                     pygame.quit()
                 if event.type == MOUSEBUTTONUP or event.type == KEYDOWN:
                     mouse_pos = pygame.mouse.get_pos()
-                    if 500 <= mouse_pos[0] <= 530 and 300 <= mouse_pos[1] <= 330 or event.type == K_SPACE:
+                    # tnwjdgodigo
+                    if self.uno_button.get_rect().collidepoint(mouse_pos) or event.type == K_SPACE:
+                    # if 500 <= mouse_pos[0] <= 530 and 300 <= mouse_pos[1] <= 330 or event.type == K_SPACE:
                         print("버튼 누름!")
                         end_time = time.time()
                         com_time = random.randint(1, 3)
