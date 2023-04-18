@@ -16,7 +16,7 @@ class AI():
             if now[0] == 'wild':
                 return item
             if len(now) == 1:
-                if card[0] == now[0]:
+                if card[0] == now[0] or now[0] == card[1]:
                     return item
             elif len(card) < 3 or len(now) < 3:
                 if card[0] == now[0]:
@@ -43,22 +43,6 @@ class AI():
         now = self.now_card.split('_')
         for item in self.player_deck:
             card = item.split('_')
-            # 색 고려
-            # if now[0] == "red" or now[0] == "yellow": 
-            #     if card[0] == "red" or card[0] == "yellow":
-            #         if now[1] != '0' and card[1] != '0':
-            #             if (int(now[1]) % int(card[1])) == 0 or  (int(card[1]) % int(now[1])) == 0:
-            #                 return item
-            #         else:
-            #             return item
-            # else: 
-            #     if now[0] == "blue" or now[0] == "green":
-            #         if now[1] != '0' and card[1] != '0':
-            #             if (int(now[1]) % int(card[1])) == 0 or  (int(card[1]) % int(now[1])) == 0:
-            #                 return item
-            #         else:
-            #             return item
-            # 색 고려 x
             if now[1] != '0' and card[1] != '0':
                 if (int(now[1]) % int(card[1])) == 0 or  (int(card[1]) % int(now[1])) == 0:
                     return item
@@ -96,7 +80,7 @@ class AI():
             item_ = item.split('_')
             if len(item_) == 2:
                 if len(now) == 1: # wild, red, blue, green, yellow
-                    if item_[0] == now[0]:
+                    if item_[0] == now[0] or item_[1] == now[0]:
                         temp.append(item)
                 if len(now) == 2:
                     if item_[0] == now[0]:
