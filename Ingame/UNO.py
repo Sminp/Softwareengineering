@@ -372,8 +372,8 @@ class UNOGame():
     def key_select_screen(self):
         key_select = True
         
-        setting_key1 = Button(self.screen,self.screen_width*(1/3), self.screen_height*(1/3), "./image/button_img.png", 50, 50)
-        setting_key2 = Button(self.screen,self.screen_width*(1/3), self.screen_height*(2/3), "./image/button_img.png", 50, 50)
+        setting_key1 = Button(self.screen,self.screen_width*(1/5), self.screen_height*(4/9), "./image/setting_image/settingkey_wasd.png", 150, 100)
+        setting_key2 = Button(self.screen,self.screen_width*(3/5), self.screen_height*(4/9), "./image/setting_image/settingkey_arrow.png", 150, 100)
         
         while key_select:
             pygame.draw.rect(self.screen, WHITE, (self.screen_width*(1/9), self.screen_height*(2/8),self.screen_width*(7/9), self.screen_height*(6/10)))
@@ -403,18 +403,28 @@ class UNOGame():
         
         self.storymode_bgm = pygame.mixer.music.load('./sound/storymode_bgm.mp3')
         pygame.mixer.music.play(-1)
-
+        
         pygame.init()
         self.story = True
-        self.screen.blit(self.background_img_load("./image/map_image/map_back.jpg"),(0,0))
        
-
+        self.screen.blit(self.background_img_load("./image/map_image/map_back.jpg"),(0,0))
         font = pygame.font.SysFont(self.font, 50)
         text = "STORY MODE"
         text_surface = font.render(text, True, WHITE)
         text_rect = text_surface.get_rect(center=(self.screen_width // 5, self.screen_height // 10))
+        
+        america = Button(self.screen, self.screen_width*(1/40), self.screen_height*(2/5), "./image/map_image/america.png", self.screen_width*(1/5), self.screen_height*(1/5))
+        macau = Button(self.screen, self.screen_width*(10/40), self.screen_height*(2/5), "./image/map_image/macau.png", self.screen_width*(1/5), self.screen_height*(1/5))
+        singapore = Button(self.screen, self.screen_width*(20/40), self.screen_height*(2/5), "./image/map_image/singapore.png", self.screen_width*(1/5), self.screen_height*(1/5))
+        korea = Button(self.screen, self.screen_width*(30/40), self.screen_height*(2/5), "./image/map_image/korea.png", self.screen_width*(1/5), self.screen_height*(1/5))
+        button_list = [america, macau, singapore, korea]
+            
+        america.show_button()
+        macau.show_button()
+        singapore.show_button()
+        korea.show_button()
 
-        story_map = [pygame.Rect((i * 200 + 50, self.screen_height // 2 - 25, 50, 50)) for i in range(4)]
+        story_map = [america, macau, singapore, korea]
 
         while self.story:
             for event in pygame.event.get():
@@ -422,7 +432,7 @@ class UNOGame():
                     terminate()
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     for i in range(len(story_map)):
-                        if story_map[i].collidepoint(event.pos):
+                        if story_map[i].get_rect().collidepoint(event.pos):
                             if i == 0:
                                 self.yes_no(2, 2)
                             elif i == 1:
@@ -432,11 +442,7 @@ class UNOGame():
                             else:
                                 self.yes_no(3, 5)
 
-            self.screen.fill(WHITE)
             self.screen.blit(text_surface, text_rect)
-            for rect in story_map:
-                pygame.draw.rect(self.screen, BLACK, rect)
-
             pygame.display.update()
 
     # 지역 선택하면 플레이할 건지 물어보는 창
@@ -445,9 +451,9 @@ class UNOGame():
         self.story_screen = False
 
         yes_button = Button(self.screen, self.screen_width * (3 / 7), self.screen_height * (2 / 5),
-                            "./image/button_img.png", 100, 50)
+                            "./image/map_image/story_yes.jpg", 100, 50)
         no_button = Button(self.screen, self.screen_width * (3 / 7), self.screen_height * (2 / 5) + 100,
-                           "./image/button_img.png", 100, 50)
+                           "./image/map_image/story_no.jpg", 100, 50)
 
         while yes_no:
             for event in pygame.event.get():

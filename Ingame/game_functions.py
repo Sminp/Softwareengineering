@@ -1024,8 +1024,12 @@ class Game():
 
     # change 카드 사용할 때 바꿀 플레이어 선택
     def pick_player(self):
-        pick_player_button = [Button(self.screen, 350, 100 + i * 120, "./image/button_img.png", 100, 100) for i in
-                              range(self.player_num - 1)]
+
+        pick_player_button = []
+        for i in range(1,self.player_num):
+            image_name = "./image/playing_image/deckchange_player"+str(i)+".jpg"
+            temp_button = Button(self.screen, self.screen_width*(1/2), self.screen_height/6 * i, image_name, self.screen_width*(1/8), self.screen_height*(1/9))
+            pick_player_button.append(temp_button)
         index = 0
 
         loop = True
@@ -1039,16 +1043,13 @@ class Game():
                 if event.type == MOUSEBUTTONUP:
                     mouse_pos = pygame.mouse.get_pos()
                     for i in range(self.player_num - 1):
-                        if pick_player_button[i].x <= mouse_pos[0] <= pick_player_button[i].width + pick_player_button[
-                            i].x and pick_player_button[i].y <= mouse_pos[1] <= pick_player_button[i].y + \
-                                pick_player_button[i].height:
+                        if pick_player_button[i].get_rect().collidepoint(mouse_pos):
                             index = i
-                            print("바꿀사람:{}".format(index + 1))
                             self.print_window()
                             loop = False
-
+        
         return index + 1
-
+    
     # 다음 차례 플레이어에게 카드 뽑게 함 -> draw 카드
     def give_card(self, card_num):
         if len(self.waste_card) == 1:  # 처음 카드가 +2,+4일때 처음 플레이어가 카드 받음
