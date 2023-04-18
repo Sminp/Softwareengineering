@@ -64,7 +64,7 @@ class Card(pygame.sprite.Sprite):
                 x = SCREEN_WIDTH*(28/30)
                 y = y - SCREEN_HEIGHT/7
             else:
-                x -= SCREEN_WIDTH/3
+                x -= SCREEN_WIDTH/10
         self.position = (x, y)
         self.rect = self.image.get_rect()
         self.rect.center = self.position
