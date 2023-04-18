@@ -511,7 +511,6 @@ class Game():
             self.game_turn += 1
             self.change_color()
             pygame.time.wait(1000)
-            print("turn", self.game_turn)
             self.first = False
 
     # 플레이어 턴 인덱스 넘어가지 않도록 함
@@ -1297,7 +1296,6 @@ class Game():
                         continue
                     self.card_skill(t_card)
                     self.print_window()
-                    print("computer lastcard", self.lastcard3)
                     self.now_turn = self.next_turn(self.now_turn)
                     pygame.display.update()
 
@@ -1341,7 +1339,6 @@ class Game():
                         continue
                     self.card_skill(t_card)
                     self.print_window()
-                    print("computer lastcard", self.lastcard4)
                     self.now_turn = self.next_turn(self.now_turn)
                     pygame.display.update()
 
@@ -1385,7 +1382,6 @@ class Game():
                         continue
                     self.card_skill(t_card)
                     self.print_window()
-                    print("computer lastcard", self.lastcard5)
                     self.now_turn = self.next_turn(self.now_turn)
                     pygame.display.update()
 
@@ -1506,7 +1502,6 @@ class Game():
             self.lastcard0 = (x, y)
             self.user_group.add(temp)
             self.player[0].append(item)
-            print("카드 뽑기 {}".format(self.lastcard0))
         elif now_turn == 1:
             temp = loadcard.Card('back', (350, 300), (self.screen_width / 30, self.screen_height / 18))
             current_pos = self.lastcard1
@@ -1593,7 +1588,6 @@ class Game():
                 else:
                     x -= self.screen_width / 10
             self.lastcard0 = (x, y)
-            print(self.lastcard0)
         elif self.now_turn == 1:
             if x == self.screen_width * (1 / 6) and y > self.screen_height * (1 / 10):
                 y -= self.screen_height * (1 / 30)
@@ -1633,10 +1627,8 @@ class Game():
     def put_waste_group(self, sprite):
         self.waste_group.add(sprite)
         self.waste_card.append(sprite.get_name())
-        print("버린카드의 position {}".format(sprite.getposition()))
         if len(self.waste_card) != 1:
             self.set_lastcard(self.lastcard0, sprite.getposition())
-        print("내고 나서 lastcard {}".format(self.lastcard0))
         self.print_window()
 
     def pause(self):
@@ -1665,8 +1657,8 @@ class Game():
             pygame.draw.rect(self.screen, BLACK, (self.screen_width / 2 - 200, self.screen_height / 3 - 100, 400, 400), 5)
             close_text = text_format("PAUSE", MALGUNGOTHIC, 60, BLACK)
             close_text_rect = close_text.get_rect(center=(self.screen_width/2,self.screen_height/3))
-            setting_button = Button(self.screen, self.screen_width*(3/7), self.screen_height*(2/5), "./image/button_img.png", 200, 100)
-            exit_button = Button(self.screen, self.screen_width*(3/7), self.screen_height*(2/5)+100, "./image/button_img.png", 200, 100)
+            setting_button = Button(self.screen, self.screen_width*(4/10), self.screen_height*(3/7), "image/playing_image/pause_setting.jpg", 150, 80)
+            exit_button = Button(self.screen, self.screen_width*(4/10), self.screen_height*(3/7)+100, "image/playing_image/pause_end.jpg", 150, 80)
             setting_button.show_button()
             exit_button.show_button()
             self.screen.blit(close_text, close_text_rect)
@@ -1675,17 +1667,14 @@ class Game():
 
     def change_color(self):
         if self.difficulty == 4 and self.game_turn % 5 == 0 and self.game_turn != 0:
-            print("실행")
             colors = ["red", "yellow", "green", "blue"]
             random_name = colors[random.randint(0, 3)]
             random_card = loadcard.Card(random_name, (self.screen_width * (3 / 5), self.screen_height * (1 / 3)),(self.screen_width/10,self.screen_height/6))
             self.waste_card.append(random_name)
             self.waste_group.add(random_card)
-            print("바뀐 색:" + random_name)
             self.print_window()
 
     def check_uno_button(self):
-        print("한장 남음!")
         uno = True
         start_time = time.time()
         while uno:  # 여기
@@ -1696,51 +1685,41 @@ class Game():
                     mouse_pos = pygame.mouse.get_pos()
                     # tnwjdgodigo
                     if self.uno_button.get_rect().collidepoint(mouse_pos) or event.type == K_SPACE:
-                    # if 500 <= mouse_pos[0] <= 530 and 300 <= mouse_pos[1] <= 330 or event.type == K_SPACE:
-                        print("버튼 누름!")
                         end_time = time.time()
                         com_time = random.randint(1, 3)
                         if (end_time - start_time) > com_time:
                             if self.now_turn == 0:  # 유저 턴일 때
-                                print("느리게 누름!")
                                 uno_text = text_format("uno", BERLIN, 30, (0, 0, 0))
                                 self.screen.blit(uno_text, (45, 100))
                                 self.get_from_deck(self.now_turn)
                                 self.now_turn = self.next_turn(self.now_turn)
                                 uno = False
                             else:  # 컴퓨터 턴일때 유저가 느리게 누름
-                                print("유저가 느리게 누름")
                                 self.now_turn = self.next_turn(self.now_turn)
                                 uno = False
                         else:
                             if self.now_turn == 0:  # 유저 턴일 때
-                                print("빠르게 누름!")
                                 self.now_turn = self.next_turn(self.now_turn)
                                 uno = False
                             else:  # 컴퓨터 턴일 때 유저가 빠르게 누름
-                                print("유저가 빠르게 누름!")
                                 self.get_from_deck(self.now_turn)
                                 self.now_turn = self.next_turn(self.now_turn)
                                 uno = False
             if (time.time() - start_time) > 3:
                 if self.now_turn == 0:  # 그냥 버튼 안누르고 있을 때 5초 지나면 한 장 먹음
-                    print("컴퓨터가 누름")
                     self.get_from_deck(self.now_turn)
                     self.now_turn = self.next_turn(self.now_turn)
                     uno = False
                 else:  # 이건 컴퓨터가 1장 남았을 때 유저가 버튼을 안 누르고 있는 경우
                     if self.player_num == 2:  # 유저랑 컴퓨터 1명만 있는 경우 컴퓨터가 uno버튼 누른걸로 판단
-                        print("컴퓨터가 누름")
                         self.now_turn = self.next_turn(self.now_turn)
                         uno = False
                     else:  # 다른 컴퓨터랑 경쟁
                         com_time = random.randint(0, 1)  # 그냥 0,1로 했어요..
                         if com_time == 1:  # 빠르게 누른 경우
-                            print("컴퓨터가 누름")
                             self.now_turn = self.next_turn(self.now_turn)
                             uno = False
                         else:  # 느리게 누른 경우 - 카드 뽑음
-                            print("컴퓨터가 못 누름")
                             self.get_from_deck(self.now_turn)
                             self.now_turn = self.next_turn(self.now_turn)
                             uno = False
