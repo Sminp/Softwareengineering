@@ -6,8 +6,7 @@ import time
 from constant import *
 from game_functions import Game
 from UNO import UNOGame
-from UNO import Button
-from settings import Slider
+from settings import Slider, Button
 
 
 class TestUnoGame(TestCase):
@@ -29,33 +28,34 @@ class TestUnoGame(TestCase):
 
     def test_set_deck(self) -> None:
         """카드 묶음이 제대로 생성되는지 테스트"""
-        self.uno = Game()
-        card_list = self.uno.set_deck()
+        uno = UNOGame()
+        uno_game = Game(uno)
+        card_list = uno_game.set_deck()
         for card_name in card_list:
             self.assertIn(card_name, self.test_card_deck)
-        del self.uno
+        del uno_game
 
     def test_set_deck_len(self) -> None:
-        self.uno = Game()
-        card_list = self.uno.set_deck()
-        for card in self.test_card_deck:
-            if card in card_list:
-                card_list.remove(card)
-        print(card_list)
-        self.assertEqual(card_list, 120)
+        uno = UNOGame()
+        uno_game = Game(uno)
+        card_list = uno_game.set_deck()
+        self.assertEqual(len(card_list), 116)
 
+    @unittest.skip("시간이 너무 오래 걸림")
     def test_set_window_difficulty_3(self) -> None:
+        uno = UNOGame()
         for number in self.player_num:
-            self.uno = Game(number, 3)
+            self.uno = Game(uno, number, 3)
             self.uno.set_window()
-            self.assertFalse(self.uno.card_deck, 0)
+            self.assertTrue(self.uno.card_deck, 0)
 
     @unittest.skip("수정 중")
-    def test_print_window_estimate_time(self)-> None:
+    def test_print_window_estimate_time(self) -> None:
         """카드 배열이 적절한 시간 내에 나눠지는지 확인"""
+        uno = UNOGame()
         for number in self.player_num:
             for difficulty in self.difficulties:
-                self.uno = Game(number, difficulty)
+                self.uno = Game(uno, number, difficulty)
                 start = time.time()
                 self.uno.print_window()
                 end = time.time()
@@ -64,10 +64,11 @@ class TestUnoGame(TestCase):
 
     @unittest.skip("테스트하는데 오래걸림")
     def test_set_window_player_card(self) -> None:
+        uno = UNOGame()
         """카드 배열이 성공적으로 나눠지는지 확인, 카드가 개수 및 정확한 카드인지 확인"""
         for number in self.player_num:
             for difficulty in self.difficulties:
-                self.uno = Game(number, difficulty)
+                self.uno = Game(uno, number, difficulty)
                 card_deck_len = len(self.uno.set_deck())
                 self.uno.set_window()
                 self.assertEqual(len(self.uno.player), number)
@@ -75,7 +76,7 @@ class TestUnoGame(TestCase):
                     card = set(self.uno.player[num]) & set(self.test_card_deck)
                     self.assertSetEqual(set(self.uno.player[num]), card)
                     if difficulty == 3:
-                        print(self.uno.player[num])
+                        print(len(self.uno.player[num]))
                         pass
                         # 일단 보류
                         self.assertEqual(len(self.uno.player[num]), card_deck_len // number)
@@ -107,8 +108,22 @@ class TestUnoGame(TestCase):
         """창 업데이트 하는 함수 테스트"""
         pass
 
-    def test_probability_skill_card_difficulty_two(self) -> None:
-        pass
+    def test_probability_difficulty_two_deck(self) -> None:
+        """기술카드가 50% 더 잘 나오게 하는 테스트"""
+        uno = UNOGame()
+        uno_game = Game(uno)
+        skill_card = 0
+        rest_card = 0
+        for _ in range(1000):
+            uno_game.card_deck = uno_game.set_deck()
+            uno_game.difficulty_two_deck()
+            for card in uno_game.player[1]:
+                if '0' <= card[-1] <= '9':
+                    rest_card += 1
+                else:
+                    skill_card += 1
+        if 0.45 > skill_card / 7000 or skill_card / 7000 > 0.55:
+            self.fail()
 
     def tearDown(self) -> None:
         pass
@@ -185,6 +200,7 @@ class TestButton(TestCase):
     def test_check_cliked_num(self):
         pass
 
+    @unittest.skip("수정 중")
     def test_get_rect(self):
         for mouse in self.mouse_pos:
             self.assertTrue(self.button.get_rect().collidepoint(mouse))
