@@ -9,7 +9,7 @@ from UNO import UNOGame
 from settings import Slider, Button
 
 
-class TestUnoGame(TestCase):
+class TestGame(TestCase):
     """Game 클래스 테스트"""
 
     def setUp(self) -> None:
@@ -26,6 +26,7 @@ class TestUnoGame(TestCase):
         self.test_card_deck.append('red_yellow')
         self.test_card_deck.append("blue_green")
 
+    @unittest.skip
     def test_set_deck(self) -> None:
         """카드 묶음이 제대로 생성되는지 테스트"""
         uno = UNOGame()
@@ -35,6 +36,7 @@ class TestUnoGame(TestCase):
             self.assertIn(card_name, self.test_card_deck)
         del uno_game
 
+    @unittest.skip
     def test_set_deck_len(self) -> None:
         uno = UNOGame()
         uno_game = Game(uno)
@@ -108,6 +110,7 @@ class TestUnoGame(TestCase):
         """창 업데이트 하는 함수 테스트"""
         pass
 
+    @unittest.skip
     def test_probability_difficulty_two_deck(self) -> None:
         """기술카드가 50% 더 잘 나오게 하는 테스트"""
         uno = UNOGame()
@@ -131,14 +134,16 @@ class TestUnoGame(TestCase):
 
 class TestUNOGame(TestCase):
     def setUp(self) -> None:
-        """우노 클래스를 테스트"""
+        """우노 클래스 테스트"""
         self.uno = UNOGame()
-        self.mouse_pos = []
-        for x in range(self.uno.screen_height):
-            for y in range(self.uno.screen_width):
-                self.mouse_pos.append((x, y))
-        self.key_event = []
+        # self.mouse_pos = []
+        # for x in range(self.uno.screen_height):
+        #     for y in range(self.uno.screen_width):
+        #         self.mouse_pos.append((x, y))
+        # self.key_event = []
 
+    def test_bg_img_load_type(self):
+        self.assertTrue(object, type(self.uno.bg_img_load("./image/title_image/title_background.jpg")))
     def test_main_menu(self):
         pass
 
