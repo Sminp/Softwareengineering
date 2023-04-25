@@ -1,14 +1,8 @@
 """상수 즉 자주 쓰는 것들을 모두 모아서 적어놓는 공간이야 예를 들어 글꼴, 색깔, 카드 번호 이런 것들도 다 적는 공간이야."""
-# 3/29 김나연 수정 사항 -> 색 BLUE 추가
-import pygame
 
 # 화면 크기
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
-
-#SCREEN_WIDTH2 = 1280
-#SCREEN_HEIGHT2 = 720
-# SCREEN = (SCREEN_WIDTH, SCREEN_HEIGHT)            # 이건 많이 안 쓸 것 같아서 일단 보류
 
 # 글꼴
 MALGUNGOTHIC = "malgungothic"
@@ -21,11 +15,40 @@ YELLOW = (255, 255, 0)
 GRAY = (200, 200, 200)
 RED = (200, 0, 0)
 GREEN = (0, 80, 0)
-BLUE = (0,84,255)
+BLUE = (0, 84, 255)
+
 # 카드 크기
 CARD_WIDTH = 60
 CARD_HEIGHT = 80
 CARD_SIZE = (CARD_WIDTH, CARD_HEIGHT)
+
+# 소리
+
+
+# 버튼 리스트
+NORMALMODE_BUTTON = "./image/title_image/normalmode_button.png"
+STORYMODE_BUTTON = "./image/title_image/storymode_button.png"
+SETTING_BUTTON = "./image/title_image/setting_button.png"
+END_BUTTON = "./image/title_image/end_button.png"
+TITLE_MENU_BUTTONS = [NORMALMODE_BUTTON, STORYMODE_BUTTON, SETTING_BUTTON, END_BUTTON]
+
+GAMESTART_BUTTON = "./image/playing_image/game_start_button.png"
+
+# close_button = Button(self.screen, self.screen_width * (5 / 6), self.screen_height * (3 / 11),"", 20, 20)
+CLOSE_BUTTON = "./image/setting_image/settingclose.png"
+SIZEFULL_BUTTON = "./image/setting_image/full.jpg"
+SIZE16_BUTTON = "./image/setting_image/169.jpg"
+SIZE4_BUTTON = "./image/setting_image/43.jpg"
+
+SIZE_BUTTONS = [SIZEFULL_BUTTON, SIZE16_BUTTON, SIZE4_BUTTON]
+
+AMERICA_BUTTON = "./image/map_image/america.png"
+MACAU_BUTTON = "./image/map_image/macau.png"
+SINGAPORE_BUTTON = "./image/map_image/singapore.png"
+KOREA_BUTTON = "./image/map_image/korea.png"
+
+STORYMODE_MENU_BUTTONS = [AMERICA_BUTTON, MACAU_BUTTON, SINGAPORE_BUTTON, KOREA_BUTTON]
+
 
 # # 카드
 # RED_0 = pygame.transform.scale(pygame.image.load("image/card_img/red_0.png"), CARD_SIZE).convert_alpha()
