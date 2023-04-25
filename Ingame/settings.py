@@ -5,6 +5,7 @@ import sys
 import pygame
 import os
 
+
 def resource_path(relative_path):
     try:
         base_path = sys._MEIPASS
@@ -14,8 +15,30 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 
+class Settings:
+    def __init__(self):
+        self.screen_width = SCREEN_WIDTH
+        self.screen_height = SCREEN_HEIGHT
+        self.bg_color = WHITE
+        self.font = MALGUNGOTHIC
+        self.player_num = 2
+        self.difficulty = 1
+
+    # 변화 후 값들
+    def window_change(self, size):
+        if size == 16:
+            self.screen_width = 1280
+            self.screen_height = 720
+
+    def sound_volume(self, filename):
+        pass
+
+    def reset(self):
+        pass
+
+
 # Rect를 빼고 모두다 좌표로 설정.
-# 버튼 클래스 안에 하이라이트 그림 넣으면 안되려나?
+# 버튼 클래스 안에 하이라이트 그림 넣으면 안되려나? - 넣어야 함.
 # 버튼 클래스
 class Button:
     def __init__(self, screen, x, y, img, width, height):
@@ -26,24 +49,21 @@ class Button:
         self.width = width
         self.height = height
         self.position = (x, y)
+        self.highlighted = False
 
         self.img = pygame.transform.scale(pygame.image.load(resource_path(img)), [width, height])
         self.rect = self.img.get_rect()
         self.rect.center = (self.x + self.width/2),(self.y + self.height/2)
-        self.cliked_num = 0
 
-    def show_button(self):
+    def show(self):
         self.screen.blit(self.img, (self.x, self.y))
         
-    def cliked(self):
-        self.screen.blit(self.img, (self.x, self.y - 5))
-        self.cliked_num += 1
-
-    def check_cliked_num(self):
-        pass
+    def highlight(self):
+        self.screen.blit(self.img, (self.x, self.y-10))
 
     def get_rect(self):
         return self.rect
+
 
 # Slider 클래스 배경음, 효과음 조절
 class Slider:
