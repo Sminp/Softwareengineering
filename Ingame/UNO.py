@@ -1,9 +1,9 @@
 import pygame
 import sys
-from abc import ABC, abstractmethod, ABCMeta
 from game_functions import *
 from constant import *
-from settings import Settings, Button, Slider
+from settings import Settings
+from rect_functions import Button, Slider, TextRect
 import os
 
 
@@ -19,6 +19,7 @@ def resource_path(relative_path):
 img_basic_address = './image/'
 
 
+# 지울 예정
 # 텍스트 구현
 def text_format(message, text_font, text_size, text_color):
     new_font = pygame.font.SysFont(text_font, text_size)
@@ -32,14 +33,14 @@ def terminate():
     sys.exit()
 
 
-class UNOGame(ABC):
+class UNOGame:
     """UNOGame 화면"""
 
     def __init__(self):
         pygame.init()
         self.settings = Settings()  # 다른 방법은 없을까? 클래스 컴포지션
         self.screen = pygame.display.set_mode((self.settings.screen_width, self.settings.screen_height))
-        self.screen.fill(self.settings.bg_color)
+        # self.screen.fill(self.settings.bg_color)
         pygame.display.set_caption("UNO!")
         pygame.display.update()
         # self.keysetting = 1
@@ -52,23 +53,18 @@ class UNOGame(ABC):
                                         (self.settings.screen_width, self.settings.screen_height))
         return self.screen.blit(bg_img, (0, 0))
 
-    @abstractmethod
     def object_init(self):
         pass
 
-    @abstractmethod
     def object_show(self):
         pass
 
-    @abstractmethod
     def sound(self):
         pass
 
-    @abstractmethod
     def handle_event(self):
         pass
 
-    @abstractmethod
     def menu(self):
         pass
 
@@ -76,9 +72,9 @@ class UNOGame(ABC):
     def key_select_screen(self):
         key_select = True
 
-        setting_key1 = Button(self.screen, self.screen_width * (1 / 5), self.screen_height * (4 / 9),
+        setting_key1 = Button(self.screen_width * (1 / 5), self.screen_height * (4 / 9),
                               "./image/setting_image/settingkey_wasd.png", 150, 100)
-        setting_key2 = Button(self.screen, self.screen_width * (3 / 5), self.screen_height * (4 / 9),
+        setting_key2 = Button(self.screen_width * (3 / 5), self.screen_height * (4 / 9),
                               "./image/setting_image/settingkey_arrow.png", 150, 100)
 
         while key_select:
@@ -93,9 +89,6 @@ class UNOGame(ABC):
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if setting_key1.get_rect().collidepoint(event.pos):
                         self.keysetting = 1
-                        key_select = False
-                    elif setting_key2.get_rect().collidepoint(event.pos):
-                        self.keysetting = 2
                         key_select = False
 
             setting_key1.show()
@@ -118,7 +111,7 @@ class TitleMenu(UNOGame):
         i = 0
         button_li = []
         for button in TITLE_MENU_BUTTONS:
-            button = Button(self.screen, self.settings.screen_width * self.x + self.width * i,
+            button = Button(self.settings.screen_width * self.x + self.width * i,
                             self.settings.screen_height * self.y, button, self.width, self.height)
             button_li.append(button)
             i += 1
@@ -195,7 +188,7 @@ class LobbyScreen(UNOGame):
         self.computer_rect = self.computer_rect_init()
 
     def object_init(self):
-        button_li = Button(self.screen, self.settings.screen_width * (2 / 5),
+        button_li = Button(self.settings.screen_width * (2 / 5),
                            self.settings.screen_height * (1 / 4), GAMESTART_BUTTON,
                            300, 150)
         return button_li
@@ -316,7 +309,7 @@ class SettingScreen(UNOGame):
         i = 3
         button_li = []
         for button in SIZE_BUTTONS:
-            button = Button(self.screen, self.settings.screen_width * (i / 10), self.settings.screen_height * (1 / 2),
+            button = Button(self.settings.screen_width * (i / 10), self.settings.screen_height * (1 / 2),
                             button, 100, 50)
             button_li.append(button)
             i += 2
@@ -433,18 +426,18 @@ class SettingScreen(UNOGame):
             sound_effect_slider.draw_value('효과음', (self.screen_width * (1 / 8), self.screen_height * (3 / 8)))
 
             # 조작키 설정, 설정 초기화, 설정 저장 버튼
-            control_button = Button(self.screen, self.screen_width * (1 / 8), self.screen_height * (7 / 11),
+            control_button = Button(self.screen_width * (1 / 8), self.screen_height * (7 / 11),
                                     "./image/setting_image/key_setting.jpg", 100, 50)
-            settinginit_button = Button(self.screen, self.screen_width * (1 / 8), self.screen_height * (6 / 8),
+            settinginit_button = Button(self.screen_width * (1 / 8), self.screen_height * (6 / 8),
                                         "./image/setting_image/settinginit.jpg", 100, 50)
-            settingsave_button = Button(self.screen, self.screen_width * (8 / 11), self.screen_height * (6 / 8),
+            settingsave_button = Button(self.screen_width * (8 / 11), self.screen_height * (6 / 8),
                                         "./image/setting_image/settingsave.jpg", 100, 50)
             control_button.show()
             settinginit_button.show()
             settingsave_button.show()
             buttons = [control_button, settinginit_button, settingsave_button]
 
-            settingcolor_button = Button(self.screen, self.screen_width * (8 / 11), self.screen_height * (7 / 11),
+            settingcolor_button = Button(self.screen_width * (8 / 11), self.screen_height * (7 / 11),
                                          "./image/setting_image/rect.jpg", 100, 50)
             settingcolor_button.show()
             pygame.draw.rect(self.screen, BLACK, rect)
@@ -463,7 +456,7 @@ class StoryMode(UNOGame):
         i = 1
         button_li = []
         for button in STORYMODE_MENU_BUTTONS:
-            button = Button(self.screen, self.settings.screen_width * (i / 40), self.settings.screen_height(2 / 5),
+            button = Button(self.settings.screen_width * (i / 40), self.settings.screen_height(2 / 5),
                             button,
                             self.width, self.height)
             button_li.append(button)
@@ -515,9 +508,9 @@ class StoryMode(UNOGame):
         yes_no = True
         self.story_screen = False
 
-        yes_button = Button(self.screen, self.screen_width * (3 / 7), self.screen_height * (2 / 5),
+        yes_button = Button(self.screen_width * (3 / 7), self.screen_height * (2 / 5),
                             "./image/map_image/story_yes.jpg", 100, 50)
-        no_button = Button(self.screen, self.screen_width * (3 / 7), self.screen_height * (2 / 5) + 100,
+        no_button = Button(self.screen_width * (3 / 7), self.screen_height * (2 / 5) + 100,
                            "./image/map_image/story_no.jpg", 100, 50)
 
         while yes_no:
@@ -565,6 +558,20 @@ class UnoGame(UNOGame):
 
     def menu(self):
         pass
+
+
+# 이거는 굳이 추상클래스로 구현 안해도 될 것 같다. _Mix_in
+class RectInit(UNOGame):
+    """화면에 직사각형을 그리는 클래스"""
+
+    def __init__(self):
+        super().__init__()
+
+    def show(self):
+        pass
+
+    def get_rect(self):
+        return self.rect
 
 
 if __name__ == '__main__':
