@@ -40,7 +40,6 @@ class Game():
         self.player_name = player_name
         self.first = True
         pygame.display.update()
-
         self.lastcard0 = None
         self.lastcard1 = None
         self.lastcard2 = None

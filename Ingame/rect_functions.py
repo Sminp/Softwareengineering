@@ -1,36 +1,50 @@
 import pygame
 from constant import *
-from UNO import RectInit
+from settings import resource_path
 
 
 # 오 글씨 바꾸는 기능 있었으면 좋겠다
-class TextRect(RectInit):
-    def __init__(self, text_size, text_color):
-        super().__init__()
+class TextRect():
+    def __init__(self, screen, text, text_size, text_color):
+        self.screen = screen
         self.k_font = MALGUNGOTHIC
         self.e_font = BERLIN
+        self.text = text
         self.text_size = text_size
         self.text_color = text_color
+        self.surface = self.text_surface()
+        self.rect = self.text_rect()
 
-    def text_rect(self, message):
-        if message[0].isalpha():
+    def text_surface(self):
+        if self.text.isalpha():
             new_font = pygame.font.SysFont(self.e_font, self.text_size)
         else:
             new_font = pygame.font.SysFont(self.k_font, self.text_size)
-        new_text = new_font.render(message, True, self.text_color)
-        return new_text
+        new_surface = new_font.render(self.text, True, self.text_color)
+        return new_surface
+    
+    def text_rect(self):
+        return self.text_surface().get_rect()
+    
+    def change_text_surface(self, text):
+        if text.isalpha():
+            new_font = pygame.font.SysFont(self.e_font, self.text_size)
+        else:
+            new_font = pygame.font.SysFont(self.k_font, self.text_size)
+        self.surface = new_font.render(text, True, self.text_color)
+        self.rect = self.surface.get_rect()
 
-    def show(self):
-        pass
+    def show(self, position):
+        self.rect.center = position
+        self.screen.blit(self.surface, self.rect)
 
 
 # Rect를 빼고 모두다 좌표로 설정.
 # 버튼 클래스 안에 하이라이트 그림 넣으면 안되려나? - 넣어야 함.
 # 버튼 클래스
-class Button(RectInit):
-    def __init__(self, x, y, img, width, height):
-        super().__init__()
-        # self.rect = pygame.Rect(x,y, 30, 30)
+class Button():
+    def __init__(self, screen, x, y, img, width, height):
+        self.screen = screen
         self.x = x
         self.y = y
         self.width = width
@@ -53,12 +67,12 @@ class Button(RectInit):
 
 
 # Slider 클래스 배경음, 효과음 조절
-class Slider(RectInit):
-    def __init__(self, length, pos, slider_range, main_color=BLACK, button_color=RED):
-        super().__init__()
+class Slider():
+    def __init__(self, screen, text, length, pos, slider_range, main_color=BLACK, button_color=RED):
         self.drag = False  # 버튼을 드래그하기 위한 초기 변수
         self.offset_x = 0
-
+        self.screen = screen
+        self.text = text
         self.length = length  # 슬라이더 크기
         self.x, self.y = pos  # 슬라이더 위치
         self.min, self.max = slider_range  # 슬라이더 값의 범위
@@ -80,7 +94,7 @@ class Slider(RectInit):
         self.button.width = int(self.length * 1 / 20)
         self.button.height = int(self.length * 1 / 20)
 
-    def draw(self):  # 선, 버튼을 스크린에 그림
+    def show(self):  # 선, 버튼을 스크린에 그림
         pygame.draw.line(self.screen, self.color1, (self.x, self.y), (self.x + self.length, self.y), 5)
         pygame.draw.rect(self.screen, self.color2, self.button_rect)
 
@@ -111,10 +125,10 @@ class Slider(RectInit):
                 1 - (self.button_rect.x - self.x) / (9 / 10 * self.length))  # value 수정
 
     # value을 text로 출력
-    def draw_value(self, name, pos, color=BLACK):
+    def show_value(self, pos, color=BLACK):
         FONT = pygame.font.SysFont("malgungothic", self.size)
-        text1 = FONT.render("{} : {}".format(name, int(self.value)), True, color)
-        # text_rect = text1.get_rect()
-        # text_rect.center = pos
+        text1 = FONT.render("{} : {}".format(self.text, int(self.value)), True, color)
+        text_rect = text1.get_rect()
+        text_rect.center = pos
 
-        self.screen.blit(text1, pos)
+        self.screen.blit(text1, text_rect)

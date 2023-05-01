@@ -35,12 +35,21 @@ TITLE_MENU_BUTTONS = [NORMALMODE_BUTTON, STORYMODE_BUTTON, SETTING_BUTTON, END_B
 GAMESTART_BUTTON = "./image/playing_image/game_start_button.png"
 
 # close_button = Button(self.screen, self.screen_width * (5 / 6), self.screen_height * (3 / 11),"", 20, 20)
-CLOSE_BUTTON = "./image/setting_image/settingclose.png"
 SIZEFULL_BUTTON = "./image/setting_image/full.jpg"
 SIZE16_BUTTON = "./image/setting_image/169.jpg"
 SIZE4_BUTTON = "./image/setting_image/43.jpg"
 
 SIZE_BUTTONS = [SIZEFULL_BUTTON, SIZE16_BUTTON, SIZE4_BUTTON]
+
+SETTING_CLOSE_BUTTON = "./image/setting_image/settingclose.png"
+SETTING_KEY_BUTTON = "./image/setting_image/key_setting.jpg"
+SETTING_INIT_BUTTON = "./image/setting_image/settinginit.jpg"
+SETTINGKEY_ARROW_BUTTON = "./image/setting_image/settingkey_arrow.png"
+SETTINGKEY__WASD_BUTTON = "./image/setting_image/settingkey_wasd.png"
+SETTING_SAVE_BUTTON = "./image/setting_image/settingsave.jpg"
+SETTING_RECT = "./image/setting_image/rect.jpg"
+
+SLIDER_TEXT = ["전체 소리", "배경음악", "효과음"]
 
 AMERICA_BUTTON = "./image/map_image/america.png"
 MACAU_BUTTON = "./image/map_image/macau.png"
@@ -48,6 +57,11 @@ SINGAPORE_BUTTON = "./image/map_image/singapore.png"
 KOREA_BUTTON = "./image/map_image/korea.png"
 
 STORYMODE_MENU_BUTTONS = [AMERICA_BUTTON, MACAU_BUTTON, SINGAPORE_BUTTON, KOREA_BUTTON]
+
+YES_BUTTON = "./image/map_image/story_yes.jpg"
+NO_BUTTON = "./image/map_image/story_no.jpg"
+
+YESNO_BUTTONS = [YES_BUTTON, NO_BUTTON]
 
 
 # # 카드

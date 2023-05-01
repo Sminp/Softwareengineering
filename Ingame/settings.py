@@ -17,8 +17,8 @@ def resource_path(relative_path):
 
 class Settings:
     def __init__(self):
-        self.screen_width = SCREEN_WIDTH
-        self.screen_height = SCREEN_HEIGHT
+        self._screen_width = SCREEN_WIDTH
+        self._screen_height = SCREEN_HEIGHT
         self.bg_color = WHITE
         self.font = MALGUNGOTHIC
         self.player_num = 2
@@ -35,4 +35,20 @@ class Settings:
 
     def reset(self):
         pass
+
+    @property
+    def screen_width(self):
+        return self._screen_width
+    
+    @property
+    def screen_height(self):
+        return self._screen_height
+    
+    @screen_width.setter
+    def screen_width(self, value):
+        self._screen_width = value
+
+    @screen_height.setter
+    def screen_height(self, value):
+        self._screen_height = value
 
