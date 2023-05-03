@@ -4,6 +4,7 @@ from constant import *
 import sys
 import pygame
 import os
+import pickle
 
 
 def resource_path(relative_path):
@@ -17,12 +18,49 @@ def resource_path(relative_path):
 
 class Settings:
     def __init__(self):
-        self._screen_width = SCREEN_WIDTH
-        self._screen_height = SCREEN_HEIGHT
-        self.bg_color = WHITE
-        self.font = MALGUNGOTHIC
-        self.player_num = 2
-        self.difficulty = 1
+        # self._screen_width = SCREEN_WIDTH
+        # self._screen_height = SCREEN_HEIGHT
+        # self.bg_color = WHITE
+        # self.font = MALGUNGOTHIC
+        # self.player_num = 2
+        # self.difficulty = 1
+
+        self.setting = self.get_setting()
+
+    def init_setting(self):
+        # 초기값을 setting.pickle에 저장  
+        init_value = { 'screen' : [800,600] , 'fullscreen' : 0, 'font' : MALGUNGOTHIC,
+            'keys': {
+                "left": pygame.K_LEFT,
+                "right": pygame.K_RIGHT,
+                "up": pygame.K_UP,
+                "down": pygame.K_DOWN,
+                "click": pygame.K_KP_ENTER
+            }, 
+            'sound' : {
+                "total" : 1,
+                "background" : 1,
+                "effect" : 1
+            }
+            , 'setting_color' : False
+        }
+
+        self.set_setting(init_value) 
+
+    def set_setting(self, setting : dict):
+        with open("setting.pickle","wb") as f:
+            pickle.dump(setting, f) # 위에서 생성한 dict를 setting.pickle로 저장   
+
+    def get_setting(self) -> dict:
+        with open("setting.pickle","rb") as fi:
+            setting = pickle.load(fi) 
+
+        return setting
+    
+    def change_setting(self, change_value : dict):
+        self.setting = change_value
+        self.set_setting(self.setting) 
+
 
     # 변화 후 값들
     def window_change(self, size):
