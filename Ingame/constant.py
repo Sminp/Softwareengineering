@@ -30,11 +30,13 @@ NORMALMODE_BUTTON = "./image/title_image/normalmode_button.png"
 STORYMODE_BUTTON = "./image/title_image/storymode_button.png"
 SETTING_BUTTON = "./image/title_image/setting_button.png"
 END_BUTTON = "./image/title_image/end_button.png"
-TITLE_MENU_BUTTONS = [NORMALMODE_BUTTON, STORYMODE_BUTTON, SETTING_BUTTON, END_BUTTON]
+TITLE_MENU_BUTTONS = [NORMALMODE_BUTTON,
+                      STORYMODE_BUTTON, SETTING_BUTTON, END_BUTTON]
 
 GAMESTART_BUTTON = "./image/playing_image/game_start_button.png"
 
 # close_button = Button(self.screen, self.screen_width * (5 / 6), self.screen_height * (3 / 11),"", 20, 20)
+CLOSE_BUTTON = "./image/setting_image/settingclose.png"
 SIZEFULL_BUTTON = "./image/setting_image/full.jpg"
 SIZE16_BUTTON = "./image/setting_image/169.jpg"
 SIZE4_BUTTON = "./image/setting_image/43.jpg"
@@ -56,12 +58,20 @@ MACAU_BUTTON = "./image/map_image/macau.png"
 SINGAPORE_BUTTON = "./image/map_image/singapore.png"
 KOREA_BUTTON = "./image/map_image/korea.png"
 
-STORYMODE_MENU_BUTTONS = [AMERICA_BUTTON, MACAU_BUTTON, SINGAPORE_BUTTON, KOREA_BUTTON]
+STORYMODE_MENU_BUTTONS = [AMERICA_BUTTON,
+                          MACAU_BUTTON, SINGAPORE_BUTTON, KOREA_BUTTON]
 
 YES_BUTTON = "./image/map_image/story_yes.jpg"
 NO_BUTTON = "./image/map_image/story_no.jpg"
 
 YESNO_BUTTONS = [YES_BUTTON, NO_BUTTON]
+
+UNO_BUTTON = "./image/playing_image/uno_button.png"
+
+# 카드
+CARD_TYPE = {1: 'red', 2: 'yellow', 3: 'green', 4: 'blue', 5: 'wild'}
+CARD_SKILL = {11: '_pass', 12: '_reverse', 13: '_plus_two',
+              14: '_basic', 15: '_plus_four', 16: '_change'}
 
 
 # # 카드
