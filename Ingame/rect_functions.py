@@ -38,6 +38,9 @@ class TextRect():
         self.rect.center = position
         self.screen.blit(self.surface, self.rect)
 
+    def change_color(self, color):
+        self.text_color = color
+
 
 # Rect를 빼고 모두다 좌표로 설정.
 # 버튼 클래스 안에 하이라이트 그림 넣으면 안되려나? - 넣어야 함.
