@@ -149,6 +149,7 @@ class Game():
             #     card.play()
             if sum(settings) == 0:
                 setting = False
+                return 0
             self.print_window()
             pygame.display.update()
 
@@ -172,6 +173,7 @@ class Game():
             self.player_names[now_turn].change_color(YELLOW)
             self.player_names[now_turn].show((self.size[0] * (3 / 5), self.size[1] * (2 / 3)))
         else:
+            # 수정중 index error
             self.player_names[now_turn].change_color(YELLOW)
             self.player_names[now_turn].show((self.size[0] * (1 / 45),
                                              self.size[1] * (5 * now_turn - 4 / 25)))
@@ -230,10 +232,8 @@ class Game():
 
         self.waste.draw_group.draw(self.screen)
         if len(self.waste.card) == 0:
-            pygame.draw.rect(self.screen, BLACK, (
-                self.size[0] * (3 / 4), self.size[1] *
-                (1 / 3) - self.size[1] * (1 / 20),
-                self.size[1] * (1 / 20), self.size[1] * (1 / 20)))
+            pygame.draw.rect(self.screen, BLACK, (self.size[0] * (3 / 4), self.size[1] *
+                (1 / 3) - self.size[1] * (1 / 20), self.size[1] * (1 / 20), self.size[1] * (1 / 20)))
         else:
             w_name = self.waste.card[-1]
             w_name = w_name.split('_')
@@ -356,7 +356,7 @@ class Game():
                 self.screen)
         else:
             pygame.time.wait(500)
-            temp_name, temp = self.player[self.now_turn].most_num_color()
+            temp = self.player[self.now_turn].most_num_color()
         self.waste.updating(temp)
         self.print_window()
 
@@ -373,39 +373,39 @@ class Game():
         # 현재 턴의 플레이어 덱 초기화
         match now_turn:
             case 0:
-                self.player[0].group[-1] = (
+                self.player[0].last = (
                     self.size[0] / 3 - self.size[0] / 10, self.size[1] * (7 / 9))
-                now_turn_lastcard = self.player[0].group[-1]
+                now_turn_lastcard = self.player[0].last
                 for sprite in self.player[0].group:
                     self.player[0].group.remove(sprite)
             case 1:
-                self.player[1].group[-1] = (self.size[0] * (1 / 30) -
+                self.player[1].last = (self.size[0] * (1 / 30) -
                                             10, self.size[1] * (1 / 10))
-                now_turn_lastcard = self.player[1].group[-1]
+                now_turn_lastcard = self.player[1].last
                 for sprite in self.player[1].group:
                     self.player[1].group.remove(sprite)
             case 2:
-                self.player[2].group[-1] = (self.size[0] * (1 / 30) -
+                self.player[2].last = (self.size[0] * (1 / 30) -
                                             10, self.size[1] * (3 / 10))
-                now_turn_lastcard = self.player[2].group[-1]
+                now_turn_lastcard = self.player[2].last
                 for sprite in self.player[2].group:
                     self.player[2].group.remove(sprite)
             case 3:
-                self.player[3].group[-1] = (self.size[0] * (1 / 30) -
+                self.player[3].last = (self.size[0] * (1 / 30) -
                                             10, self.size[1] * (1 / 2))
-                now_turn_lastcard = self.player[3].group[-1]
+                now_turn_lastcard = self.player[3].last
                 for sprite in self.player[3].group:
                     self.player[3].group.remove(sprite)
             case 4:
-                self.player[4].group[-1] = (self.size[0] * (1 / 30) -
+                self.player[4].last = (self.size[0] * (1 / 30) -
                                             10, self.size[1] * (7 / 10))
-                now_turn_lastcard = self.player[4].group[-1]
+                now_turn_lastcard = self.player[4].last
                 for sprite in self.player[4].group:
                     self.player[4].group.remove(sprite)
             case _:
-                self.player[5].group[-1] = (self.size[0] * (1 / 30) -
+                self.player[5].last = (self.size[0] * (1 / 30) -
                                             10, self.size[1] * (9 / 10))
-                now_turn_lastcard = self.player[5].group[-1]
+                now_turn_lastcard = self.player[5].last
                 for sprite in self.player[5].group:
                     self.player[5].group.remove(sprite)
 
@@ -423,7 +423,7 @@ class Game():
                     x = current_pos[0] + self.size[0] / 10
                 card.setposition(x, y)
                 now_turn_lastcard = (x, y)
-                self.player[0].group[-1] = (x, y)
+                self.player[0].last = (x, y)
                 self.player[0].group.add(card)
         else:
             for _ in range(len(self.player[pick_turn])):
@@ -442,23 +442,23 @@ class Game():
                 match now_turn:
                     case 1:
                         now_turn_lastcard = (x, y)
-                        self.player[1].group[-1] = (x, y)
+                        self.player[1].last = (x, y)
                         self.player[1].group.add(card)
                     case 2:
                         now_turn_lastcard = (x, y)
-                        self.player[2].group[-1] = (x, y)
+                        self.player[2].last = (x, y)
                         self.player[2].group.add(card)
                     case 3:
                         now_turn_lastcard = (x, y)
-                        self.player[3].group[-1] = (x, y)
+                        self.player[3].last = (x, y)
                         self.player[3].group.add(card)
                     case 4:
                         now_turn_lastcard = (x, y)
-                        self.player[4].group[-1] = (x, y)
+                        self.player[4].last = (x, y)
                         self.player[4].group.add(card)
                     case _:
                         now_turn_lastcard = (x, y)
-                        self.player[5].group[-1] = (x, y)
+                        self.player[5].last = (x, y)
                         self.player[5].group.add(card)
 
         # 현재 턴인 플레이어 덱 리스트 목표 플레이어 덱 리스트로 변경
@@ -468,39 +468,39 @@ class Game():
         self.player[pick_turn].clear()
         match pick_turn:
             case 0:
-                self.player[0].group[-1] = (
+                self.player[0].last = (
                     self.size[0] / 3 - self.size[0] / 10, self.size[1] * (7 / 9))
-                pick_turn_lastcard = self.player[0].group[-1]
+                pick_turn_lastcard = self.player[0].last
                 for sprite in self.player[0].group:
                     self.player[0].group.remove(sprite)
             case 1:
-                self.player[1].group[-1] = (self.size[0] * (1 / 30) -
+                self.player[1].last = (self.size[0] * (1 / 30) -
                                             10, self.size[1] * (1 / 10))
-                pick_turn_lastcard = self.player[1].group[-1]
+                pick_turn_lastcard = self.player[1].last
                 for sprite in self.player[1].group:
                     self.player[1].group.remove(sprite)
             case 2:
-                self.player[2].group[-1] = (self.size[0] * (1 / 30) -
+                self.player[2].last = (self.size[0] * (1 / 30) -
                                             10, self.size[1] * (3 / 10))
-                pick_turn_lastcard = self.player[2].group[-1]
+                pick_turn_lastcard = self.player[2].last
                 for sprite in self.player[2].group:
                     self.player[2].group.remove(sprite)
             case 3:
-                self.player[3].group[-1] = (self.size[0] * (1 / 30) -
+                self.player[3].last = (self.size[0] * (1 / 30) -
                                             10, self.size[1] * (1 / 2))
-                pick_turn_lastcard = self.player[3].group[-1]
+                pick_turn_lastcard = self.player[3].last
                 for sprite in self.player[3].group:
                     self.player[3].group.remove(sprite)
             case 4:
-                self.player[4].group[-1] = (self.size[0] * (1 / 30) -
+                self.player[4].last = (self.size[0] * (1 / 30) -
                                             10, self.size[1] * (7 / 10))
-                pick_turn_lastcard = self.player[4].group[-1]
+                pick_turn_lastcard = self.player[4].last
                 for sprite in self.player[4].group:
                     self.player[4].group.remove(sprite)
             case _:
-                self.player[5].group[-1] = (self.size[0] * (1 / 30) -
+                self.player[5].last = (self.size[0] * (1 / 30) -
                                             10, self.size[1] * (9 / 10))
-                pick_turn_lastcard = self.player[5].group[-1]
+                pick_turn_lastcard = self.player[5].last
                 for sprite in self.player[5].group:
                     self.player[5].group.remove(sprite)
 
@@ -518,7 +518,7 @@ class Game():
                     x = current_pos[0] + self.size[0] / 10
                 card.setposition(x, y)
                 pick_turn_lastcard = (x, y)
-                self.player[0].group[-1] = (x, y)
+                self.player[0].last = (x, y)
                 self.player[0].group.add(card)
         else:
             for _ in range(len(temp_player)):
@@ -537,23 +537,23 @@ class Game():
                 match pick_turn:
                     case 1:
                         pick_turn_lastcard = (x, y)
-                        self.player[1].group[-1] = (x, y)
+                        self.player[1].last = (x, y)
                         self.player[1].group.add(card)
                     case 2:
                         pick_turn_lastcard = (x, y)
-                        self.player[2].group[-1] = (x, y)
+                        self.player[2].last = (x, y)
                         self.player[2].group.add(card)
                     case 3:
                         pick_turn_lastcard = (x, y)
-                        self.player[3].group[-1] = (x, y)
+                        self.player[3].last = (x, y)
                         self.player[3].group.add(card)
                     case 4:
                         pick_turn_lastcard = (x, y)
-                        self.player[4].group[-1] = (x, y)
+                        self.player[4].last = (x, y)
                         self.player[4].group.add(card)
                     case _:
                         pick_turn_lastcard = (x, y)
-                        self.player[5].group[-1] = (x, y)
+                        self.player[5].last = (x, y)
                         self.player[5].group.add(card)
 
         # 목표 플레이어 덱 리스트 현재 플레이어 덱 리스트로 변경
@@ -706,6 +706,35 @@ class Game():
                 self.restart()
                 return
 
+    def selected_turn(self):
+        return random.randint(0, self.player_num -1)
+
+    def computer_play(self):
+        ai = computer.AI(self.now_turn + 1, self.player[self.now_turn].card, self.waste.card)
+        temp = ai.basic_play()
+
+        if temp == 0 or temp is None:
+            self.no_temp(self.now_turn)
+        else:
+            # pygame.mixer.pre_init(44100, -16, 1, 512)
+            # card = pygame.mixer.Sound('./sound/deal_card.wav')
+
+            # 수정중
+            self.player[self.now_turn].remove(temp)
+            self.player[self.now_turn].set_lastcard(self.now_turn)
+
+            # card.play()
+            self.waste.updating(temp)
+            self.print_window()
+            pygame.display.update()
+            self.card_skill(temp)
+            if len(self.player[self.now_turn].group) == 1:
+                pygame.display.update()
+                self.check_uno_button()
+            self.print_window()
+            self.now_turn = self.get_next_player(self.now_turn)
+            pygame.display.update()
+
     # 게임 시작 (다시 시작 )
     def startgame(self):
         self.card_deck.clear()
@@ -728,9 +757,11 @@ class Game():
             if len(self.card_deck) == 0:
                 self.set_deck()
 
+            # 턴 처음 선택하는 부분 - 일단은 랜덤으로
+            self.now_turn = self.selected_turn()
             self.show_now_turn(self.now_turn)
             # 리팩토링 - 나중에 겹칠 것 같아서 한 번에 할게
-            if self.now_turn == 0 and len(self.waste.card) == 0:
+            if len(self.waste.card) == 0:
                 temp = self.card_deck.pop()
                 self.waste.updating(temp)
                 self.card_skill(temp)
@@ -741,33 +772,9 @@ class Game():
 
             self.show_now_turn(self.now_turn)
             pygame.time.wait(2000)
-            ai = computer.AI(self.now_turn + 1, self.player[self.now_turn].card, self.waste.card)
-            temp = ai.basic_play()
 
-            if temp == 0 or temp is None:
-                self.no_temp(self.now_turn)
-            else:
-                # pygame.mixer.pre_init(44100, -16, 1, 512)
-                # card = pygame.mixer.Sound('./sound/deal_card.wav')
-
-                # 수정중
-                # for sprite in self.player[self.now_turn].group:
-                #     if sprite.getposition() == self.player[self.now_turn].group[-1]:
-                #         self.player[self.now_turn].group.remove(sprite)
-                # self.player[self.now_turn].remove(temp)
-                # self.set_lastcard(self.player[self.now_turn].group[-1], (0, 0))
-
-                # card.play()
-                self.waste.updating(temp)
-                self.print_window()
-                pygame.display.update()
-                self.card_skill(temp)
-                if len(self.player[self.now_turn].group) == 1:
-                    pygame.display.update()
-                    self.check_uno_button()
-                self.print_window()
-                self.now_turn = self.get_next_player(self.now_turn)
-                pygame.display.update()
+            if self.now_turn != 0:
+                self.computer_play()
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -834,11 +841,6 @@ class Game():
                                 # pygame.mixer.pre_init(44100, -16, 1, 512)
                                 # card = pygame.mixer.Sound('./sound/deal_card.wav')
                                 self.player[0].remove(sprite)
-                                for temp in self.player[0].group:
-                                    temp.move(sprite.getposition())
-                                # 다시 보기
-                                sprite.setposition(
-                                    self.size[0] * (3 / 5), self.size[1] * (1 / 3))
                                 # card.play()
                                 self.waste.updating(sprite.get_name())
                                 # 수정중
@@ -846,11 +848,10 @@ class Game():
                                 if len(self.player[0].group) == 1:  # 카드 내고 한장 남음
                                     pygame.display.update()
                                     self.check_uno_button()
-                                    # self.uno_click[0] = True
                                 else:
                                     self.now_turn = self.get_next_player(self.now_turn)
                                 break
-                        for sprite in self.deck_group:
+                        for sprite in self.waste.group:
                             if sprite.get_rect().collidepoint(event.pos):
                                 self.get_from_deck(self.now_turn)
                                 # self.show_uno()
@@ -865,72 +866,47 @@ class Game():
         # pygame.mixer.pre_init(44100, -16, 1, 512)
         # deck = pygame.mixer.Sound('./sound/from_deck.wav')
         if self.card_deck:
-            item = self.card_deck.pop(0)
+            item = self.card_deck.pop()
         else:
             random.shuffle(self.waste.card)
             self.card_deck = self.waste.card[:-1]
             item = self.card_deck.pop()
         # deck.play()
         if now_turn == 0:
-            temp = Card(item, (self.size[0] * (2 / 5), self.size[1] * (1 / 3)),
-                        (self.size[0] / 10, self.size[1] / 6))
-            current_pos = self.player[0].group[-1]
-            if current_pos[0] >= self.size[0] * (28 / 30):
-                y = current_pos[1] + self.size[1] / 10
-                x = self.size[0] * (1 / 3)
-            else:
-                y = current_pos[1]
-                x = current_pos[0] + self.size[0] / 10
-            temp.setposition(x, y)
-            self.player[0].group[-1] = (x, y)
-            self.player[0].group.add(temp)
-            self.player[0].append(item)
-            print("카드 뽑기 {}".format(self.player[0].group[-1]))
+            self.player[now_turn].add_card(item)
+            print("카드 뽑기 {}".format(self.player[0].last))
         else:
-            num = now_turn
-            temp = Card(
-                'back', (350, 300), (self.size[0] / 30, self.size[1] / 18))
-            current_pos = self.player[num].group[-1]
-            if current_pos[0] >= self.size[0] * (1 / 6):
-                y = current_pos[1] + self.size[1] / 30
-                x = self.size[0] * (1 / 30)
-            else:
-                y = current_pos[1]
-                x = current_pos[0] + 10
-            temp.setposition(x, y)
-            self.player[num].group[-1] = (x, y)
-            self.player[num].group.add(temp)
-            self.player[num].append(item)
+            self.player[now_turn].add_card(item)
         self.print_window()
 
     # 수정중
-    def set_lastcard(self, lastcard, compare_pos):
-        x = lastcard[0]
-        y = lastcard[1]
-
-        i_x = compare_pos[0]
-        i_y = compare_pos[1]
-
-        if self.now_turn == 0:
-            if x >= i_x + self.size[0] / 10 and y == i_y:
-                x -= self.size[0] / 10
-
-            elif y > i_y:
-                if x <= self.size[0] / 3:
-                    x = self.size[0] * (28 / 30)
-                    y = y - self.size[1] / 10
-                else:
-                    x -= self.size[0] / 10
-            self.player[0].group[-1] = (x, y)
-            print(self.player[0].group[-1])
-        else:
-            num = self.now_turn
-            if x == self.size[0] * (1 / 6) and y > self.size[1] * (2 * num - 1 / 10):
-                y -= self.size[1] * (1 / 30)
-                x = self.size[0] * (1 / 6)
-            else:
-                x -= 10
-            self.player[num].group[-1] = (x, y)
+    # def set_lastcard(self, lastcard, compare_pos = (0, 0)):
+    #     x = lastcard[0]
+    #     y = lastcard[1]
+    #
+    #     i_x = compare_pos[0]
+    #     i_y = compare_pos[1]
+    #
+    #     if self.now_turn == 0:
+    #         if x >= i_x + self.size[0] / 10 and y == i_y:
+    #             x -= self.size[0] / 10
+    #
+    #         elif y > i_y:
+    #             if x <= self.size[0] / 3:
+    #                 x = self.size[0] * (28 / 30)
+    #                 y = y - self.size[1] / 10
+    #             else:
+    #                 x -= self.size[0] / 10
+    #         self.player[0].last = (x, y)
+    #         print(self.player[0].last)
+    #     else:
+    #         num = self.now_turn
+    #         if x == self.size[0] * (1 / 6) and y > self.size[1] * (2 * num - 1 / 10):
+    #             y -= self.size[1] * (1 / 30)
+    #             x = self.size[0] * (1 / 6)
+    #         else:
+    #             x -= 10
+    #         self.player[num].last = (x, y)
 
     def pause(self):
 
