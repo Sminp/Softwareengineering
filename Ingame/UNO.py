@@ -22,7 +22,8 @@ img_basic_address = './image/'
 # 텍스트 구현
 def text_format(message, text_font, text_size, text_color):
     new_font = pygame.font.SysFont(text_font, text_size)
-    new_text = new_font.render(message, pygame.K_0, text_color)  # pygame.K_0가 의미하는 것은?
+    new_text = new_font.render(
+        message, pygame.K_0, text_color)  # pygame.K_0가 의미하는 것은?
     return new_text
 
 
@@ -37,9 +38,10 @@ class UNOGame:
 
     def __init__(self):
         pygame.init()
-        self.settings = Settings()  # 다른 방법은 없을까? 클래스 컴포지션
-        self.size = (self.settings.screen_width, self.settings.screen_height)
-        self.screen = pygame.display.set_mode(self.size)
+        self.setting = Settings()
+        self.settings = self.setting.get_setting()
+        self.screen = pygame.display.set_mode(
+            (self.settings['screen']), flags=self.settings['fullscreen'])
         # self.screen.fill(self.settings.bg_color)
         pygame.display.set_caption("UNO!")
         pygame.display.update()
@@ -48,7 +50,8 @@ class UNOGame:
 
     def bg_img_load(self, filename: str) -> object:
         bg_img = pygame.image.load(resource_path(filename))
-        bg_img = pygame.transform.scale(bg_img, (self.size[0], self.size[1]))
+        bg_img = pygame.transform.scale(bg_img,
+                                        (self.settings['screen']))
         return self.screen.blit(bg_img, (0, 0))
 
     def object_init(self):
@@ -77,7 +80,8 @@ class UNOGame:
 
         while key_select:
             pygame.draw.rect(self.screen, WHITE, (
-                self.size[0] * (1 / 9), self.size[1] * (2 / 8), self.size[0] * (7 / 9),
+                self.size[0] * (1 / 9), self.size[1] *
+                (2 / 8), self.size[0] * (7 / 9),
                 self.size[1] * (6 / 10)))
 
             for event in pygame.event.get():
@@ -96,23 +100,24 @@ class UNOGame:
 
 
 class TitleMenu(UNOGame):
-    def __init__(self, screen_size):
+    def __init__(self):
         super().__init__()
-        self.size = (screen_size[0], screen_size[1])
-        self.screen = pygame.display.set_mode((self.size[0], self.size[1]))
+        self.screen = pygame.display.set_mode(
+            (self.settings['screen']), flags=self.settings['fullscreen'])
 
         # 버튼 속성
-        self.x = self.size[0] * (1 / 4)
-        self.y = self.size[1] * (5 / 8)
-        self.width = self.size[0] * (1 / 8)
-        self.height = self.size[1] * (3 / 8)
+        self.x = self.settings['screen'][0] * (1 / 4)
+        self.y = self.settings['screen'][1] * (5 / 8)
+        self.width = self.settings['screen'][0] * (1 / 8)
+        self.height = self.settings['screen'][1] * (3 / 8)
         self.button_li = self.object_init()
 
     def object_init(self):
         i = 0
         button_li = []
         for button in TITLE_MENU_BUTTONS:
-            button = Button(self.screen, self.x + self.width * i, self.y, button, self.width, self.height)
+            button = Button(self.screen, self.x + self.width * i,
+                            self.y, button, self.width, self.height)
             button_li.append(button)
             i += 1
         return button_li
@@ -145,22 +150,22 @@ class TitleMenu(UNOGame):
                         selected += 1
                 elif event.key == pygame.K_RETURN:
                     if selected == 0:
-                        LobbyScreen((self.size[0], self.size[1])).menu()
+                        LobbyScreen().menu()
                     elif selected == 1:
-                        StoryMode((self.size[0], self.size[1])).menu()
+                        StoryMode().menu()
                     elif selected == 2:
-                        SettingScreen((self.size[0], self.size[1])).menu()
+                        SettingScreen().menu()
                     else:
                         terminate()
             if event.type == pygame.MOUSEBUTTONUP:
                 select_sound = pygame.mixer.Sound('./sound/select_sound.mp3')
                 select_sound.play()
                 if self.button_li[0].get_rect().collidepoint(event.pos):
-                    LobbyScreen((self.size[0], self.size[1])).menu()
+                    LobbyScreen().menu()
                 elif self.button_li[1].get_rect().collidepoint(event.pos):
-                    StoryMode((self.size[0], self.size[1])).menu()
+                    StoryMode().menu()
                 elif self.button_li[2].get_rect().collidepoint(event.pos):
-                    SettingScreen((self.size[0], self.size[1])).menu()
+                    SettingScreen().menu()
                 elif self.button_li[3].get_rect().collidepoint(event.pos):
                     terminate()
 
@@ -176,28 +181,29 @@ class TitleMenu(UNOGame):
 
 
 class LobbyScreen(UNOGame):
-    def __init__(self, screen_size):
+    def __init__(self):
         super().__init__()
-        self.size = (screen_size[0], screen_size[1])
-        self.screen = pygame.display.set_mode((self.size[0], self.size[1]))
+        self.screen = pygame.display.set_mode(
+            (self.settings['screen']), flags=self.settings['fullscreen'])
         # 버튼 속성
-        self.x = self.size[0] * (3 / 7)
-        self.y = self.size[0] * (1 / 6)
-        self.width = self.size[0] * (1 / 3)
-        self.height = self.size[1] * (1 / 4)
-        self.font = pygame.font.SysFont(self.settings.font, 30)
+        self.x = self.settings['screen'][0] * (3 / 7)
+        self.y = self.settings['screen'][0] * (1 / 6)
+        self.width = self.settings['screen'][0] * (1 / 3)
+        self.height = self.settings['screen'][1] * (1 / 4)
+        self.font = pygame.font.SysFont(self.settings['font'], 30)
         self.user_name = "player"
         self.button, self.computer_rect = self.object_init()
         self.user_name_text = TextRect(self.screen, self.user_name, 30, BLACK)
         self.input_active = False
 
     def object_init(self):
-        button = Button(self.screen, self.x, self.y, GAMESTART_BUTTON, self.width, self.height)
+        button = Button(self.screen, self.x, self.y,
+                        GAMESTART_BUTTON, self.width, self.height)
 
         computer_rect = []
         for i in range(5):
-            rect = pygame.Rect(0, 100 * i + (i + 1) * ((self.size[1] - 500) / 6),
-                               self.size[0] / 5, self.size[1] / 6)
+            rect = pygame.Rect(0, 100 * i + (i + 1) * ((self.settings['screen'][1] - 500) / 6),
+                               self.settings['screen'][0] / 5, self.settings['screen'][1] / 6)
             if i == 0:
                 label = "computer1"
             else:
@@ -209,7 +215,8 @@ class LobbyScreen(UNOGame):
     def object_show(self):
         self.button.show()
 
-        self.user_name_text.show((self.size[0] * (3 / 5), self.size[1] * (2 / 3)))
+        self.user_name_text.show(
+            (self.settings['screen'][0] * (3 / 5), self.settings['screen'][1] * (2 / 3)))
 
         for rect, label in self.computer_rect:
             pygame.draw.rect(self.screen, WHITE, rect)
@@ -219,7 +226,8 @@ class LobbyScreen(UNOGame):
         # 이름 수정할 때 커서 표시
         if self.input_active:
             pygame.draw.line(self.screen, BLACK,
-                             (self.user_name_text.rect.x + self.user_name_text.rect.w, self.user_name_text.rect.y),
+                             (self.user_name_text.rect.x +
+                              self.user_name_text.rect.w, self.user_name_text.rect.y),
                              (self.user_name_text.rect.x + self.user_name_text.rect.w,
                               self.user_name_text.rect.y + self.user_name_text.rect.h), 2)
 
@@ -253,7 +261,8 @@ class LobbyScreen(UNOGame):
                     else:
                         if self.computer_rect[i][0].collidepoint(event.pos):
                             if self.computer_rect[i][1] == "add" and self.computer_rect[i - 1][1] != "add":
-                                self.computer_rect[i][1] = "computer{}".format(i + 1)
+                                self.computer_rect[i][1] = "computer{}".format(
+                                    i + 1)
                             else:
                                 if i == 4:
                                     self.computer_rect[i][1] = "add"
@@ -285,10 +294,10 @@ class LobbyScreen(UNOGame):
 
 
 class SettingScreen(UNOGame):
-    def __init__(self, screen_size):
+    def __init__(self):
         super().__init__()
-        self.size = (screen_size[0], screen_size[1])
-        self.screen = pygame.display.set_mode((self.size[0], self.size[1]))
+        self.screen = pygame.display.set_mode(
+            (self.settings['screen']), flags=self.settings['fullscreen'])
 
         self.button_li, self.slider_li, self.rect = self.object_init()
         self.setting_text = TextRect(self.screen, "SETTING", 35, WHITE)
@@ -298,22 +307,24 @@ class SettingScreen(UNOGame):
         i = 3
         button_li = []
         for button in SIZE_BUTTONS:
-            button = Button(self.screen, self.size[0] * (i / 10), self.size[1] * (1 / 2),
+            button = Button(self.screen, self.settings['screen'][0] * (i / 10), self.settings['screen'][1] * (1 / 2),
                             button, 100, 50)
             button_li.append(button)
             i += 2
 
-        close_button = Button(self.screen, self.size[0] * (5 / 6), self.size[1] * (3 / 11),
-                              SETTING_CLOSE_BUTTON, 20, 20)
-        key_button = Button(self.screen, self.size[0] * (1 / 8), self.size[1] * (7 / 11),
-                            SETTING_KEY_BUTTON, 100, 50)
-        init_button = Button(self.screen, self.size[0] * (1 / 8), self.size[1] * (6 / 8),
-                             SETTING_INIT_BUTTON, 100, 50)
-        save_button = Button(self.screen, self.size[0] * (8 / 11), self.size[1] * (6 / 8),
-                             SETTING_SAVE_BUTTON, 100, 50)
-        settingcolor_button = Button(self.screen, self.size[0] * (8 / 11),
-                                     self.size[1] * (7 / 11), SETTING_RECT, 100, 50)
-        buttons = [close_button, key_button, init_button, save_button, settingcolor_button]
+        # self.settings['screen'][0] 이렇게 접근하는 거 너무 길지 않나?
+        close_button = Button(self.screen, self.settings['screen'][0] * (
+            5 / 6), self.settings['screen'][1] * (3 / 11), SETTING_CLOSE_BUTTON, 20, 20)
+        key_button = Button(self.screen, self.settings['screen'][0] * (
+            1 / 8), self.settings['screen'][1] * (7 / 11), SETTING_KEY_BUTTON, 100, 50)
+        init_button = Button(self.screen, self.settings['screen'][0] * (
+            1 / 8), self.settings['screen'][1] * (6 / 8), SETTING_INIT_BUTTON, 100, 50)
+        save_button = Button(self.screen, self.settings['screen'][0] * (
+            8 / 11), self.settings['screen'][1] * (6 / 8), SETTING_SAVE_BUTTON, 100, 50)
+        settingcolor_button = Button(self.screen, self.settings['screen'][0] * (
+            8 / 11), self.settings['screen'][1] * (7 / 11), SETTING_RECT, 100, 50)
+        buttons = [close_button, key_button, init_button,
+                   save_button, settingcolor_button]
 
         for button in buttons:
             button_li.append(button)
@@ -321,23 +332,26 @@ class SettingScreen(UNOGame):
         j = 6
         sliders_li = []
         for text in SLIDER_TEXT:
-            slider = Slider(self.screen, text, self.size[0] / 2,
-                            (self.size[0] * (3 / 10), self.size[1] * (j / 20)), (0, 100))
+            slider = Slider(self.screen, text, self.settings['screen'][0] / 2, (self.settings['screen'][0] * (
+                3 / 10), self.settings['screen'][1] * (j / 20)), (0, 100))
             sliders_li.append(slider)
             j += 1.5
 
-        rect = pygame.Rect(self.size[0] * (8 / 11), self.size[1] * (7 / 11), 50, 50)
+        rect = pygame.Rect(
+            self.settings['screen'][0] * (8 / 11), self.settings['screen'][1] * (7 / 11), 50, 50)
 
         return button_li, sliders_li, rect
 
     def object_show(self):
         pygame.draw.rect(self.screen, WHITE, (
-            self.size[0] * (1 / 9), self.size[1] * (2 / 8),
-            self.size[0] * (7 / 9),
-            self.size[1] * (6 / 10)))
+            self.settings['screen'][0] * (1 / 9), self.settings['screen'][1] * (
+                2 / 8), self.settings['screen'][0] * (7 / 9),
+            self.settings['screen'][1] * (6 / 10)))
 
-        self.setting_text.show((self.size[0] * (1 / 5), self.size[1] * (1 / 6)))
-        self.screen_setting_text.show((self.size[0] * (1 / 5), self.size[1] * (6 / 11)))
+        self.setting_text.show(
+            (self.settings['screen'][0] * (1 / 5), self.settings['screen'][1] * (1 / 6)))
+        self.screen_setting_text.show(
+            (self.settings['screen'][0] * (1 / 5), self.settings['screen'][1] * (6 / 11)))
 
         for button in self.button_li:
             button.show()
@@ -345,7 +359,8 @@ class SettingScreen(UNOGame):
         i = 6
         for slider in self.slider_li:
             slider.show()
-            slider.show_value((self.size[0] * (1 / 5), self.size[1] * (i / 20)))
+            slider.show_value(
+                (self.settings['screen'][0] * (1 / 5), self.settings['screen'][1] * (i / 20)))
             i += 1.5
 
         pygame.draw.rect(self.screen, BLACK, self.rect)
@@ -388,38 +403,60 @@ class SettingScreen(UNOGame):
 
             if event.type == pygame.MOUSEBUTTONUP:
                 if self.button_li[0].get_rect().collidepoint(event.pos):
-                    # 지금은 누르면 바로 적용인데, self.size[0= 이렇게 하고 나중에 설정 저장할때 적용되도록 해야하나?
-                    self.screen = pygame.display.set_mode((self.size[0], self.size[1]),
-                                                          pygame.FULLSCREEN)
+                    self.settings['fullscreen'] = pygame.FULLSCREEN
+                    self.screen = pygame.display.set_mode(
+                        (self.settings['screen']), flags=self.settings['fullscreen'])
                 elif self.button_li[1].get_rect().collidepoint(event.pos):
                     # 테스트 할려고 화면 크기 임시로 정함 -> 나중에 수정
-                    self.size = 1280, 720
-                    self.screen = pygame.display.set_mode((self.size[0], self.size[1]))
+                    self.settings['screen'][0] = 1280
+                    self.settings['screen'][1] = 720
+                    self.screen = pygame.display.set_mode(
+                        (self.settings['screen']), flags=self.settings['fullscreen'])
                     self.button_li, self.slider_li, self.rect = self.object_init()
-
 
                 elif self.button_li[2].get_rect().collidepoint(event.pos):
                     # 테스트 할려고 화면 크기 임시로 정함 -> 나중에 수정
-                    self.size = 800, 600
-                    self.screen = pygame.display.set_mode((self.size[0], self.size[1]))
+                    self.settings['screen'][0] = 800
+                    self.settings['screen'][1] = 600
+                    self.screen = pygame.display.set_mode(
+                        (self.settings['screen']), flags=self.settings['fullscreen'])
                     self.button_li, self.slider_li, self.rect = self.object_init()
 
                 elif self.button_li[3].get_rect().collidepoint(event.pos):
-                    # 화면 키운거 적용이 안됨 왜지?
-                    title = TitleMenu((self.size[0], self.size[1]))
+                    title = TitleMenu()
                     title.menu()
 
                 elif self.button_li[4].get_rect().collidepoint(event.pos):
                     pass  # 키보드 설정 함수 실행
                 elif self.button_li[5].get_rect().collidepoint(event.pos):
-                    pass  # 초기화 함수 실행
+                    # 방법 1
+                    # self.settings = { 'screen' : [800,600] , 'font' : MALGUNGOTHIC,
+                    #                 'keys': {
+                    #                     "left": pygame.K_LEFT,
+                    #                     "right": pygame.K_RIGHT,
+                    #                     "up": pygame.K_UP,
+                    #                     "down": pygame.K_DOWN,
+                    #                     "click": pygame.K_KP_ENTER
+                    #                 },
+                    #                 'sound' : {
+                    #                     "total" : 1,
+                    #                     "background" : 1,
+                    #                     "effect" : 1
+                    #                 }
+                    #                 , 'setting_color' : False
+                    #             }
+                    # self.screen = pygame.display.set_mode((self.settings['screen']), flags = self.settings['fullscreen'])
+                    # self.button_li, self.slider_li, self.rect = self.object_init()
+                    # self.setting.set_setting(self.settings)
+                    # 방법 2 => 이걸로 하면 설정 초기화가 바로 보이지는 않음. 다시 메뉴로 돌아가야 보임 -> 선택해주세욤
+                    self.setting.init_setting()
                 elif self.button_li[6].get_rect().collidepoint(event.pos):
-                    pass  # 설정 저장 함수 실행
+                    self.setting.change_setting(self.settings)  # 현재 값을 파일에 저장
 
                 elif self.rect.collidepoint(event.pos):
-                    if self.rect.x == int(self.size[0] * (8 / 11)):
+                    if self.rect.x == int(self.settings['screen'][0] * (8 / 11)):
                         self.rect.x += 50
-                    elif self.rect.x == int(self.size[0] * (8 / 11)) + 50:
+                    elif self.rect.x == int(self.settings['screen'][0] * (8 / 11)) + 50:
                         self.rect.x -= 50
 
     def menu(self):
@@ -434,19 +471,19 @@ class SettingScreen(UNOGame):
 
 
 class StoryMode(UNOGame):
-    def __init__(self, screen_size):
+    def __init__(self):
         super().__init__()
-        self.size = screen_size[0], screen_size[1]
-        self.screen = pygame.display.set_mode((self.size[0], self.size[1]))
-        self.width = self.size[0] * (1 / 5)
-        self.height = self.size[1] * (1 / 5)
+        self.screen = pygame.display.set_mode(
+            (self.settings['screen']), flags=self.settings['fullscreen'])
+        self.width = self.settings['screen'][0] * (1 / 5)
+        self.height = self.settings['screen'][1] * (1 / 5)
         self.button_li, self.text = self.object_init()
 
     def object_init(self):
         i = 1
         button_li = []
         for button in STORYMODE_MENU_BUTTONS:
-            button = Button(self.screen, self.size[0] * (i / 40), self.size[1] * (2 / 5),
+            button = Button(self.screen, self.settings['screen'][0] * (i / 40), self.settings['screen'][1] * (2 / 5),
                             button,
                             self.width, self.height)
             button_li.append(button)
@@ -457,7 +494,8 @@ class StoryMode(UNOGame):
     def object_show(self):
         for button in self.button_li:
             button.show()
-        self.text.show((self.size[0] // 5, self.size[1] // 10))
+        self.text.show(
+            (self.settings['screen'][0] // 5, self.settings['screen'][1] // 10))
 
     def sound(self):
         pygame.mixer.music.stop()
@@ -522,26 +560,28 @@ class YesNo(UnoGame):
         self.yes_no = True
         self.player_num = player_num
         self.difficulty = difficulty
-        self.width = self.size[0] * (3 / 7)
-        self.height = self.size[1] * (2 / 5)
+        self.width = self.settings['screen'][0] * (3 / 7)
+        self.height = self.settings['screen'][1] * (2 / 5)
         self.button_li, self.text = self.object_init()
 
     def object_init(self):
         i = 0
         button_li = []
         for button in YESNO_BUTTONS:
-            button = Button(self.screen, self.width, self.height + i, button, 100, 50)
+            button = Button(self.screen, self.width,
+                            self.height + i, button, 100, 50)
             button_li.append(button)
             i += 100
         text = TextRect(self.screen, "대전을 시작하겠습니까?", 30, BLACK)
         return button_li, text
 
     def object_show(self):
-        pygame.draw.rect(self.screen, WHITE,
-                         (self.size[0] / 2 - 200, self.size[1] / 3 - 100, 400, 400))
+        pygame.draw.rect(self.screen, WHITE, (
+            self.settings['screen'][0] / 2 - 200, self.settings['screen'][1] / 3 - 100, 400, 400))
         for button in self.button_li:
             button.show()
-        self.text.show((self.size[0] / 2, self.size[1] / 3))
+        self.text.show(
+            (self.settings['screen'][0] / 2, self.settings['screen'][1] / 3))
 
     def handle_event(self):
         for event in pygame.event.get():
@@ -549,7 +589,8 @@ class YesNo(UnoGame):
                 terminate()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if self.button_li[0].get_rect().collidepoint(event.pos):
-                    uno = Game(self, self.player_num, self.difficulty)  # 여기 생성자에 uno_game을 넘겨줘야 함 ...
+                    # 여기 생성자에 uno_game을 넘겨줘야 함 ...
+                    uno = Game(self, self.player_num, self.difficulty)
                     uno.startgame()
                     self.yes_no = False
                 elif self.button_li[1].get_rect().collidepoint(event.pos):
@@ -564,5 +605,5 @@ class YesNo(UnoGame):
 
 
 if __name__ == '__main__':
-    uno = TitleMenu((SCREEN_WIDTH, SCREEN_HEIGHT))
+    uno = TitleMenu()
     uno.menu()
