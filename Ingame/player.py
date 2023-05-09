@@ -62,14 +62,15 @@ class User(Player):
         if self.last_idx:
             last_pos = self.last.getposition()
             if last_pos == (
-                    self.size[0] * (1 / 3) + 80 * (self.last_idx -1), self.size[1] * (7 / 9)):
+                    self.size[0] * (1 / 3) + 80 * (self.last_idx - 1), self.size[1] * (7 / 9)):
                 return 0
         return 1
 
     def set(self):
         i = 0
         for item in self.group:
-            item.update((self.size[0] * (1 / 3) + 80 * i, self.size[1] * (7 / 9)))
+            item.update((self.size[0] * (1 / 3) + 80 *
+                        i, self.size[1] * (7 / 9)))
             i += 1
         self.draw_group = pygame.sprite.RenderPlain(*self.group)
         return self.test_set()
@@ -78,8 +79,7 @@ class User(Player):
     def set_lastcard(self):
         x, y = self.last.getposition()
 
-        i_x = 0
-        i_y = 0
+        i_x = i_y = 0
 
         if x >= i_x + self.size[0] / 10 and y == i_y:
             x -= self.size[0] / 10
@@ -115,7 +115,6 @@ class User(Player):
         self.group.append(temp)
         self.append(card)
 
-
     # 창에 나타내는거
     def update_card(self):
         i = 0
@@ -142,11 +141,13 @@ class User(Player):
                 i += 1
         self.group = pygame.sprite.RenderPlain(*temp_list)
         if temp_list:
-            self.last = temp_list[-1].getposition()
-        if self.last == (
+            pos = temp_list[-1].getposition()
+            self.last.setposition(pos)
+        if self.last.getposition() == (
                 self.size[0] * (1 / 3) + 80 * (len(temp_list) % 7 - 1),
                 self.size[1] * (7 / 9) + self.size[1] * 2 / 10):
             return 0
+
     def handle_event(self):
         pass
 
@@ -349,14 +350,14 @@ class Waste(Player):
         self.group.append(sprite)
 
     # 수정중
-    def update(self, sprite):
-        self.update_card(sprite)
-        self.update_value(sprite.get_name)
-        print("버린카드의 position {}".format(sprite.getposition()))
-        # 밖으로 꺼내기
-        if len(self.card) != 1:
-            self.set_lastcard(self.card[0].group[-1], sprite.getposition())
-        print("내고 나서 lastcard {}".format(self.card[0].group[-1]))
+    # def update(self, sprite):
+    #     self.update_card(sprite)
+    #     self.update_value(sprite.get_name)
+    #     print("버린카드의 position {}".format(sprite.getposition()))
+    #     # 밖으로 꺼내기
+    #     if len(self.card) != 1:
+    #         self.set_lastcard(self.card[0].group[-1], sprite.getposition())
+    #     print("내고 나서 lastcard {}".format(self.card[0].group[-1]))
 
     def updating(self, val):
         self.update_value(val)
