@@ -3,12 +3,12 @@ from constant import *
 from settings import resource_path
 
 
-# 오 글씨 바꾸는 기능 있었으면 좋겠다
+# 오 글씨 바꾸는 기능 있었으면 좋겠다 
+
 class TextRect():
     def __init__(self, screen, text, text_size, text_color):
         self.screen = screen
-        self.k_font = MALGUNGOTHIC
-        self.e_font = BERLIN
+        self.font = MALGUNGOTHIC
         self.text = text
         self.text_size = text_size
         self.text_color = text_color
@@ -16,22 +16,16 @@ class TextRect():
         self.rect = self.text_rect()
 
     def text_surface(self):
-        if self.text.isalpha():
-            new_font = pygame.font.SysFont(self.e_font, self.text_size)
-        else:
-            new_font = pygame.font.SysFont(self.k_font, self.text_size)
-        new_surface = new_font.render(self.text, True, self.text_color)
-        return new_surface
+        font = pygame.font.SysFont(self.font, self.text_size)
+        surface = font.render(self.text, True, self.text_color)
+        return surface
     
     def text_rect(self):
         return self.text_surface().get_rect()
     
     def change_text_surface(self, text):
-        if text.isalpha():
-            new_font = pygame.font.SysFont(self.e_font, self.text_size)
-        else:
-            new_font = pygame.font.SysFont(self.k_font, self.text_size)
-        self.surface = new_font.render(text, True, self.text_color)
+        font = pygame.font.SysFont(self.font, self.text_size)
+        self.surface = font.render(text, True, self.text_color)
         self.rect = self.surface.get_rect()
 
     def show(self, position):
@@ -40,6 +34,10 @@ class TextRect():
 
     def change_color(self, color):
         self.text_color = color
+        # 바꿀 수 있음
+        font = pygame.font.SysFont(self.font, self.text_size)
+        self.surface = font.render(self.text, True, self.text_color)
+        self.rect = self.surface.get_rect()
 
 
 # Rect를 빼고 모두다 좌표로 설정.

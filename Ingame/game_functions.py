@@ -10,16 +10,19 @@ from UNO import Button, text_format, terminate
 from rect_functions import TextRect
 from player import User, Computer, Waste
 import time
+from settings import Settings , resource_path
 
 
 class Game():
-    def __init__(self, uno, player_num=2, difficulty=1, user_name="ME"):  # 초기값 임시로 설정 - 지우기
+    def __init__(self, player_num=2, difficulty=1, user_name="ME"):  # 초기값 임시로 설정 - 지우기
         # super().__init__()
-        self.uno = uno
+        # self.uno = uno
         self.player_num = player_num
         self.difficulty = difficulty
-        self.screen = self.uno.screen
-        self.size = (self.uno.size[0], self.uno.size[1])
+        self.settings = Settings().get_setting()
+        self.screen = pygame.display.set_mode((self.settings['screen']), flags=self.settings['fullscreen'])
+        self.bg_img = pygame.transform.scale(pygame.image.load(resource_path("./image/playing_image/playing_background.png")), (self.settings['screen']))
+        self.size = (self.settings['screen'])
         self.rotate = 0
         self.playing_game = True
         self.game_turn = 0
@@ -35,8 +38,8 @@ class Game():
 
         self.player = []
         self.card_deck = []
-        self.waste = Waste(self.size)
-        self.player_names = None
+        self.waste = Waste()
+        self.player_names = []
 
     # 카드 생성
     # TDD 가능
@@ -78,10 +81,10 @@ class Game():
     def player_init(self):
         for num in range(self.player_num):
             if num == 0:
-                user = User(self.size)
+                user = User()
                 self.player.append(user)
             else:
-                com = Computer(self.size)
+                com = Computer()
                 self.player.append(com)
 
     # 처음 카드 나눠준다 by 리스트
@@ -92,26 +95,31 @@ class Game():
                 temp = self.card_deck.pop()
                 self.player[num].append(temp)
 
-    def set_name(self):
+    def set_name(self): # 이름이랑 위치 리스트로 저장하는거 어때?!
         player_names = []
-        text = TextRect(self.screen, self.user_name, 30, BLACK)
-        player_names.append(text)
+        text = TextRect(self.screen, self.user_name, 30, WHITE)
+        player_names.append([text , (self.size[0] * (3 / 5), self.size[1] * (2 / 3))])
         for i in range(1, self.player_num):
             text = TextRect(self.screen, "COM" + str(i), 20, BLACK)
-            player_names.append(text)
+            player_names.append([text, (self.size[0] * (1 / 10), self.size[1] * ((5 * i - 4) / 25))])
         return player_names
 
     # 플레이어 이름 표시
     def show_name(self):
-        for turn in range(self.player_num):
-            text = self.player_names[turn]
-            if turn == 0:
-                text.change_color(WHITE)
-                text.show((self.size[0] * (3 / 5), self.size[1] * (2 / 3)))
-            else:
-                text.change_color(BLACK)
-                text.show((self.size[0] * (1 / 45),
-                           self.size[1] * (5 * turn - 4 / 25)))
+        # for turn in range(self.player_num):
+        #     text = self.player_names[turn]
+        #     if turn == 0:
+        #         text.change_color(WHITE)
+        #         text.show((self.size[0] * (3 / 5), self.size[1] * (2 / 3)))
+        #     else:
+        #         text.change_color(BLACK)
+        #         text.show((self.size[0] * (1 / 45),
+        #                    self.size[1] * (5 * turn - 4 / 25)))
+        for text, pos in self.player_names:
+            text.change_color(BLACK)
+            text.show(pos)
+
+        pygame.display.update()
 
     # 함수를 나눠야 할 것 같아 test 만드는데 이 함수 돌릴 때 시간이 3초 넘게 걸려
     def set_window(self):
@@ -128,11 +136,12 @@ class Game():
                 self.player[i].set_card()
 
         setting = True
-        settings = [1, 1, 1, 1, 1, 1]
+        # settings = [1, 1, 1, 1, 1, 1]
+        settings = [1 for _ in range(self.player_num)] # 되나?
 
-        # 이게 뭐지?
-        for i in range(6-self.player_num):
-            settings[i*(-1)-1] = 0
+        # # 이게 뭐지? -> 삭제해도 될 듯
+        # for i in range(6-self.player_num):
+        #     settings[i*(-1)-1] = 0
 
         while setting:
             # tmr = self.clock.tick(60) / 1000
@@ -169,14 +178,24 @@ class Game():
 
     # 지금 현재 턴인 플레이어 표시 - print_window에 있어야 하지 않을까
     def show_now_turn(self, now_turn):
-        if now_turn == 0:
-            self.player_names[now_turn].change_color(YELLOW)
-            self.player_names[now_turn].show((self.size[0] * (3 / 5), self.size[1] * (2 / 3)))
-        else:
-            # 수정중 index error
-            self.player_names[now_turn].change_color(YELLOW)
-            self.player_names[now_turn].show((self.size[0] * (1 / 45),
-                                             self.size[1] * (5 * now_turn - 4 / 25)))
+        # if now_turn == 0:
+        #     self.player_names[now_turn].change_color(YELLOW)
+        #     self.player_names[now_turn].show((self.size[0] * (3 / 5), self.size[1] * (2 / 3)))
+        # else:
+        #     # 수정중 index error
+        #     self.player_names[now_turn].change_color(YELLOW)
+        #     self.player_names[now_turn].show((self.size[0] * (1 / 45),
+        #                                      self.size[1] * (5 * now_turn - 4 / 25)))
+        # self.player_names[now_turn][0].change_color(YELLOW)
+        # self.player_names[now_turn][0].show(self.player_names[now_turn][1])
+        for i, text in enumerate(self.player_names):
+            if i == now_turn:
+                text[0].change_color(YELLOW)
+                text[0].show(text[1])
+            else:
+                text[0].change_color(BLACK)
+                text[0].show(text[1])
+
         pygame.display.update()
 
     def print_computer_box(self) -> list:
@@ -189,14 +208,16 @@ class Game():
 
     # 플레이어 이름 표시 초기화
     def print_window(self):
-        bg_img = self.uno.bg_img_load("./image/playing_image/playing_background.png")
+        # bg_img = self.uno.bg_img_load("./image/playing_image/playing_background.png")
+        self.screen.blit(self.bg_img, (0, 0))
         for rect in self.print_computer_box():
             pygame.draw.rect(self.screen, WHITE, rect)
         self.waste.draw_group.draw(self.screen)
         self.player[0].draw_group.draw(self.screen)
         self.player[1].draw_group.draw(self.screen)
         self.uno_button.show()
-        self.show_name()
+        # self.show_name() #이게 있으면 먼가 이상하게 글씨가 나타남 
+
 
         # 리팩토링 - show가 안 보여
         # if self.player_num >= 3:
@@ -656,6 +677,7 @@ class Game():
                 if event.type == KEYDOWN:
                     if event.key == K_SPACE:
                         self.uno_game.main_menu()
+                        # 객체를 생성해서 호출하는게 좋지않을까?
                         return
         return 0
 
@@ -679,6 +701,13 @@ class Game():
 
     # 리팩토링 match로 해도 될 것 같아
     def check_player(self):
+        # 이렇게 해도 되지 않아?
+        # for i in range(self.player_num):
+        #     if len(self.player[i].card) == 0:
+        #         self.restart()
+        #         return
+        # 그리고 여기에서 restart로 index 넘겨줘서 승리 표시하는게 좋을 듯?
+            
         if len(self.player[0].card) == 0:
             self.restart()
             return
@@ -705,6 +734,7 @@ class Game():
             if len(self.player[1].card) == 0:
                 self.restart()
                 return
+
 
     def selected_turn(self):
         return random.randint(0, self.player_num -1)
@@ -742,12 +772,14 @@ class Game():
         self.player_names = self.set_name()
         self.rotate = 0
         self.set_window()
+        self.show_name()
         self.playgame()
 
     # 수정중
     # 게임 구현
     def playgame(self):
-        self.now_turn = 0
+        # self.now_turn = 0 이거를 아래처럼 수정해야 함
+        self.now_turn = self.selected_turn()
         tmr = 0
         selected = 0
         selected_up = 0
@@ -758,8 +790,7 @@ class Game():
                 self.set_deck()
 
             # 턴 처음 선택하는 부분 - 일단은 랜덤으로
-            self.now_turn = self.selected_turn()
-            self.show_now_turn(self.now_turn)
+            # self.now_turn = self.selected_turn() # 이게 while문안에 있으면 안될 듯 처음에만 해야하니까
             # 리팩토링 - 나중에 겹칠 것 같아서 한 번에 할게
             if len(self.waste.card) == 0:
                 temp = self.card_deck.pop()
@@ -774,9 +805,18 @@ class Game():
             pygame.time.wait(2000)
 
             if self.now_turn != 0:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        terminate()
                 self.computer_play()
+            else:
+                self.user_play()
 
-            for event in pygame.event.get():
+            self.print_window()
+            pygame.display.update()
+
+    def user_play(self):
+        for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     terminate()
 
@@ -858,8 +898,6 @@ class Game():
                                 self.now_turn = self.get_next_player(self.now_turn)
                                 break
 
-            pygame.display.update()
-
     # 수정중
     # 카드 뽑음
     def get_from_deck(self, now_turn):
@@ -875,6 +913,9 @@ class Game():
         if now_turn == 0:
             self.player[now_turn].add_card(item)
             print("카드 뽑기 {}".format(self.player[0].last))
+            print("현 카드 card {}".format(self.player[0].card))
+            print("현 카드 group {}".format(self.player[0].group))
+            print("현 카드 draw group {}".format(self.player[0].draw_group))
         else:
             self.player[now_turn].add_card(item)
         self.print_window()

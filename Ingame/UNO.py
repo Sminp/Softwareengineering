@@ -38,11 +38,9 @@ class UNOGame:
 
     def __init__(self):
         pygame.init()
-        self.setting = Settings()
-        self.settings = self.setting.get_setting()
+        self.settings = Settings().get_setting()
         self.screen = pygame.display.set_mode(
             (self.settings['screen']), flags=self.settings['fullscreen'])
-        self.size = self.settings['screen']
         # self.screen.fill(self.settings.bg_color)
         pygame.display.set_caption("UNO!")
         pygame.display.update()
@@ -107,10 +105,10 @@ class TitleMenu(UNOGame):
             (self.settings['screen']), flags=self.settings['fullscreen'])
 
         # 버튼 속성
-        self.x = self.size[0] * (1 / 4)
-        self.y = self.size[1] * (5 / 8)
-        self.width = self.size[0] * (1 / 8)
-        self.height = self.size[1] * (3 / 8)
+        self.x = self.settings['screen'][0] * (1 / 4)
+        self.y = self.settings['screen'][1] * (5 / 8)
+        self.width = self.settings['screen'][0] * (1 / 8)
+        self.height = self.settings['screen'][1] * (3 / 8)
         self.button_li = self.object_init()
 
     def object_init(self):
@@ -186,12 +184,11 @@ class LobbyScreen(UNOGame):
         super().__init__()
         self.screen = pygame.display.set_mode(
             (self.settings['screen']), flags=self.settings['fullscreen'])
-        self.size = self.settings['screen']
         # 버튼 속성
-        self.x = self.size[0] * (3 / 7)
-        self.y = self.size[0] * (1 / 6)
-        self.width = self.size[0] * (1 / 3)
-        self.height = self.size[1] * (1 / 4)
+        self.x = self.settings['screen'][0] * (3 / 7)
+        self.y = self.settings['screen'][0] * (1 / 6)
+        self.width = self.settings['screen'][0] * (1 / 3)
+        self.height = self.settings['screen'][1] * (1 / 4)
         self.font = pygame.font.SysFont(self.settings['font'], 30)
         self.user_name = "player"
         self.button, self.computer_rect = self.object_init()
@@ -204,8 +201,8 @@ class LobbyScreen(UNOGame):
 
         computer_rect = []
         for i in range(5):
-            rect = pygame.Rect(0, 100 * i + (i + 1) * ((self.size[1] - 500) / 6),
-                               self.size[0] / 5, self.size[1] / 6)
+            rect = pygame.Rect(0, 100 * i + (i + 1) * ((self.settings['screen'][1] - 500) / 6),
+                               self.settings['screen'][0] / 5, self.settings['screen'][1] / 6)
             if i == 0:
                 label = "computer1"
             else:
@@ -218,7 +215,7 @@ class LobbyScreen(UNOGame):
         self.button.show()
 
         self.user_name_text.show(
-            (self.size[0] * (3 / 5), self.size[1] * (2 / 3)))
+            (self.settings['screen'][0] * (3 / 5), self.settings['screen'][1] * (2 / 3)))
 
         for rect, label in self.computer_rect:
             pygame.draw.rect(self.screen, WHITE, rect)
@@ -254,7 +251,7 @@ class LobbyScreen(UNOGame):
                     for rect, text in self.computer_rect:
                         if text != "add":
                             result += 1
-                    uno_ = Game(self, result, user_name=self.user_name)
+                    uno_ = Game(result, user_name=self.user_name)
                     uno_.startgame()
 
                 for i in range(len(self.computer_rect)):
@@ -300,7 +297,7 @@ class SettingScreen(UNOGame):
         super().__init__()
         self.screen = pygame.display.set_mode(
             (self.settings['screen']), flags=self.settings['fullscreen'])
-        self.size = self.settings['screen']
+
         self.button_li, self.slider_li, self.rect = self.object_init()
         self.setting_text = TextRect(self.screen, "SETTING", 35, WHITE)
         self.screen_setting_text = TextRect(self.screen, "화면 크기", 20, BLACK)
@@ -309,22 +306,22 @@ class SettingScreen(UNOGame):
         i = 3
         button_li = []
         for button in SIZE_BUTTONS:
-            button = Button(self.screen, self.size[0] * (i / 10), self.size[1] * (1 / 2),
+            button = Button(self.screen, self.settings['screen'][0] * (i / 10), self.settings['screen'][1] * (1 / 2),
                             button, 100, 50)
             button_li.append(button)
             i += 2
 
-        # self.size[0] 이렇게 접근하는 거 너무 길지 않나?
-        close_button = Button(self.screen, self.size[0] * (
-            5 / 6), self.size[1] * (3 / 11), SETTING_CLOSE_BUTTON, 20, 20)
-        key_button = Button(self.screen, self.size[0] * (
-            1 / 8), self.size[1] * (7 / 11), SETTING_KEY_BUTTON, 100, 50)
-        init_button = Button(self.screen, self.size[0] * (
-            1 / 8), self.size[1] * (6 / 8), SETTING_INIT_BUTTON, 100, 50)
-        save_button = Button(self.screen, self.size[0] * (
-            8 / 11), self.size[1] * (6 / 8), SETTING_SAVE_BUTTON, 100, 50)
-        settingcolor_button = Button(self.screen, self.size[0] * (
-            8 / 11), self.size[1] * (7 / 11), SETTING_RECT, 100, 50)
+        # self.settings['screen'][0] 이렇게 접근하는 거 너무 길지 않나?
+        close_button = Button(self.screen, self.settings['screen'][0] * (
+            5 / 6), self.settings['screen'][1] * (3 / 11), SETTING_CLOSE_BUTTON, 20, 20)
+        key_button = Button(self.screen, self.settings['screen'][0] * (
+            1 / 8), self.settings['screen'][1] * (7 / 11), SETTING_KEY_BUTTON, 100, 50)
+        init_button = Button(self.screen, self.settings['screen'][0] * (
+            1 / 8), self.settings['screen'][1] * (6 / 8), SETTING_INIT_BUTTON, 100, 50)
+        save_button = Button(self.screen, self.settings['screen'][0] * (
+            8 / 11), self.settings['screen'][1] * (6 / 8), SETTING_SAVE_BUTTON, 100, 50)
+        settingcolor_button = Button(self.screen, self.settings['screen'][0] * (
+            8 / 11), self.settings['screen'][1] * (7 / 11), SETTING_RECT, 100, 50)
         buttons = [close_button, key_button, init_button,
                    save_button, settingcolor_button]
 
@@ -334,26 +331,26 @@ class SettingScreen(UNOGame):
         j = 6
         sliders_li = []
         for text in SLIDER_TEXT:
-            slider = Slider(self.screen, text, self.size[0] / 2, (self.size[0] * (
-                3 / 10), self.size[1] * (j / 20)), (0, 100))
+            slider = Slider(self.screen, text, self.settings['screen'][0] / 2, (self.settings['screen'][0] * (
+                3 / 10), self.settings['screen'][1] * (j / 20)), (0, 100))
             sliders_li.append(slider)
             j += 1.5
 
         rect = pygame.Rect(
-            self.size[0] * (8 / 11), self.size[1] * (7 / 11), 50, 50)
+            self.settings['screen'][0] * (8 / 11), self.settings['screen'][1] * (7 / 11), 50, 50)
 
         return button_li, sliders_li, rect
 
     def object_show(self):
         pygame.draw.rect(self.screen, WHITE, (
-            self.size[0] * (1 / 9), self.size[1] * (
-                2 / 8), self.size[0] * (7 / 9),
-            self.size[1] * (6 / 10)))
+            self.settings['screen'][0] * (1 / 9), self.settings['screen'][1] * (
+                2 / 8), self.settings['screen'][0] * (7 / 9),
+            self.settings['screen'][1] * (6 / 10)))
 
         self.setting_text.show(
-            (self.size[0] * (1 / 5), self.size[1] * (1 / 6)))
+            (self.settings['screen'][0] * (1 / 5), self.settings['screen'][1] * (1 / 6)))
         self.screen_setting_text.show(
-            (self.size[0] * (1 / 5), self.size[1] * (6 / 11)))
+            (self.settings['screen'][0] * (1 / 5), self.settings['screen'][1] * (6 / 11)))
 
         for button in self.button_li:
             button.show()
@@ -362,7 +359,7 @@ class SettingScreen(UNOGame):
         for slider in self.slider_li:
             slider.show()
             slider.show_value(
-                (self.size[0] * (1 / 5), self.size[1] * (i / 20)))
+                (self.settings['screen'][0] * (1 / 5), self.settings['screen'][1] * (i / 20)))
             i += 1.5
 
         pygame.draw.rect(self.screen, BLACK, self.rect)
@@ -410,16 +407,16 @@ class SettingScreen(UNOGame):
                         (self.settings['screen']), flags=self.settings['fullscreen'])
                 elif self.button_li[1].get_rect().collidepoint(event.pos):
                     # 테스트 할려고 화면 크기 임시로 정함 -> 나중에 수정
-                    self.size[0] = 1280
-                    self.size[1] = 720
+                    self.settings['screen'][0] = 1280
+                    self.settings['screen'][1] = 720
                     self.screen = pygame.display.set_mode(
                         (self.settings['screen']), flags=self.settings['fullscreen'])
                     self.button_li, self.slider_li, self.rect = self.object_init()
 
                 elif self.button_li[2].get_rect().collidepoint(event.pos):
                     # 테스트 할려고 화면 크기 임시로 정함 -> 나중에 수정
-                    self.size[0] = 800
-                    self.size[1] = 600
+                    self.settings['screen'][0] = 800
+                    self.settings['screen'][1] = 600
                     self.screen = pygame.display.set_mode(
                         (self.settings['screen']), flags=self.settings['fullscreen'])
                     self.button_li, self.slider_li, self.rect = self.object_init()
@@ -456,9 +453,9 @@ class SettingScreen(UNOGame):
                     self.setting.change_setting(self.settings)  # 현재 값을 파일에 저장
 
                 elif self.rect.collidepoint(event.pos):
-                    if self.rect.x == int(self.size[0] * (8 / 11)):
+                    if self.rect.x == int(self.settings['screen'][0] * (8 / 11)):
                         self.rect.x += 50
-                    elif self.rect.x == int(self.size[0] * (8 / 11)) + 50:
+                    elif self.rect.x == int(self.settings['screen'][0] * (8 / 11)) + 50:
                         self.rect.x -= 50
 
     def menu(self):
@@ -477,16 +474,15 @@ class StoryMode(UNOGame):
         super().__init__()
         self.screen = pygame.display.set_mode(
             (self.settings['screen']), flags=self.settings['fullscreen'])
-        self.size = self.settings['screen']
-        self.width = self.size[0] * (1 / 5)
-        self.height = self.size[1] * (1 / 5)
+        self.width = self.settings['screen'][0] * (1 / 5)
+        self.height = self.settings['screen'][1] * (1 / 5)
         self.button_li, self.text = self.object_init()
 
     def object_init(self):
         i = 1
         button_li = []
         for button in STORYMODE_MENU_BUTTONS:
-            button = Button(self.screen, self.size[0] * (i / 40), self.size[1] * (2 / 5),
+            button = Button(self.screen, self.settings['screen'][0] * (i / 40), self.settings['screen'][1] * (2 / 5),
                             button,
                             self.width, self.height)
             button_li.append(button)
@@ -498,7 +494,7 @@ class StoryMode(UNOGame):
         for button in self.button_li:
             button.show()
         self.text.show(
-            (self.size[0] // 5, self.size[1] // 10))
+            (self.settings['screen'][0] // 5, self.settings['screen'][1] // 10))
 
     def sound(self):
         pygame.mixer.music.stop()
@@ -563,9 +559,8 @@ class YesNo(UnoGame):
         self.yes_no = True
         self.player_num = player_num
         self.difficulty = difficulty
-        self.size = self.settings['screen']
-        self.width = self.size[0] * (3 / 7)
-        self.height = self.size[1] * (2 / 5)
+        self.width = self.settings['screen'][0] * (3 / 7)
+        self.height = self.settings['screen'][1] * (2 / 5)
         self.button_li, self.text = self.object_init()
 
     def object_init(self):
@@ -581,11 +576,11 @@ class YesNo(UnoGame):
 
     def object_show(self):
         pygame.draw.rect(self.screen, WHITE, (
-            self.size[0] / 2 - 200, self.size[1] / 3 - 100, 400, 400))
+            self.settings['screen'][0] / 2 - 200, self.settings['screen'][1] / 3 - 100, 400, 400))
         for button in self.button_li:
             button.show()
         self.text.show(
-            (self.size[0] / 2, self.size[1] / 3))
+            (self.settings['screen'][0] / 2, self.settings['screen'][1] / 3))
 
     def handle_event(self):
         for event in pygame.event.get():
