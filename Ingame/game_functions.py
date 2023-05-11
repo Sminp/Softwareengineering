@@ -13,6 +13,7 @@ import time
 from settings import Settings , resource_path
 
 
+
 class Game():
     def __init__(self, player_num=2, difficulty=1, user_name="ME"):  # 초기값 임시로 설정 - 지우기
         # super().__init__()
@@ -31,6 +32,7 @@ class Game():
         self.active = False
         self.user_name = user_name
         self.first = True
+        self.animation_group = None
 
         self.uno_button = Button(self.screen, self.size[0] * (3 / 4), self.size[1] * (1 / 3),
                                  UNO_BUTTON, self.size[1] * (1 / 20),
@@ -84,7 +86,7 @@ class Game():
                 user = User()
                 self.player.append(user)
             else:
-                com = Computer()
+                com = Computer(num)
                 self.player.append(com)
 
     # 처음 카드 나눠준다 by 리스트
@@ -106,15 +108,6 @@ class Game():
 
     # 플레이어 이름 표시
     def show_name(self):
-        # for turn in range(self.player_num):
-        #     text = self.player_names[turn]
-        #     if turn == 0:
-        #         text.change_color(WHITE)
-        #         text.show((self.size[0] * (3 / 5), self.size[1] * (2 / 3)))
-        #     else:
-        #         text.change_color(BLACK)
-        #         text.show((self.size[0] * (1 / 45),
-        #                    self.size[1] * (5 * turn - 4 / 25)))
         for text, pos in self.player_names:
             text.change_color(BLACK)
             text.show(pos)
@@ -128,30 +121,20 @@ class Game():
         self.hand_out_deck()
         self.waste.set_card()
 
-        # 카드 기본 이미지 세팅 - 옮기기
         for i in range(self.player_num):
-            if i == 0:
-                self.player[i].set_card()
-            else:
-                self.player[i].set_card()
-
+            self.player[i].set_card()
         setting = True
-        # settings = [1, 1, 1, 1, 1, 1]
-        settings = [1 for _ in range(self.player_num)] # 되나?
 
-        # # 이게 뭐지? -> 삭제해도 될 듯
-        # for i in range(6-self.player_num):
-        #     settings[i*(-1)-1] = 0
+        settings = [1 for _ in range(self.player_num)] #
 
         while setting:
-            # tmr = self.clock.tick(60) / 1000
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     terminate()
 
-            settings[0] = self.player[0].set()
-            for num in range(1, self.player_num):
-                settings[num] = self.player[num].set(num)
+            for num in range(self.player_num):
+                settings[num] = self.player[num].set()
+
             # pygame.mixer.pre_init(44100, -16, 1, 512)
             # card = pygame.mixer.Sound('./sound/card.wav')
             # for i in range(0,7):
@@ -161,7 +144,7 @@ class Game():
                 return 0
             self.print_window()
             pygame.display.update()
-
+        
     # 플레이어 턴 인덱스 넘어가지 않도록 함
     def get_next_player(self, now_turn):
         self.first = True
@@ -178,16 +161,7 @@ class Game():
 
     # 지금 현재 턴인 플레이어 표시 - print_window에 있어야 하지 않을까
     def show_now_turn(self, now_turn):
-        # if now_turn == 0:
-        #     self.player_names[now_turn].change_color(YELLOW)
-        #     self.player_names[now_turn].show((self.size[0] * (3 / 5), self.size[1] * (2 / 3)))
-        # else:
-        #     # 수정중 index error
-        #     self.player_names[now_turn].change_color(YELLOW)
-        #     self.player_names[now_turn].show((self.size[0] * (1 / 45),
-        #                                      self.size[1] * (5 * now_turn - 4 / 25)))
-        # self.player_names[now_turn][0].change_color(YELLOW)
-        # self.player_names[now_turn][0].show(self.player_names[now_turn][1])
+
         for i, text in enumerate(self.player_names):
             if i == now_turn:
                 text[0].change_color(YELLOW)
@@ -213,123 +187,50 @@ class Game():
         for rect in self.print_computer_box():
             pygame.draw.rect(self.screen, WHITE, rect)
         self.waste.draw_group.draw(self.screen)
-        self.player[0].draw_group.draw(self.screen)
-        self.player[1].draw_group.draw(self.screen)
+        for i in range(self.player_num):
+            self.player[i].draw_group.draw(self.screen)
         self.uno_button.show()
-        # self.show_name() #이게 있으면 먼가 이상하게 글씨가 나타남 
-
-
-        # 리팩토링 - show가 안 보여
-        # if self.player_num >= 3:
-        #     self.player[2].draw_group.draw(self.screen)
-        #     com2_text = text_format("COM2", BERLIN, 20, BLACK)
-        #     self.screen.blit(com2_text, (self.size[0] *
-        #                                  (1 / 45), self.size[1] * (6 / 25)))
-        # if self.player_num >= 4:
-        #     self.player[3].draw_group.draw(self.screen)
-        #     com3_text = text_format("COM3", BERLIN, 20, BLACK)
-        #     self.screen.blit(com3_text, (self.size[0] *
-        #                                  (1 / 45), self.size[1] * (11 / 25)))
-        # if self.player_num >= 5:
-        #     self.player[4].draw_group.draw(self.screen)
-        #     com4_text = text_format("COM4", BERLIN, 20, BLACK)
-        #     self.screen.blit(com4_text, (self.size[0] *
-        #                                  (1 / 45), self.size[1] * (16 / 25)))
-        # if self.player_num == 6:
-        #     self.player[5].draw_group.draw(self.screen)
-        #     com5_text = text_format("COM5", BERLIN, 20, BLACK)
-        #     self.screen.blit(com5_text, (self.size[0] *
-        #                                  (1 / 45), self.size[1] * (21 / 25)))
-        #
-        # # 여기도 인원수 추가
-        # user_text = text_format(self.user_name, BERLIN, 30, WHITE)
-        # user_text_rect = user_text.get_rect(
-        #     center=(self.size[0] * (3 / 5), self.size[1] * (2 / 3)))
-        # self.screen.blit(user_text, user_text_rect)
-        # com1_text = text_format("COM1", BERLIN, 20, BLACK)
-        # self.screen.blit(com1_text, (self.size[0] *
-        #                              (1 / 45), self.size[1] * (1 / 25)))
-        # # 여기까지 리팩토링
-
+        self.show_now_turn(self.now_turn)
         self.waste.draw_group.draw(self.screen)
+        self.draw_color_rect()
+        if self.animation_group:
+            self.animation_group.draw(self.screen)
+        
+    def draw_color_rect(self):
+        rect_pos = (self.size[0] * (3 / 4), self.size[1] * (1 / 3) - self.size[1] * (1 / 20))
+        rect_size = (self.size[1] * (1 / 20), self.size[1] * (1 / 20))
+        half_rect_pos = (self.size[0] * (3 / 4) + self.size[1] * (1 / 40), self.size[1] * (1 / 3) - self.size[1] * (1 / 20))
+        half_rect_size = (self.size[1] * (1 / 40), self.size[1] * (1 / 20))
+
         if len(self.waste.card) == 0:
-            pygame.draw.rect(self.screen, BLACK, (self.size[0] * (3 / 4), self.size[1] *
-                (1 / 3) - self.size[1] * (1 / 20), self.size[1] * (1 / 20), self.size[1] * (1 / 20)))
+            pygame.draw.rect(self.screen, BLACK, (rect_pos, rect_size))
         else:
             w_name = self.waste.card[-1]
             w_name = w_name.split('_')
             if w_name[0] == 'wild':
-                pygame.draw.rect(self.screen, BLACK, (
-                    self.size[0] *
-                    (3 / 4), self.size[1] * (1 / 3) -
-                    self.size[1] * (1 / 20),
-                    self.size[1] * (1 / 20), self.size[1] * (1 / 20)))
+                pygame.draw.rect(self.screen, BLACK, (rect_pos, rect_size))
             elif w_name[0] == "red":
                 if len(w_name) > 1:
                     if w_name[1] == 'yellow':
-                        pygame.draw.rect(self.screen, RED, (
-                            self.size[0] *
-                            (3 / 4), self.size[1] * (1 / 3) -
-                            self.size[1] * (1 / 20),
-                            self.size[1] * (1 / 40), self.size[1] * (1 / 20)))
-                        pygame.draw.rect(self.screen, YELLOW, (
-                            self.size[0] *
-                            (3 / 4) + self.size[1] * (1 / 40),
-                            self.size[1] *
-                            (1 / 3) - self.size[1] *
-                            (1 / 20), self.size[1] * (1 / 40),
-                            self.size[1] * (1 / 20)))
+                        pygame.draw.rect(self.screen, RED, (rect_pos, half_rect_size))
+                        pygame.draw.rect(self.screen, YELLOW, (half_rect_pos, half_rect_size))
                     else:
-                        pygame.draw.rect(self.screen, RED, (
-                            self.size[0] *
-                            (3 / 4), self.size[1] * (1 / 3) -
-                            self.size[1] * (1 / 20),
-                            self.size[1] * (1 / 20), self.size[1] * (1 / 20)))
+                        pygame.draw.rect(self.screen, RED, (rect_pos, rect_size))
                 else:
-                    pygame.draw.rect(self.screen, RED, (
-                        self.size[0] *
-                        (3 / 4), self.size[1] * (1 / 3) -
-                        self.size[1] * (1 / 20),
-                        self.size[1] * (1 / 20), self.size[1] * (1 / 20)))
+                    pygame.draw.rect(self.screen, RED, (rect_pos, rect_size))
             elif w_name[0] == "yellow":
-                pygame.draw.rect(self.screen, YELLOW, (
-                    self.size[0] *
-                    (3 / 4), self.size[1] * (1 / 3) -
-                    self.size[1] * (1 / 20),
-                    self.size[1] * (1 / 20), self.size[1] * (1 / 20)))
+                pygame.draw.rect(self.screen, YELLOW, (rect_pos, rect_size))
             elif w_name[0] == "blue":
                 if len(w_name) > 1:
                     if w_name[1] == 'green':
-                        pygame.draw.rect(self.screen, BLUE, (
-                            self.size[0] *
-                            (3 / 4), self.size[1] * (1 / 3) -
-                            self.size[1] * (1 / 20),
-                            self.size[1] * (1 / 40), self.size[1] * (1 / 20)))
-                        pygame.draw.rect(self.screen, GREEN, (
-                            self.size[0] *
-                            (3 / 4) + self.size[1] * (1 / 40),
-                            self.size[1] *
-                            (1 / 3) - self.size[1] *
-                            (1 / 20), self.size[1] * (1 / 40),
-                            self.size[1] * (1 / 20)))
+                        pygame.draw.rect(self.screen, BLUE, (rect_pos, half_rect_size))
+                        pygame.draw.rect(self.screen, GREEN, (half_rect_pos, half_rect_size))
                     else:
-                        pygame.draw.rect(self.screen, BLUE, (
-                            self.size[0] *
-                            (3 / 4), self.size[1] * (1 / 3) -
-                            self.size[1] * (1 / 20),
-                            self.size[1] * (1 / 20), self.size[1] * (1 / 20)))
+                        pygame.draw.rect(self.screen, BLUE, (rect_pos, rect_size))
                 else:
-                    pygame.draw.rect(self.screen, BLUE, (
-                        self.size[0] *
-                        (3 / 4), self.size[1] * (1 / 3) -
-                        self.size[1] * (1 / 20),
-                        self.size[1] * (1 / 20), self.size[1] * (1 / 20)))
+                    pygame.draw.rect(self.screen, BLUE, (rect_pos, rect_size))
             elif w_name[0] == "green":
-                pygame.draw.rect(self.screen, GREEN, (
-                    self.size[0] *
-                    (3 / 4), self.size[1] * (1 / 3) -
-                    self.size[1] * (1 / 20),
-                    self.size[1] * (1 / 20), self.size[1] * (1 / 20)))
+                pygame.draw.rect(self.screen, GREEN, (rect_pos, rect_size))
 
     # 낼 수 있는지 확인
     def check_card(self, sprite):
@@ -373,212 +274,53 @@ class Game():
 
     def pick_color_card(self):
         if self.now_turn == 0:
-            temp_name, temp = self.player[self.now_turn].pick_color(
-                self.screen)
+            temp = self.pick_color()
         else:
             pygame.time.wait(500)
             temp = self.player[self.now_turn].most_num_color()
         self.waste.updating(temp)
         self.print_window()
 
-    # card_skill 중 card change 함수
-    def card_change(self, now_turn, pick_turn):
+    def pick_color(self):
+        # 뒤에 이미지 -> 빼거나 대체
+        red = Popup('red', (306, 320))
+        yellow = Popup('yellow', (368, 320))
+        green = Popup('green', (432, 320))
+        blue = Popup('blue', (494, 320))
+        colors = [red, yellow, green, blue]
+        color_group = pygame.sprite.RenderPlain(*colors)
 
+        loop = True
+        while loop:
+            # popup_group.draw(self.screen)
+            color_group.draw(self.screen)
+            pygame.display.update()
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    terminate()
+                if event.type == MOUSEBUTTONUP:
+                    mouse_pos = pygame.mouse.get_pos()
+                    for sprite in color_group:
+                        if sprite.get_rect().collidepoint(mouse_pos):
+                            temp_name = sprite.get_name()
+                            self.print_window()
+                            loop = False
+        return temp_name
+    
+
+# card_skill 중 card change 함수
+    def card_change(self, now_turn, pick_turn):
         # 현재 턴의 플레이어 덱 임시 저장
         temp_player = self.player[now_turn].card
-
         # 현재 턴의 플레이어 리스트 초기화
         self.player[now_turn].clear()
-        # 이거 어떻게 될 지 궁금하다!!
-
-        # 현재 턴의 플레이어 덱 초기화
-        match now_turn:
-            case 0:
-                self.player[0].last = (
-                    self.size[0] / 3 - self.size[0] / 10, self.size[1] * (7 / 9))
-                now_turn_lastcard = self.player[0].last
-                for sprite in self.player[0].group:
-                    self.player[0].group.remove(sprite)
-            case 1:
-                self.player[1].last = (self.size[0] * (1 / 30) -
-                                            10, self.size[1] * (1 / 10))
-                now_turn_lastcard = self.player[1].last
-                for sprite in self.player[1].group:
-                    self.player[1].group.remove(sprite)
-            case 2:
-                self.player[2].last = (self.size[0] * (1 / 30) -
-                                            10, self.size[1] * (3 / 10))
-                now_turn_lastcard = self.player[2].last
-                for sprite in self.player[2].group:
-                    self.player[2].group.remove(sprite)
-            case 3:
-                self.player[3].last = (self.size[0] * (1 / 30) -
-                                            10, self.size[1] * (1 / 2))
-                now_turn_lastcard = self.player[3].last
-                for sprite in self.player[3].group:
-                    self.player[3].group.remove(sprite)
-            case 4:
-                self.player[4].last = (self.size[0] * (1 / 30) -
-                                            10, self.size[1] * (7 / 10))
-                now_turn_lastcard = self.player[4].last
-                for sprite in self.player[4].group:
-                    self.player[4].group.remove(sprite)
-            case _:
-                self.player[5].last = (self.size[0] * (1 / 30) -
-                                            10, self.size[1] * (9 / 10))
-                now_turn_lastcard = self.player[5].last
-                for sprite in self.player[5].group:
-                    self.player[5].group.remove(sprite)
-
-        # 현재 턴의 플레이어 덱에 목표 플레이어 덱 넣기
-        if now_turn == 0:
-            for item in self.player[pick_turn]:
-                card = Card(
-                    item, (400, 300), (self.size[0] / 10, self.size[1] / 6))
-                current_pos = now_turn_lastcard
-                if current_pos[0] >= self.size[0] * (28 / 30):
-                    y = current_pos[1] + self.size[1] / 7
-                    x = self.size[0] / 3
-                else:
-                    y = current_pos[1]
-                    x = current_pos[0] + self.size[0] / 10
-                card.setposition(x, y)
-                now_turn_lastcard = (x, y)
-                self.player[0].last = (x, y)
-                self.player[0].group.add(card)
-        else:
-            for _ in range(len(self.player[pick_turn])):
-                card = Card(
-                    'back', (400, 300), (self.size[0] / 30, self.size[1] / 18))
-                current_pos = now_turn_lastcard
-                # 110을 화면 비율에 맞게 바꿔야함 10 (카드 겹치는 길이) X 11 (최대 12장)
-                if current_pos[0] >= self.size[0] / 30 + 110:
-                    y = current_pos[1] + self.size[1] / 18
-                    x = self.size[0] / 30
-                else:
-                    y = current_pos[1]
-                    x = current_pos[0] + 10
-                card.setposition(x, y)
-
-                match now_turn:
-                    case 1:
-                        now_turn_lastcard = (x, y)
-                        self.player[1].last = (x, y)
-                        self.player[1].group.add(card)
-                    case 2:
-                        now_turn_lastcard = (x, y)
-                        self.player[2].last = (x, y)
-                        self.player[2].group.add(card)
-                    case 3:
-                        now_turn_lastcard = (x, y)
-                        self.player[3].last = (x, y)
-                        self.player[3].group.add(card)
-                    case 4:
-                        now_turn_lastcard = (x, y)
-                        self.player[4].last = (x, y)
-                        self.player[4].group.add(card)
-                    case _:
-                        now_turn_lastcard = (x, y)
-                        self.player[5].last = (x, y)
-                        self.player[5].group.add(card)
-
-        # 현재 턴인 플레이어 덱 리스트 목표 플레이어 덱 리스트로 변경
-        self.player[now_turn] = self.player[pick_turn][:]
-
+        for item in self.player[pick_turn].card:
+                self.player[now_turn].add_card(item)
         # 목표 플레이어 덱 초기화
         self.player[pick_turn].clear()
-        match pick_turn:
-            case 0:
-                self.player[0].last = (
-                    self.size[0] / 3 - self.size[0] / 10, self.size[1] * (7 / 9))
-                pick_turn_lastcard = self.player[0].last
-                for sprite in self.player[0].group:
-                    self.player[0].group.remove(sprite)
-            case 1:
-                self.player[1].last = (self.size[0] * (1 / 30) -
-                                            10, self.size[1] * (1 / 10))
-                pick_turn_lastcard = self.player[1].last
-                for sprite in self.player[1].group:
-                    self.player[1].group.remove(sprite)
-            case 2:
-                self.player[2].last = (self.size[0] * (1 / 30) -
-                                            10, self.size[1] * (3 / 10))
-                pick_turn_lastcard = self.player[2].last
-                for sprite in self.player[2].group:
-                    self.player[2].group.remove(sprite)
-            case 3:
-                self.player[3].last = (self.size[0] * (1 / 30) -
-                                            10, self.size[1] * (1 / 2))
-                pick_turn_lastcard = self.player[3].last
-                for sprite in self.player[3].group:
-                    self.player[3].group.remove(sprite)
-            case 4:
-                self.player[4].last = (self.size[0] * (1 / 30) -
-                                            10, self.size[1] * (7 / 10))
-                pick_turn_lastcard = self.player[4].last
-                for sprite in self.player[4].group:
-                    self.player[4].group.remove(sprite)
-            case _:
-                self.player[5].last = (self.size[0] * (1 / 30) -
-                                            10, self.size[1] * (9 / 10))
-                pick_turn_lastcard = self.player[5].last
-                for sprite in self.player[5].group:
-                    self.player[5].group.remove(sprite)
+        for item in temp_player:
+                self.player[pick_turn].add_card(item)
 
-        # 목표 플레이어 덱에 현재 턴인 플레이어 덱 넣기
-        if pick_turn == 0:
-            for item in temp_player:
-                card = Card(
-                    item, (400, 300), (self.size[0] / 10, self.size[1] / 6))
-                current_pos = pick_turn_lastcard
-                if current_pos[0] >= self.size[0] * (28 / 30):
-                    y = current_pos[1] + self.size[1] / 6
-                    x = self.size[0] / 3
-                else:
-                    y = current_pos[1]
-                    x = current_pos[0] + self.size[0] / 10
-                card.setposition(x, y)
-                pick_turn_lastcard = (x, y)
-                self.player[0].last = (x, y)
-                self.player[0].group.add(card)
-        else:
-            for _ in range(len(temp_player)):
-                card = Card(
-                    'back', (400, 300), (self.size[0] / 30, self.size[1] / 18))
-                current_pos = pick_turn_lastcard
-                # 110을 화면 비율에 맞게 바꿔야함 10 (카드 겹치는 길이) X 11 (최대 12장)
-                if current_pos[0] >= self.size[0] / 30 + 110:
-                    y = current_pos[1] + self.size[1] / 18
-                    x = self.size[0] / 30
-                else:
-                    y = current_pos[1]
-                    x = current_pos[0] + 10
-                card.setposition(x, y)
-
-                match pick_turn:
-                    case 1:
-                        pick_turn_lastcard = (x, y)
-                        self.player[1].last = (x, y)
-                        self.player[1].group.add(card)
-                    case 2:
-                        pick_turn_lastcard = (x, y)
-                        self.player[2].last = (x, y)
-                        self.player[2].group.add(card)
-                    case 3:
-                        pick_turn_lastcard = (x, y)
-                        self.player[3].last = (x, y)
-                        self.player[3].group.add(card)
-                    case 4:
-                        pick_turn_lastcard = (x, y)
-                        self.player[4].last = (x, y)
-                        self.player[4].group.add(card)
-                    case _:
-                        pick_turn_lastcard = (x, y)
-                        self.player[5].last = (x, y)
-                        self.player[5].group.add(card)
-
-        # 목표 플레이어 덱 리스트 현재 플레이어 덱 리스트로 변경
-        self.player[pick_turn] = temp_player[:]
         self.print_window()
 
     # 수정중
@@ -603,7 +345,7 @@ class Game():
                 index = self.pick_player()
                 self.card_change(self.now_turn, index)
             else:
-                index = self.least_num()
+                index = self.least_num(self.now_turn)
                 self.card_change(self.now_turn, index)
             self.print_window()
 
@@ -629,12 +371,47 @@ class Game():
             # select = pygame.mixer.Sound('./sound/select.wav')
             # select.play()
             self.pick_color_card()
-        # else:
-        #     if self.now_turn != 0:
-        #         return False
-        # self.show_uno()
-        # return True
 
+    def pick_player(self):
+
+        pick_player_button = []
+        for i in range(1, self.player_num):
+            image_name = "./image/playing_image/deckchange_player" + \
+                         str(i) + ".jpg"
+            # 이거 약간 애매해 - 밖으로 꺼내자.
+            temp_button = Button(self.screen, self.settings['screen'][0] * (1 / 2), self.settings['screen'][1] / 6 * i, image_name,
+                                 self.settings['screen'][0] * (1 / 8), self.settings['screen'][1] * (1 / 9))
+            pick_player_button.append(temp_button)
+        index = 0
+
+        loop = True
+        while loop:
+            for i in range(self.player_num - 1):
+                pick_player_button[i].show()
+            pygame.display.update()
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    terminate()
+                if event.type == pygame.MOUSEBUTTONUP:
+                    for i in range(self.player_num - 1):
+                        if pick_player_button[i].get_rect().collidepoint(event.pos):
+                            # 수정중
+                            return i + 1
+                            # loop = False
+
+        return index + 1
+    
+    # 가장 적은 숫자 카드 나타내는 함수
+    def least_num(self, my_index) -> int:
+        least_player_idx = 0
+        least_player_num = len(self.player[0].card)
+        for num in range(1, self.player_num):
+            if least_player_num > len(self.player[num].card):
+                if num != my_index:
+                    least_player_idx = num
+                    least_player_num = len(self.player[num].card)
+        return least_player_idx
+    
     # 다음 차례 플레이어에게 카드 뽑게 함 -> draw 카드
     def give_card(self, card_num):
         if len(self.waste.card) == 1:  # 처음 카드가 +2,+4일때 처음 플레이어가 카드 받음
@@ -654,18 +431,18 @@ class Game():
         pygame.draw.rect(self.screen, (255, 180, 0),
                          pygame.Rect(210, 210, 380, 180))
 
-        if len(self.player[0].group) == 0:
-            # win.play()
-            close_text = text_format("YOU WIN!", BERLIN, 80, (255, 51, 0))
-            press_text = text_format(
-                "Press SPACE to REPLAY", BERLIN, 35, (255, 51, 0))
-            self.screen.blit(close_text, (230, 220))
-        else:
-            # lose.play()
-            close_text = text_format("YOU LOSE!", BERLIN, 80, (255, 51, 0))
-            press_text = text_format(
-                "Press SPACE to REPLAY", BERLIN, 35, (255, 51, 0))
-            self.screen.blit(close_text, (212, 220))
+        for i in range(self.player_num):
+            if len(self.player[i].group) == 0 :
+                if i == 0:
+                    close_text = text_format("YOU WIN!", BERLIN, 80, (255, 51, 0))
+                    press_text = text_format(
+                        "Press SPACE to REPLAY", BERLIN, 35, (255, 51, 0))
+                    self.screen.blit(close_text, (230, 220))
+                else: 
+                    close_text = text_format("YOU LOSE!, com{} win!".format(i), BERLIN, 40, (255, 51, 0))
+                    press_text = text_format(
+                        "Press SPACE to REPLAY", BERLIN, 35, (255, 51, 0))
+                    self.screen.blit(close_text, (230, 220))
 
         self.screen.blit(press_text, (228, 330))
         pygame.display.update()
@@ -701,40 +478,37 @@ class Game():
 
     # 리팩토링 match로 해도 될 것 같아
     def check_player(self):
-        # 이렇게 해도 되지 않아?
-        # for i in range(self.player_num):
-        #     if len(self.player[i].card) == 0:
+        
+        for i in range(self.player_num):
+            if len(self.player[i].card) == 0:
+                self.restart()
+
+        # if len(self.player[0].card) == 0:
+        #     self.restart()
+        #     return
+        # elif self.player_num == 6:
+        #     if len(self.player[1].card) == 0 or len(self.player[2].card) == 0 or len(
+        #             self.player[3].card) == 0 or len(
+        #         self.player[4].card) == 0 or len(self.player[5].card) == 0:
         #         self.restart()
         #         return
-        # 그리고 여기에서 restart로 index 넘겨줘서 승리 표시하는게 좋을 듯?
-            
-        if len(self.player[0].card) == 0:
-            self.restart()
-            return
-        elif self.player_num == 6:
-            if len(self.player[1].card) == 0 or len(self.player[2].card) == 0 or len(
-                    self.player[3].card) == 0 or len(
-                self.player[4].card) == 0 or len(self.player[5].card) == 0:
-                self.restart()
-                return
-        elif self.player_num == 5:
-            if len(self.player[1].card) == 0 or len(self.player[2].card) == 0 or len(
-                    self.player[3].card) == 0 or len(self.player[4].card) == 0:
-                self.restart()
-                return
-        elif self.player_num == 4:
-            if len(self.player[1].card) == 0 or len(self.player[2].card) == 0 or len(self.player[3].card) == 0:
-                self.restart()
-                return
-        elif self.player_num == 3:
-            if len(self.player[1].card) == 0 or len(self.player[2].card) == 0:
-                self.restart()
-                return
-        elif self.player_num == 2:
-            if len(self.player[1].card) == 0:
-                self.restart()
-                return
-
+        # elif self.player_num == 5:
+        #     if len(self.player[1].card) == 0 or len(self.player[2].card) == 0 or len(
+        #             self.player[3].card) == 0 or len(self.player[4].card) == 0:
+        #         self.restart()
+        #         return
+        # elif self.player_num == 4:
+        #     if len(self.player[1].card) == 0 or len(self.player[2].card) == 0 or len(self.player[3].card) == 0:
+        #         self.restart()
+        #         return
+        # elif self.player_num == 3:
+        #     if len(self.player[1].card) == 0 or len(self.player[2].card) == 0:
+        #         self.restart()
+        #         return
+        # elif self.player_num == 2:
+        #     if len(self.player[1].card) == 0:
+        #         self.restart()
+        #         return
 
     def selected_turn(self):
         return random.randint(0, self.player_num -1)
@@ -751,7 +525,7 @@ class Game():
 
             # 수정중
             self.player[self.now_turn].remove(temp)
-            self.player[self.now_turn].set_lastcard(self.now_turn)
+            self.player[self.now_turn].set_lastcard()
 
             # card.play()
             self.waste.updating(temp)
@@ -761,25 +535,26 @@ class Game():
             if len(self.player[self.now_turn].group) == 1:
                 pygame.display.update()
                 self.check_uno_button()
-            self.print_window()
-            self.now_turn = self.get_next_player(self.now_turn)
+            else:
+                self.print_window()
+                self.now_turn = self.get_next_player(self.now_turn)
             pygame.display.update()
 
     # 게임 시작 (다시 시작 )
     def startgame(self):
+        self.screen.blit(self.bg_img, (0, 0))
         self.card_deck.clear()
         self.player = []
         self.player_names = self.set_name()
         self.rotate = 0
+        self.now_turn = self.selected_turn()
         self.set_window()
-        self.show_name()
+        # self.show_name()
         self.playgame()
 
     # 수정중
     # 게임 구현
     def playgame(self):
-        # self.now_turn = 0 이거를 아래처럼 수정해야 함
-        self.now_turn = self.selected_turn()
         tmr = 0
         selected = 0
         selected_up = 0
@@ -789,9 +564,6 @@ class Game():
             if len(self.card_deck) == 0:
                 self.set_deck()
 
-            # 턴 처음 선택하는 부분 - 일단은 랜덤으로
-            # self.now_turn = self.selected_turn() # 이게 while문안에 있으면 안될 듯 처음에만 해야하니까
-            # 리팩토링 - 나중에 겹칠 것 같아서 한 번에 할게
             if len(self.waste.card) == 0:
                 temp = self.card_deck.pop()
                 self.waste.updating(temp)
@@ -799,9 +571,6 @@ class Game():
                 self.print_window()
                 pygame.display.update()
 
-                # 일단 +2,+4 가 처음 카드로 나오면 첫 플레이어가 먹게 해둠
-
-            self.show_now_turn(self.now_turn)
             pygame.time.wait(2000)
 
             if self.now_turn != 0:
@@ -875,7 +644,7 @@ class Game():
                     self.select_sound = pygame.mixer.Sound('./sound/card_sound.mp3')
                     self.select_sound.play()
                     if self.now_turn == 0:
-                        self.show_now_turn(self.now_turn)
+                        # self.show_now_turn(self.now_turn)
                         for sprite in self.player[0].group:
                             if sprite.get_rect().collidepoint(event.pos) and self.check_card(sprite):
                                 # pygame.mixer.pre_init(44100, -16, 1, 512)
@@ -909,45 +678,23 @@ class Game():
             random.shuffle(self.waste.card)
             self.card_deck = self.waste.card[:-1]
             item = self.card_deck.pop()
-        # deck.play()
-        if now_turn == 0:
-            self.player[now_turn].add_card(item)
-            print("카드 뽑기 {}".format(self.player[0].last))
-            print("현 카드 card {}".format(self.player[0].card))
-            print("현 카드 group {}".format(self.player[0].group))
-            print("현 카드 draw group {}".format(self.player[0].draw_group))
-        else:
-            self.player[now_turn].add_card(item)
-        self.print_window()
 
-    # 수정중
-    # def set_lastcard(self, lastcard, compare_pos = (0, 0)):
-    #     x = lastcard[0]
-    #     y = lastcard[1]
-    #
-    #     i_x = compare_pos[0]
-    #     i_y = compare_pos[1]
-    #
-    #     if self.now_turn == 0:
-    #         if x >= i_x + self.size[0] / 10 and y == i_y:
-    #             x -= self.size[0] / 10
-    #
-    #         elif y > i_y:
-    #             if x <= self.size[0] / 3:
-    #                 x = self.size[0] * (28 / 30)
-    #                 y = y - self.size[1] / 10
-    #             else:
-    #                 x -= self.size[0] / 10
-    #         self.player[0].last = (x, y)
-    #         print(self.player[0].last)
-    #     else:
-    #         num = self.now_turn
-    #         if x == self.size[0] * (1 / 6) and y > self.size[1] * (2 * num - 1 / 10):
-    #             y -= self.size[1] * (1 / 30)
-    #             x = self.size[0] * (1 / 6)
-    #         else:
-    #             x -= 10
-    #         self.player[num].last = (x, y)
+        # 애니메이션 
+        # animation = True
+        # while animation:
+        #     for event in pygame.event.get():
+        #         if event.type == pygame.QUIT:
+        #             terminate()
+        #     card = Card('back', (self.size[0] * (2 / 5), self.size[1] * (1 / 3)), self.player[self.now_turn].card_size)
+        #     card.animation((self.player[self.now_turn].get_lastcard()))
+        #     self.animation_group = pygame.sprite.RenderPlain(card)
+        #     if not self.animation_group:
+        #         animation = False
+        #     self.print_window()
+        #     pygame.display.update()
+
+        self.player[now_turn].add_card(item)
+        self.print_window()
 
     def pause(self):
 
@@ -988,6 +735,7 @@ class Game():
             pygame.display.update()
 
     def check_uno_button(self):
+        self.print_window()
         print("한장 남음!")
         uno = True
         start_time = time.time()
@@ -1217,7 +965,8 @@ class GameC(Game):
                                (self.size[0] / 10, self.size[1] / 6))
             # 수정 중
             self.waste.card.append(random_name)
-            self.waste_group.add(random_card)
+            self.waste.group.append(random_card)
+            self.waste.draw_group.add()
             print("바뀐 색:" + random_name)
             self.print_window()
 

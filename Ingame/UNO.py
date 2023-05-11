@@ -5,6 +5,11 @@ from constant import *
 from settings import Settings, resource_path
 from rect_functions import Button, Slider, TextRect
 import os
+from server import Server
+from client import Client
+import socket
+import threading
+from network import Network
 
 # def resource_path(relative_path):
 #     try:
@@ -156,6 +161,9 @@ class TitleMenu(UNOGame):
                         SettingScreen().menu()
                     else:
                         terminate()
+                # 임시로 멀티플레이어 모드 추가
+                elif event.key == pygame.K_0:
+                    SelectRole().menu()
             if event.type == pygame.MOUSEBUTTONUP:
                 select_sound = pygame.mixer.Sound('./sound/select_sound.mp3')
                 select_sound.play()
@@ -600,6 +608,206 @@ class YesNo(UnoGame):
             self.object_show()
             self.handle_event()
 
+            pygame.display.update()
+
+class SelectRole(UnoGame):
+    def __init__(self):
+        super().__init__()
+        self.screen = pygame.display.set_mode((self.settings['screen']), flags = self.settings['fullscreen'])
+        self.text, self.button_li = self.object_init()
+    
+    def object_init(self):
+        text = TextRect(self.screen, "멀티 플레이어", 50, BLACK)
+        button = []
+        server_button = Button(self.screen, self.settings['screen'][0] * (1 / 5), self.settings['screen'][1] * (2 / 5), YES_BUTTON, 200, 100)
+        client_button = Button(self.screen, self.settings['screen'][0] * (3 / 5), self.settings['screen'][1] * (2 / 5), NO_BUTTON, 200, 100)
+        button.append(server_button)
+        button.append(client_button)
+        
+        return text, button
+
+    def object_show(self):
+        self.text.show((self.settings['screen'][0] * (1 / 2), self.settings['screen'][1] * (1 / 5)))
+        for button in self.button_li:
+            button.show()
+
+    def sound(self):
+        pass
+
+    def handle_event(self):
+        for event in pygame.event.get():
+                if event.type == QUIT:
+                    pygame.quit()
+                    return
+
+                # 버튼 클릭 이벤트 처리
+                elif event.type == MOUSEBUTTONDOWN:
+                    mouse_pos = pygame.mouse.get_pos()
+                    if self.button_li[0].get_rect().collidepoint(mouse_pos):
+                        ServerScreen().menu()
+                        # 비번 설정, 로비화면으로 넘어감
+                    elif self.button_li[1].get_rect().collidepoint(mouse_pos):
+                        ClientScreen().menu()
+                        pass #  접속할 게임의 IP주소를 입력하는 창으로 넘어감
+
+
+    def menu(self):
+        while True:
+            self.screen.fill(WHITE)
+            self.object_show()
+            self.handle_event()
+
+            pygame.display.update()
+
+class ClientScreen(UnoGame):
+    def __init__(self):
+        super().__init__()
+        self.screen = pygame.display.set_mode((self.settings['screen']), flags = self.settings['fullscreen'])
+        self.password = ''
+        self.ipaddress = ''
+        self.username = ''
+    
+    def menu(self):
+        self.set_ipaddress()
+        self.set_password()
+        self.set_username()
+        print(self.ipaddress, self.password, self.username)
+        client = Client(self.ipaddress, 10000, self.password)
+        client.connect()
+        # 로비에 접속하는 코드
+
+    def set_ipaddress(self):
+        get_input_screen = GetInput("IP주소를 입력하세요", self.ipaddress, SelectRole)
+        get_input_screen.run()
+        self.ipaddress = get_input_screen.input
+
+    def set_password(self):
+        get_input_screen = GetInput("비밀번호를 입력하세요", self.password, ClientScreen)
+        get_input_screen.run()
+        self.password = get_input_screen.input
+
+    def set_username(self):
+        get_input_screen = GetInput("사용자 이름을 입력하세요", self.username, ClientScreen)
+        get_input_screen.run()
+        self.username = get_input_screen.input
+    
+
+    
+class ServerScreen(UnoGame):
+    def __init__(self):
+        super().__init__()
+        self.screen = pygame.display.set_mode((self.settings['screen']), flags = self.settings['fullscreen'])
+        self.password = ''
+    def object_init(self):
+        pass
+
+    def object_show(self):
+        pass
+
+    def sound(self):
+        pass
+
+    def handle_event(self):
+        pass
+
+    def menu(self):
+        self.set_password()
+        print(self.password)
+        server_thread = threading.Thread(target=self.run_server)
+        server_thread.start()
+        # 로비화면으로 전환
+    
+    def run_server(self):
+        # 서버를 생성합니다.
+        localhost = socket.gethostbyname(socket.gethostname())
+        port = 10000
+        server = Server(localhost, port, self.password)
+        # 서버를 실행합니다.
+        server.run()
+    
+    def set_password(self):
+        get_input_screen = GetInput("비밀번호 설정", self.password, SelectRole)
+        get_input_screen.run()
+        self.password = get_input_screen.input
+
+
+class MultiplayerLobby(UnoGame):
+    def __init__(self):
+        super().__init__()
+        self.screen = pygame.display.set_mode((self.settings['screen']), flags = self.settings['fullscreen'])
+        self.user_name = 'player'
+        self.user_name_text = TextRect(self.screen, self.user_name, 30, BLACK)
+        self.button, self.computer_rect = self.object_init()
+        self.input_active = False
+        n = Network()
+        client_id = int(n.getP())
+        print(client_id)
+
+class GetInput(UnoGame):
+    """
+    password, ipaddress, user_name등을 입력받는 화면
+    """
+    def __init__(self, text, input, class_name):
+        super().__init__()
+        self.input_box = pygame.Rect(0, 0, 220, 32)
+        self.input_box.center = (self.settings['screen'][0] * (1 / 2), self.settings['screen'][1] * (1 / 2))
+        self.color_inactive = BLACK
+        self.color_active = RED
+        self.color = self.color_inactive
+        self.text = TextRect(self.screen, text, 50, BLACK)
+        self.input = input
+        self.input_text = TextRect(self.screen, self.input, 30, BLACK)
+        self.yes_button = Button(self.screen, self.settings['screen'][0] * (1 / 4), self.settings['screen'][1] * (3 / 4), YES_BUTTON, 100, 50)
+        self.no_button = Button(self.screen, self.settings['screen'][0] * (3 / 4), self.settings['screen'][1] * (3 / 4), NO_BUTTON, 100, 50)
+        self.active = False
+        self.done = False
+        self.clock = pygame.time.Clock()
+        self.class_name = class_name
+
+    def object_show(self):
+        self.text.show((self.settings['screen'][0] * (1 / 2), self.settings['screen'][1] * (1 / 3)))
+        self.yes_button.show()
+        self.no_button.show()
+
+        self.input_text.show(self.input_box.center)
+        pygame.draw.rect(self.screen, self.color, self.input_box, 2)
+        
+        if self.input_text.text_surface().get_width() >= 220:
+            self.input_box.w =  self.input_text.text_surface().get_width()+10
+            self.input_box.center = (self.settings['screen'][0] * (1 / 2), self.settings['screen'][1] * (1 / 2))
+    
+    def handle_event(self):
+         for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.done = True
+                    pygame.quit()
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    mouse_pos = pygame.mouse.get_pos()
+                    if self.input_box.collidepoint(mouse_pos):
+                        self.active = not self.active
+                    else:
+                        self.active = False
+                    self.color = self.color_active if self.active else self.color_inactive
+                    if self.yes_button.get_rect().collidepoint(mouse_pos):
+                        self.done = True
+                    elif self.no_button.get_rect().collidepoint(mouse_pos):
+                        self.class_name().menu()
+                    
+                if event.type == pygame.KEYDOWN:
+                    if self.active:
+                        if event.key == pygame.K_RETURN:
+                            self.active = False
+                        elif event.key == pygame.K_BACKSPACE:
+                            self.input = self.input[:-1]
+                        else:
+                            self.input += event.unicode
+                        self.input_text.change_text_surface(self.input)
+                        self.color = self.color_active if self.active else self.color_inactive
+    def run(self):
+        while not self.done:
+            self.screen.fill(WHITE)
+            self.object_show()
+            self.handle_event()
             pygame.display.update()
 
 

@@ -48,6 +48,7 @@ class User(Player):
         self.settings = Settings().get_setting()
         self.size = self.settings['screen']
         self.card_size = (self.settings['screen'][0] / 10, self.settings['screen'][1] / 6)
+        self.startpos = (self.settings['screen'][0] / 3 - self.card_size[0] , self.settings['screen'][1] * (7 / 9))
 
 
     def append(self, val):
@@ -97,8 +98,11 @@ class User(Player):
         self.last.setposition(x, y) # 이렇게 하면 last카드의 위치가 x,y로 옮겨지는거라 바꿔야 해!
     
     def get_lastcard(self): # 마지막 카드의 위치를 반환
-        return self.group[-1].getposition()
-    
+        if self.group:
+            return self.group[-1].getposition()
+        else:
+            return self.startpos    
+
     def remove(self, sprite):
         name = sprite.get_name()
         self.card.remove(name)
@@ -190,39 +194,17 @@ class User(Player):
         # 아마 버그 있을 거 같은데
         return 0
 
-    # change 카드 사용할 때 바꿀 플레이어 선택
-    def pick_player(self):
-
-        pick_player_button = []
-        for i in range(1, self.card_num):
-            image_name = "./image/playing_image/deckchange_player" + \
-                         str(i) + ".jpg"
-            # 이거 약간 애매해 - 밖으로 꺼내자.
-            temp_button = Button(self.screen, self.screen_width * (1 / 2), self.screen_height / 6 * i, image_name,
-                                 self.screen_width * (1 / 8), self.screen_height * (1 / 9))
-            pick_player_button.append(temp_button)
-        index = 0
-
-        loop = True
-        while loop:
-            for i in range(self.card_num - 1):
-                pick_player_button[i].show_button()
-            pygame.display.update()
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    terminate()
-                if event.type == pygame.MOUSEBUTTONUP:
-                    for i in range(self.card_num - 1):
-                        if pick_player_button[i].get_rect().collidepoint(event.pos):
-                            # 수정중
-                            return i
-                            # loop = False
-
-        return index + 1
-
+    def clear(self):
+        for sprite in self.draw_group:
+            self.draw_group.remove(sprite)
+        self.card = []
+        self.group = []
+        self.last_idx = 0
+        self.last = None
+    
 
 class Computer(Player):
-    def __init__(self):
+    def __init__(self, index):
         super().__init__()
         self.card = []
         self.group = []
@@ -232,6 +214,8 @@ class Computer(Player):
         self.settings = Settings().get_setting()
         self.size = self.settings['screen']
         self.card_size = (self.settings['screen'][0] / 30, self.settings['screen'][1] / 18)
+        self.index = index
+        self.startpos = (self.card_size[0] - 10, self.size[1] * (((self.index - 1) * 2 + 1) / 10))
 
     def append(self, card):
         self.card.append(card)
@@ -243,22 +227,21 @@ class Computer(Player):
             self.last_idx += 1
         self.last = self.group[self.last_idx - 1]
 
-    def test_set(self, num):
+    def test_set(self):
         if self.last_idx:
             last_pos = self.last.getposition()
             if last_pos == (
-                    self.size[0] * (1 / 30) + 10 * (self.last_idx - 1), self.size[1] * ((2 * num - 1) / 10)):
+                    self.size[0] * (1 / 30) + 10 * (self.last_idx - 1), self.size[1] * ((2 * self.index - 1) / 10)):
                 return 0
         return 1
 
-    def set(self, player_num):
+    def set(self):
         i = 0
         for item in self.group:
-            item.update((self.size[0] * (1 / 30) + 10 * i,
-                         self.size[1] * ((2 * player_num - 1) / 10)))
+            item.update((self.size[0] * (1 / 30) + 10 * i, self.size[1] * ((2 * self.index- 1) / 10))) # 이거 애니메이션인데 왜 안될까?
             i += 1
-        self.draw_group = pygame.sprite.RenderPlain(self.group)
-        return self.test_set(player_num)
+        self.draw_group = pygame.sprite.RenderPlain(*self.group)
+        return self.test_set()
 
     def remove(self, val):
         self.card.remove(val)
@@ -268,8 +251,7 @@ class Computer(Player):
                 self.draw_group.remove(sprite)
 
     def add_card(self, card):
-        temp = Card(
-            'back', (350, 300), self.card_size)
+        temp = Card('back', (350, 300), self.card_size)
         current_pos = self.get_lastcard()
         if current_pos[0] >= self.size[0] * (1 / 6):
             y = current_pos[1] + self.size[1] / 30
@@ -284,18 +266,21 @@ class Computer(Player):
         self.draw_group.add(temp)
 
     def get_lastcard(self): # 마지막 카드의 위치를 반환
-        return self.group[-1].getposition()
+        if self.group:
+            return self.group[-1].getposition()
+        else: 
+            return self.startpos
 
-    def set_lastcard(self, now_turn):
-        x, y = self.last.getposition()
 
-        num = now_turn
-        if x == self.size[0] * (1 / 6) and y > self.size[1] * (2 * num - 1 / 10):
+    def set_lastcard(self):
+        x, y = self.get_lastcard()
+
+        if x == self.size[0] * (1 / 6) and y > self.size[1] * (2 * self.index - 1 / 10):
             y -= self.size[1] * (1 / 30)
             x = self.size[0] * (1 / 6)
         else:
             x -= 10
-        self.last.setposition(x, y)
+        
 
     # 이거 내 생각에 dictionary로 깔끔하게 만들 수 있을 거 같아, 정렬 알고리즘 활용하기
     def most_num_color(self):
@@ -323,21 +308,19 @@ class Computer(Player):
             temp_name = 'blue'
         return temp_name
 
-    # 가장 적은 숫자 카드 나타내는 함수
-    def least_num(self) -> int:
-        least_player_idx = 0
-        least_player_num = len(self.card[0])
-        for num in range(1, self.card_num):
-            if least_player_num > len(self.card[num]):
-                least_player_idx = num
-                least_player_num = len(self.card[num])
-        return least_player_idx
 
     # change 카드를 컴퓨터 플레이어가 선택할 때 제일 카드가 적은 플레이어 선택
     def check_card_num(self, player_deck_list):
         shortest_list = min(player_deck_list, key=len)
         return player_deck_list.index(shortest_list)
 
+    def clear(self):
+        self.card = []
+        self.group = []
+        for sprite in self.draw_group:
+            self.draw_group.remove(sprite)
+        self.last_idx = 0
+        self.last = None
 
 class Waste(Player):
     """나머지 카드들"""
