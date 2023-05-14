@@ -1,15 +1,15 @@
 import random
 import pygame
-from .component import loadcard as lc
-from .component import computer as com
-from .component import rect_functions as rf
+from Ingame.src.component import loadcard as lc
+from Ingame.src.component import computer as com
+from Ingame.src.component import rect_functions as rf
 from pygame.locals import *
-from . import constant as c
-from . import UNO as t
-from . import player as pl
+from Ingame.src import constant as c
+from Ingame.src import UNO as t
+from Ingame.src import player as pl
 import time
-from . import settings as s
-from .component import timer
+from Ingame.src import settings as s
+from Ingame.src.component import timer
 
 
 class Game():
@@ -185,11 +185,49 @@ class Game():
             computer_rect.append(rect)
         return computer_rect
 
+    # 이거 왜 있지? 지워야겠다.
+    # # 얘를 print_window에서 돌려야해
+    # def update(self, temp):
+    #     setting = True
+    #     while setting:
+    #         card = lc.Card('back', (self.size[0] * (2 / 5), self.size[1] * (1 / 3)),
+    #                        self.player[self.now_turn].card_size)
+    #         last_pos = self.player[self.now_turn].last.getposition()
+    #         card.update(last_pos)
+    #         if card.getposition() == last_pos:
+    #             setting = False
+    #             return 0
+
+    # 수정중
+    # 애니메이션
+    # def moving(self):
+    #     x, y = self.player[0].group[-1].getposition()
+    #     dest_x, dest_y = (self.size[0] * (2 / 5), self.size[1] * (1 / 3))
+    #
+    #     # 이동할 거리 계산
+    #     dx = dest_x - x
+    #     dy = dest_y - y
+    #
+    #     self.player[0].group[-1] = lc.Card('back', (self.size[0] * (2 / 5), self.size[1] * (1 / 3)), self.player[self.now_turn].card_size)
+    #
+    #     # 이동할 거리가 남아있는 동안 반복
+    #     while dx != 0 or dy != 0:
+    #         # 이동 거리 결정
+    #         if dx > 0:
+    #             move_x = min(dx, 5)
+
+    # def check_moving(self):
+    #     if self.now_turn == 0:
+    #         self.moving()
+    #         self.print_window()
+    #     else:
+    #         return 0
+
     # 플레이어 이름 표시 초기화
     def print_window(self):
         self.screen.blit(self.bg_img, (0, 0))
         self.draw_color_rect()
-        self.timer.show_tmr()
+        self.timer.show_tmr(self.now_turn)
         for rect in self.print_computer_box():
             pygame.draw.rect(self.screen, c.WHITE, rect)
         self.waste.draw_group.draw(self.screen)
@@ -242,7 +280,8 @@ class Game():
                         pygame.draw.rect(self.screen, c.BLUE,
                                          (rect_pos, rect_size))
                 else:
-                    pygame.draw.rect(self.screen, c.BLUE, (rect_pos, rect_size))
+                    pygame.draw.rect(self.screen, c.BLUE,
+                                     (rect_pos, rect_size))
             elif w_name[0] == "green":
                 pygame.draw.rect(self.screen, c.GREEN, (rect_pos, rect_size))
 
@@ -393,7 +432,8 @@ class Game():
             image_name = "./image/playing_image/deckchange_player" + \
                          str(i) + ".jpg"
             temp_button = rf.Button(self.screen, self.settings['screen'][0] * (1 / 2),
-                                    self.settings['screen'][1] / 6 * i, image_name,
+                                    self.settings['screen'][1] /
+                                    6 * i, image_name,
                                     self.settings['screen'][0] * (1 / 8), self.settings['screen'][1] * (1 / 9))
             pick_player_button.append(temp_button)
         index = 0
@@ -515,6 +555,7 @@ class Game():
         ai = com.AI(self.now_turn + 1,
                     self.player[self.now_turn].card, self.waste.card)
         temp = ai.basic_play()
+        pygame.time.wait(2000)
 
         if temp == 0 or temp is None:
             self.get_from_deck(self.now_turn)
@@ -568,7 +609,7 @@ class Game():
 
         while self.playing_game:
             self.check_player()
-            self.timer.tick_tmr()
+            tmr_bool = self.timer.tick_tmr()
 
             if len(self.card_deck) == 0:
                 self.set_deck()
@@ -579,8 +620,7 @@ class Game():
                 self.card_skill(temp)
                 self.print_window()
                 pygame.display.update()
-
-            pygame.time.wait(1000)
+                pygame.display.update()
 
             if self.now_turn != 0:
                 for event in pygame.event.get():
@@ -589,8 +629,10 @@ class Game():
                 temp = self.computer_play()
             else:
                 temp = self.user_play()
-            if temp == 0:
+            if temp == 0 or tmr_bool is False:
                 self.now_turn = self.get_next_player(self.now_turn)
+
+            # self.check_moving()
 
             self.print_window()
             pygame.display.update()
@@ -647,7 +689,8 @@ class Game():
                                     pygame.display.update()
                                     self.check_uno_button()
                                 else:
-                                    self.now_turn = self.get_next_player(self.now_turn)
+                                    self.now_turn = self.get_next_player(
+                                        self.now_turn)
                                 if selected > len(self.player[0]) - 1:
                                     selected = len(self.player[0]) - 1
                                 break
@@ -682,6 +725,7 @@ class Game():
 
     # 수정중
     # 카드 뽑음
+
     def get_from_deck(self, now_turn):
         # pygame.mixer.pre_init(44100, -16, 1, 512)
         # deck = pygame.mixer.Sound('./sound/from_deck.wav')
@@ -732,7 +776,7 @@ class Game():
 
             # 수정중
             pygame.draw.rect(self.screen, c.WHITE, (self.size[0] /
-                                                  2 - 200, self.size[1] / 3 - 100, 400, 400))
+                                                    2 - 200, self.size[1] / 3 - 100, 400, 400))
             pygame.draw.rect(self.screen, c.BLACK, (self.size[0] / 2 - 200, self.size[1] / 3 - 100, 400, 400),
                              5)
             close_text = t.text_format("PAUSE", c.MALGUNGOTHIC, 60, c.BLACK)
