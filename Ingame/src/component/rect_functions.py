@@ -1,6 +1,6 @@
 import pygame
-from .. import constant as c
-from .. import settings as s
+from Ingame.src import constant as c
+from Ingame.src import settings as s
 
 
 # 오 글씨 바꾸는 기능 있었으면 좋겠다

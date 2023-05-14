@@ -295,7 +295,7 @@ class LobbyScreen(UNOGame):
         self.input_active = False
 
         while True:
-            self.bg_img_load('./image/playing_image/playing_background.png')
+            self.bg_img_load(c.GAME_BACKGROUND)
             self.object_show()
             self.handle_event()
 
@@ -474,7 +474,7 @@ class SettingScreen(UNOGame):
         selected = 1
 
         while True:
-            self.bg_img_load("./image/setting_image/settingbackground.jpg")
+            self.bg_img_load(c.SETTING_BACKGROUND)
             self.object_show()
             self.handle_event()
 
@@ -537,7 +537,7 @@ class StoryMode(UNOGame):
         self.sound()
 
         while True:
-            self.bg_img_load("./image/map_image/map_back.jpg")
+            self.bg_img_load(c.MAP_BACKGROUND)
             self.object_show()
             self.handle_event()
 

@@ -20,6 +20,8 @@ BLUE = (0, 84, 255)
 # 배경화면
 TITLE_BACKGROUND = "./image/title_image/title_background.jpg"
 GAME_BACKGROUND = "./image/playing_image/playing_background.png"
+SETTING_BACKGROUND = "./image/setting_image/setting_background.jpg"
+MAP_BACKGROUND = "./image/map_image/map_background.jpg"
 
 # 카드 크기
 CARD_WIDTH = 60
@@ -79,6 +81,9 @@ UNO_BUTTON = "./image/playing_image/uno_button.png"
 CARD_TYPE = {1: 'red', 2: 'yellow', 3: 'green', 4: 'blue', 5: 'wild'}
 CARD_SKILL = {11: '_pass', 12: '_reverse', 13: '_plus_two',
               14: '_basic', 15: '_plus_four', 16: '_change'}
+
+# 시간
+TIME = 10
 
 
 # # 카드

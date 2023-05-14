@@ -2,7 +2,7 @@
 import pygame
 from pygame.locals import *
 import math
-from .. import constant as c
+from Ingame.src import constant as c
 
 
 class Card(pygame.sprite.Sprite):

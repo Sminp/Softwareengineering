@@ -1,7 +1,7 @@
 import pygame
 from abc import ABC, abstractmethod
-from .component import loadcard as lc
-from . import settings as s
+from Ingame.src.component import loadcard as lc
+from Ingame.src import settings as s
 
 """Game에도 함수 이름은 있되 거기에서 여기 있는 함수들을 활용할 거야."""
 
@@ -109,7 +109,7 @@ class User(Player):
         name = sprite.get_name()
         self.card.remove(name)
         self.group.remove(sprite)
-        self.draw_group.remove(sprite)  # 이거 없어도 되나?!
+        self.draw_group.remove(sprite)
         for temp in self.group:
             temp.move(sprite.getposition())
         sprite.setposition(self.size[0] * (3 / 5), self.size[1] * (1 / 3))
@@ -127,12 +127,12 @@ class User(Player):
             x = current_pos[0] + self.size[0] / 10
         temp.setposition(x, y)
         # self.last.setposition(x, y)
-        self.card.append(card)  # 여기 왜 self.append(card)라고 했지?
+        self.card.append(card)
         self.group.append(temp)
         self.draw_group.add(temp)
 
     # 창에 나타내는거
-
+    # 이거 안쓰이는데 돌아가
     def update_card(self):
         i = 0
         temp_list = []
@@ -216,7 +216,7 @@ class Computer(Player):
         i = 0
         for item in self.group:
             item.update((self.size[0] * (1 / 30) + 10 * i, self.size[1]
-                        * ((2 * self.index - 1) / 10)))  # 이거 애니메이션인데 왜 안될까?
+                        * ((2 * self.index - 1) / 10)))  # 이거 애니메이션인데 왜 안될까? - 이거 카드 사이즈가 작아서 빨리 되는거야
             i += 1
         self.draw_group = pygame.sprite.RenderPlain(*self.group)
         return self.test_set()
@@ -329,15 +329,15 @@ class Waste(Player):
     def update_card(self, sprite):
         self.group.append(sprite)
 
-    # 수정중
-    def update(self, sprite):
-        self.update_card(sprite)
-        self.update_value(sprite.get_name())
-        print("버린카드의 position {}".format(sprite.getposition()))
-        # 밖으로 꺼내기
-        if len(self.card) != 1:
-            self.set_lastcard(self.card[0].group[-1], sprite.getposition())
-        print("내고 나서 lastcard {}".format(self.card[0].group[-1]))
+    # # 수정중 확인하고 지워줘
+    # def update(self, sprite):
+    #     self.update_card(sprite)
+    #     self.update_value(sprite.get_name())
+    #     print("버린카드의 position {}".format(sprite.getposition()))
+    #     # 밖으로 꺼내기
+    #     if len(self.card) != 1:
+    #         self.set_lastcard(self.card[0].group[-1], sprite.getposition())
+    #     print("내고 나서 lastcard {}".format(self.card[0].group[-1]))
 
     def updating(self, val):
         self.update_value(val)
