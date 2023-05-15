@@ -68,6 +68,9 @@ YESNO_BUTTONS = [YES_BUTTON, NO_BUTTON]
 
 UNO_BUTTON = "./image/playing_image/uno_button.png"
 
+MAKEROOM_BUTTON = "./image/multi_image/makeroom_button.jpg"
+ROOMENTER_BUTTON = "./image/multi_image/roomenter_button.jpg"
+
 # 카드
 CARD_TYPE = {1: 'red', 2: 'yellow', 3: 'green', 4: 'blue', 5: 'wild'}
 CARD_SKILL = {11: '_pass', 12: '_reverse', 13: '_plus_two',

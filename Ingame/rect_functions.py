@@ -14,6 +14,7 @@ class TextRect():
         self.text_color = text_color
         self.surface = self.text_surface()
         self.rect = self.text_rect()
+        self.display = True
 
     def text_surface(self):
         font = pygame.font.SysFont(self.font, self.text_size)
@@ -30,7 +31,8 @@ class TextRect():
 
     def show(self, position):
         self.rect.center = position
-        self.screen.blit(self.surface, self.rect)
+        if self.display:
+            self.screen.blit(self.surface, self.rect)
 
     def change_color(self, color):
         self.text_color = color
