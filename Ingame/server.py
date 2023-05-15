@@ -1,6 +1,10 @@
 import pygame
 import socket
 import threading
+from _thread import *
+import pickle
+# from game_functions import *
+import game_functions
 
 class Server:
     def __init__(self, host, port, password):
@@ -8,54 +12,66 @@ class Server:
         self.port = port
         self.password = password
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.bind((self.host, self.port))
-        self.sock.listen(1)
+        try:
+            self.sock.bind((self.host, self.port))
+        except socket.error as e:
+            print(str(e))
+        self.sock.listen(2) # 최대 플레이어 수 
         self.clients = []
-        self.p = 0
+        self.player_name = []
 
-    def handle_client(self, conn, addr):
-        # 클라이언트가 접속하면 이 함수가 호출됩니다.
-        print(f"{addr} connected")
+    def threaded_client(self, conn, player):
         self.clients.append(conn)
-         
-        # 비밀번호를 검사합니다.
-        conn.sendall("Enter password: ".encode())
-        password = conn.recv(1024).decode().strip()
-        if password != self.password:
-            print(f"{addr} disconnected (wrong password)")
-            conn.sendall("Wrong password".encode())
-            self.clients.remove(conn)
-            self.p -= 1
-            conn.close()
-            return
-
-        # 비밀번호가 일치할 경우 접속을 허용합니다.
-        print(f"{addr} logged in")
-        conn.sendall("Welcome to the server".encode())
-        conn.send(str.encode(str(self.p)))
-        self.p += 1
-
+        conn.send(pickle.dumps(player))
+        reply = {}
+        
         while True:
-            data = conn.recv(1024)
-            if not data:
-                break
-            # 클라이언트로부터 받은 데이터를 처리합니다.
-            # ...
+            try:
+                    
+                data = pickle.loads(conn.recv(2048))
 
-        print(f"{addr} disconnected")
-        self.clients.remove(conn)
-        self.p -= 1
-        conn.close()
+                data_key = list(data.keys())[0]
+                data_val = list(data.values())[0]
+                
+                if data_key == 'password':
+                    reply['password'] = self.password
+                elif data_key == 'add_players':
+                    self.player_name.append(data_val)
+                    reply['players'] = self.player_name
+                elif data_key == 'get_players':
+                    reply['players'] = self.player_name
+                elif data_key == 'change_name':
+                    self.player_name[int(data_val.split(',')[1])] = data_val.split(',')[0]
+                    reply['players'] = self.player_name
+                elif data_key == 'disconnect':
+                    del reply['players'][data_val]
+                elif data_key == 'kick':
+                    self.clients[data_val].close()
+                    del self.clients[data_val]
+                    del self.player_name[data_val]
+                elif data_key == 'full':
+                    reply['full'] = data_val
+                                     
+                conn.sendall(pickle.dumps(reply))
+
+            except Exception as e:
+                print(str(e))
+                break
+
+        if conn in self.clients:
+            self.clients.remove(conn)
+            conn.close()
 
     def run(self):
         print(f"Server started on {self.host}:{self.port}")
         print(f"Password is {self.password}")
         print("Waiting for connections...")
+        current_player = 0
 
         while True:
             conn, addr = self.sock.accept()
+            print("Connected to:", addr)
 
-            # 클라이언트가 접속하면 새로운 스레드를 생성하여 클라이언트와 통신합니다.
-            t = threading.Thread(target=self.handle_client, args=(conn, addr))
-            t.start()
+            start_new_thread(self.threaded_client, (conn, current_player))
+            current_player += 1
 

@@ -578,6 +578,7 @@ class Game():
                     if event.type == pygame.QUIT:
                         terminate()
                 self.computer_play()
+                
             else:
                 self.user_play()
 
