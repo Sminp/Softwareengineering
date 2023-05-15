@@ -709,7 +709,9 @@ class Game():
                 if event.type == pygame.MOUSEBUTTONDOWN:  # 마우스 클릭시 다시 시작
                     self.playing_game = True
                     paused = False
-                    if setting_button.get_rect().collidepoint(event.pos):
+                    if achievement_button.get_rect().collidepoint(event.pos):
+                        pass
+                    elif setting_button.get_rect().collidepoint(event.pos):
                         pass
                     elif exit_button.get_rect().collidepoint(event.pos):
                         terminate()
@@ -725,10 +727,12 @@ class Game():
             close_text = text_format("PAUSE", MALGUNGOTHIC, 60, BLACK)
             close_text_rect = close_text.get_rect(
                 center=(self.size[0] / 2, self.size[1] / 3))
+            achievement_button = Button(self.screen, self.size[0] * (3 / 7), self.size[1] * (2 / 5) - 100,
+                                        "./image/playing_image/pause_achv.jpg", 200, 100)
             setting_button = Button(self.screen, self.size[0] * (3 / 7), self.size[1] * (2 / 5),
-                                    "./image/button_img.png", 200, 100)
+                                    "./image/playing_image/pause_setting.jpg", 200, 100)
             exit_button = Button(self.screen, self.size[0] * (3 / 7), self.size[1] * (2 / 5) + 100,
-                                 "./image/button_img.png", 200, 100)
+                                 "./image/playing_image/pause_end.jpg", 200, 100)
             setting_button.show_button()
             exit_button.show_button()
             self.screen.blit(close_text, close_text_rect)
@@ -1012,3 +1016,4 @@ class GameD(Game):
 
         while True:
             temp = ai.special_play()
+

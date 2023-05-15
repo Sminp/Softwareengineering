@@ -28,32 +28,44 @@ class Settings:
         self.setting = self.get_setting()
 
     def init_setting(self):
-        # 초기값을 setting.pickle에 저장  
-        init_value = { 'screen' : [800,600] , 'fullscreen' : 0, 'font' : MALGUNGOTHIC,
-            'keys': {
-                "left": pygame.K_LEFT,
-                "right": pygame.K_RIGHT,
-                "up": pygame.K_UP,
-                "down": pygame.K_DOWN,
-                "click": pygame.K_KP_ENTER
-            }, 
-            'sound' : {
-                "total" : 1,
-                "background" : 1,
-                "effect" : 1
-            }
-            , 'setting_color' : False
-        }
+        # 초기값을 setting.pickle에 저장
+        init_value = {'screen': [800, 600], 'fullscreen': 0, 'font': MALGUNGOTHIC,
+                      'keys': {
+                          "left": pygame.K_LEFT,
+                          "right": pygame.K_RIGHT,
+                          "up": pygame.K_UP,
+                          "down": pygame.K_DOWN,
+                          "click": pygame.K_KP_ENTER
+                      },
+                      'sound': {
+                          "total": 1,
+                          "background": 1,
+                          "effect": 1
+                      }
+            , 'setting_color': False,
 
-        self.set_setting(init_value) 
+                      'achievement': {'single_win': False, 'storya_win': False, 'storyb_win': False,
+                                      'storyc_win': False, 'storyd_win': False, 'speed_master': False,
+                                      'no_skill_card': False, 'turtle_win': False,
+                                      'first_play': False, 'card_collector': False, 'skill_master': False},
+                      'achievement_date': {'single_win': None, 'storya_win': None, 'storyb_win': None,
+                                           'storyc_win': None, 'storyd_win': None, 'speed_master': None,
+                                           'no_skill_card': None, 'turtle_win': None,
+                                           'first_play': None, 'card_collector': None, 'skill_master': None},
 
-    def set_setting(self, setting : dict):
-        with open("setting.pickle","wb") as f:
-            pickle.dump(setting, f) # 위에서 생성한 dict를 setting.pickle로 저장   
+                      'win_count': 0  # 승리 횟수
+
+                      }
+
+        self.set_setting(init_value)
+
+    def set_setting(self, setting: dict):
+        with open("setting.pickle", "wb") as f:
+            pickle.dump(setting, f)  # 위에서 생성한 dict를 setting.pickle로 저장
 
     def get_setting(self) -> dict:
-        with open("setting.pickle","rb") as fi:
-            setting = pickle.load(fi) 
+        with open("setting.pickle", "rb") as fi:
+            setting = pickle.load(fi)
 
         return setting
     
@@ -77,11 +89,11 @@ class Settings:
     @property
     def screen_width(self):
         return self._screen_width
-    
+
     @property
     def screen_height(self):
         return self._screen_height
-    
+
     @screen_width.setter
     def screen_width(self, value):
         self._screen_width = value
