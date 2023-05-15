@@ -619,8 +619,8 @@ class SelectRole(UnoGame):
     def object_init(self):
         text = TextRect(self.screen, "멀티 플레이어", 50, BLACK)
         button = []
-        server_button = Button(self.screen, self.settings['screen'][0] * (1 / 5), self.settings['screen'][1] * (2 / 5), YES_BUTTON, 200, 100)
-        client_button = Button(self.screen, self.settings['screen'][0] * (3 / 5), self.settings['screen'][1] * (2 / 5), NO_BUTTON, 200, 100)
+        server_button = Button(self.screen, self.settings['screen'][0] * (1 / 5), self.settings['screen'][1] * (2 / 5), MAKEROOM_BUTTON, 200, 100)
+        client_button = Button(self.screen, self.settings['screen'][0] * (3 / 5), self.settings['screen'][1] * (2 / 5), ROOMENTER_BUTTON, 200, 100)
         button.append(server_button)
         button.append(client_button)
         
@@ -672,8 +672,9 @@ class ClientScreen(UnoGame):
         self.set_password()
         self.set_username()
         print(self.ipaddress, self.password, self.username)
-        client = Client(self.ipaddress, 10000, self.password)
-        client.connect()
+        client = Client(self.screen, self.password, self.username)
+        # client.connect()
+        client.lobby()
         # 로비에 접속하는 코드
 
     def set_ipaddress(self):
@@ -708,14 +709,19 @@ class ServerScreen(UnoGame):
         pass
 
     def handle_event(self):
-        pass
+        for event in pygame.event.get():
+                if event.type == QUIT:
+                    pygame.quit()
+                    return
 
     def menu(self):
         self.set_password()
-        print(self.password)
         server_thread = threading.Thread(target=self.run_server)
         server_thread.start()
         # 로비화면으로 전환
+        client = Client(self.screen, self.password, 'player1')
+        client.lobby()
+        
     
     def run_server(self):
         # 서버를 생성합니다.
@@ -731,17 +737,18 @@ class ServerScreen(UnoGame):
         self.password = get_input_screen.input
 
 
-class MultiplayerLobby(UnoGame):
-    def __init__(self):
-        super().__init__()
-        self.screen = pygame.display.set_mode((self.settings['screen']), flags = self.settings['fullscreen'])
-        self.user_name = 'player'
-        self.user_name_text = TextRect(self.screen, self.user_name, 30, BLACK)
-        self.button, self.computer_rect = self.object_init()
-        self.input_active = False
-        n = Network()
-        client_id = int(n.getP())
-        print(client_id)
+# class MultiplayerLobby(UnoGame):
+#     def __init__(self):
+#         super().__init__()
+#         self.screen = pygame.display.set_mode((self.settings['screen']), flags = self.settings['fullscreen'])
+#         self.user_name = 'player'
+#         self.user_name_text = TextRect(self.screen, self.user_name, 30, BLACK)
+#         self.button, self.computer_rect = self.object_init()
+#         self.input_active = False
+#         n = Network()
+#         client_id = int(n.getP())
+#         print(client_id)
+        
 
 class GetInput(UnoGame):
     """
