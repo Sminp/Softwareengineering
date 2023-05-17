@@ -9,7 +9,12 @@ class Card(pygame.sprite.Sprite):
     def __init__(self, name, position, size):
         pygame.sprite.Sprite.__init__(self)
         self.name = name
+<<<<<<< HEAD:Ingame/src/component/loadcard.py
         self.image = pygame.image.load('../image/card_img/' + name + '.png')
+=======
+        self.image = pygame.image.load('./image/card_img/' + name + '.png')
+        self.colorimg = pygame.image.load('./image/color_card_img/' + name + '.png')
+>>>>>>> d466853a171540ad8b2f6ecbd3dd173f984e7fc7:Ingame/loadcard.py
         self.size = size
         self.image = pygame.transform.scale(self.image, size)
         self.orig_pos = position
@@ -95,13 +100,24 @@ class Card(pygame.sprite.Sprite):
 
     def get_name(self):
         return self.name
+    
+    def set_color_image(self):
+        self.image = self.colorimg
+
+    def set_default_image(self):
+        self.image = pygame.image.load('./image/card_img/' + self.name + '.png')
 
 
 class Popup(pygame.sprite.Sprite):
     def __init__(self, name, position):
         pygame.sprite.Sprite.__init__(self)
         self.name = name
+<<<<<<< HEAD:Ingame/src/component/loadcard.py
         self.image = pygame.image.load('../image/card_img/' + name + '.png')
+=======
+        self.image = pygame.image.load('./image/card_img/' + name + '.png')
+        self.colorimg = pygame.image.load('./image/color_card_img/' + name + '.png')
+>>>>>>> d466853a171540ad8b2f6ecbd3dd173f984e7fc7:Ingame/loadcard.py
         self.position = position
         self.rect = self.image.get_rect()
         self.rect.center = self.position
@@ -111,3 +127,9 @@ class Popup(pygame.sprite.Sprite):
 
     def get_rect(self):
         return self.rect
+    
+    def set_color_image(self):
+        self.image = self.colorimg
+
+    def set_default_image(self):
+        self.image = pygame.image.load('./image/card_img/' + self.name + '.png')
