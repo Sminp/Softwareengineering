@@ -564,10 +564,8 @@ class Game():
     def difficulty_play(self):
         ai = com.AI(self.now_turn + 1,
                     self.player[self.now_turn].card, self.waste.card)
-        if self.difficulty in (1, 3, 4):
+        if self.difficulty in (1, 2, 3, 4):
             return ai.basic_play()
-        elif self.difficulty == 2:
-            return ai.advanced_play()
         else:
             return ai.special_play()
 

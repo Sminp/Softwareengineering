@@ -56,14 +56,15 @@ class UNOGame:
         # self.keysetting = 1
         # self.menu = True
 
-        self.key_setting_text = TextRect(self.screen, "KEY SETTING", 35, WHITE)
+        self.key_setting_text = rf.TextRect(
+            self.screen, "KEY SETTING", 35, c.WHITE)
 
         self.keys = self.settings['keys']
-        self.up_text = TextRect(self.screen, "UP", 30, BLACK)
-        self.down_text = TextRect(self.screen, "DOWN", 30, BLACK)
-        self.left_text = TextRect(self.screen, "LEFT", 30, BLACK)
-        self.right_text = TextRect(self.screen, "RIGHT", 30, BLACK)
-        self.click_text = TextRect(self.screen, "CLICK", 30, BLACK)
+        self.up_text = rf.TextRect(self.screen, "UP", 30, c.BLACK)
+        self.down_text = rf.TextRect(self.screen, "DOWN", 30, c.BLACK)
+        self.left_text = rf.TextRect(self.screen, "LEFT", 30, c.BLACK)
+        self.right_text = rf.TextRect(self.screen, "RIGHT", 30, c.BLACK)
+        self.click_text = rf.TextRect(self.screen, "CLICK", 30, c.BLACK)
 
         self.move_up = "↑"
         self.move_down = "↓"
@@ -71,11 +72,15 @@ class UNOGame:
         self.move_right = "→"
         self.move_click = "Enter"
 
-        self.move_up_text = rf.TextRect(self.screen, self.move_up, 30, BLACK)
-        self.move_down_text = rf.TextRect(self.screen, self.move_down, 30, BLACK)
-        self.move_left_text = rf.TextRect(self.screen, self.move_left, 30, BLACK)
-        self.move_right_text = rf.TextRect(self.screen, self.move_right, 30, BLACK)
-        self.move_click_text = rf.TextRect(self.screen, self.move_click, 30, BLACK)
+        self.move_up_text = rf.TextRect(self.screen, self.move_up, 30, c.BLACK)
+        self.move_down_text = rf.TextRect(
+            self.screen, self.move_down, 30, c.BLACK)
+        self.move_left_text = rf.TextRect(
+            self.screen, self.move_left, 30, c.BLACK)
+        self.move_right_text = rf.TextRect(
+            self.screen, self.move_right, 30, c.BLACK)
+        self.move_click_text = rf.TextRect(
+            self.screen, self.move_click, 30, c.BLACK)
 
     def bg_img_load(self, filename: str) -> object:
         bg_img = pygame.image.load(s.resource_path(filename))
@@ -109,29 +114,41 @@ class UNOGame:
         key_select = True
         self.bg_img_load("./image/setting_image/settingbackground.jpg")
         close_button = rf.Button(self.screen, self.settings['screen'][0] * (5 / 6), self.settings['screen'][1] * (3 / 11),
-                             c.SETTING_CLOSE_BUTTON, 20, 20)
+                                 c.SETTING_CLOSE_BUTTON, 20, 20)
         save_button = rf.Button(self.screen, self.settings['screen'][0] * (8 / 11), self.settings['screen'][1] * (6 / 8),
-                             c.SETTING_SAVE_BUTTON, 100, 50)
+                                c.SETTING_SAVE_BUTTON, 100, 50)
 
         pygame.draw.rect(self.screen, c.WHITE, (
-            self.settings['screen'][0] * (1 / 9), self.settings['screen'][1] * (2 / 8),
+            self.settings['screen'][0] *
+            (1 / 9), self.settings['screen'][1] * (2 / 8),
             self.settings['screen'][0] * (7 / 9),
             self.settings['screen'][1] * (6 / 10)))
 
         while key_select:
 
-            self.up_text.show((self.settings['screen'][0] * (2 / 5), self.settings['screen'][1] * (6 / 18)))
-            self.down_text.show((self.settings['screen'][0] * (2 / 5), self.settings['screen'][1] * (8 / 18)))
-            self.left_text.show((self.settings['screen'][0] * (2 / 5), self.settings['screen'][1] * (10 / 18)))
-            self.right_text.show((self.settings['screen'][0] * (2 / 5), self.settings['screen'][1] * (12 / 18)))
-            self.click_text.show((self.settings['screen'][0] * (2 / 5), self.settings['screen'][1] * (14 / 18)))
+            self.up_text.show(
+                (self.settings['screen'][0] * (2 / 5), self.settings['screen'][1] * (6 / 18)))
+            self.down_text.show(
+                (self.settings['screen'][0] * (2 / 5), self.settings['screen'][1] * (8 / 18)))
+            self.left_text.show(
+                (self.settings['screen'][0] * (2 / 5), self.settings['screen'][1] * (10 / 18)))
+            self.right_text.show(
+                (self.settings['screen'][0] * (2 / 5), self.settings['screen'][1] * (12 / 18)))
+            self.click_text.show(
+                (self.settings['screen'][0] * (2 / 5), self.settings['screen'][1] * (14 / 18)))
 
-            self.key_setting_text.show((self.settings['screen'][0] * (1 / 4), self.settings['screen'][1] * (1 / 6)))
-            self.move_up_text.show((self.settings['screen'][0] * (3 / 5), self.settings['screen'][1] * (6 / 18)))
-            self.move_down_text.show((self.settings['screen'][0] * (3 / 5), self.settings['screen'][1] * (8 / 18)))
-            self.move_left_text.show((self.settings['screen'][0] * (3 / 5), self.settings['screen'][1] * (10 / 18)))
-            self.move_right_text.show((self.settings['screen'][0] * (3 / 5), self.settings['screen'][1] * (12 / 18)))
-            self.move_click_text.show((self.settings['screen'][0] * (3 / 5), self.settings['screen'][1] * (14 / 18)))
+            self.key_setting_text.show(
+                (self.settings['screen'][0] * (1 / 4), self.settings['screen'][1] * (1 / 6)))
+            self.move_up_text.show(
+                (self.settings['screen'][0] * (3 / 5), self.settings['screen'][1] * (6 / 18)))
+            self.move_down_text.show(
+                (self.settings['screen'][0] * (3 / 5), self.settings['screen'][1] * (8 / 18)))
+            self.move_left_text.show(
+                (self.settings['screen'][0] * (3 / 5), self.settings['screen'][1] * (10 / 18)))
+            self.move_right_text.show(
+                (self.settings['screen'][0] * (3 / 5), self.settings['screen'][1] * (12 / 18)))
+            self.move_click_text.show(
+                (self.settings['screen'][0] * (3 / 5), self.settings['screen'][1] * (14 / 18)))
 
             close_button.show()
             save_button.show()
@@ -151,8 +168,10 @@ class UNOGame:
                                 self.keys["up"] = key
                                 print(self.keys)
                                 self.move_up = event.unicode
-                                pygame.draw.rect(self.screen, WHITE, self.move_up_text.rect)
-                                self.move_up_text.change_text_surface(self.move_up)
+                                pygame.draw.rect(
+                                    self.screen, c.WHITE, self.move_up_text.rect)
+                                self.move_up_text.change_text_surface(
+                                    self.move_up)
                                 key_change = False
 
                     elif self.move_down_text.rect.collidepoint(event.pos):
@@ -165,8 +184,10 @@ class UNOGame:
                                 self.keys["down"] = key
                                 print(self.keys)
                                 self.move_down = event.unicode
-                                pygame.draw.rect(self.screen, WHITE, self.move_down_text.rect)
-                                self.move_down_text.change_text_surface(self.move_down)
+                                pygame.draw.rect(
+                                    self.screen, c.WHITE, self.move_down_text.rect)
+                                self.move_down_text.change_text_surface(
+                                    self.move_down)
                                 key_change = False
 
                     elif self.move_left_text.rect.collidepoint(event.pos):
@@ -179,8 +200,10 @@ class UNOGame:
                                 self.keys["left"] = key
                                 print(self.keys)
                                 self.move_left = event.unicode
-                                pygame.draw.rect(self.screen, WHITE, self.move_left_text.rect)
-                                self.move_left_text.change_text_surface(self.move_left)
+                                pygame.draw.rect(
+                                    self.screen, c.WHITE, self.move_left_text.rect)
+                                self.move_left_text.change_text_surface(
+                                    self.move_left)
                                 key_change = False
 
                     elif self.move_right_text.rect.collidepoint(event.pos):
@@ -193,8 +216,10 @@ class UNOGame:
                                 self.keys["right"] = key
                                 print(self.keys)
                                 self.move_right = event.unicode
-                                pygame.draw.rect(self.screen, WHITE, self.move_right_text.rect)
-                                self.move_right_text.change_text_surface(self.move_right)
+                                pygame.draw.rect(
+                                    self.screen, c.WHITE, self.move_right_text.rect)
+                                self.move_right_text.change_text_surface(
+                                    self.move_right)
                                 key_change = False
 
                     elif self.move_click_text.rect.collidepoint(event.pos):
@@ -207,8 +232,10 @@ class UNOGame:
                                 self.keys["click"] = key
                                 print(self.keys)
                                 self.move_click = event.unicode
-                                pygame.draw.rect(self.screen, WHITE, self.move_click_text.rect)
-                                self.move_click_text.change_text_surface(self.move_click)
+                                pygame.draw.rect(
+                                    self.screen, c.WHITE, self.move_click_text.rect)
+                                self.move_click_text.change_text_surface(
+                                    self.move_click)
                                 key_change = False
 
                     elif close_button.get_rect().collidepoint(event.pos):
@@ -225,7 +252,8 @@ class UNOGame:
 class TitleMenu(UNOGame):
     def __init__(self):
         super().__init__()
-        self.screen = pygame.display.set_mode((self.settings['screen']), flags=self.settings['fullscreen'])
+        self.screen = pygame.display.set_mode(
+            (self.settings['screen']), flags=self.settings['fullscreen'])
 
         # 버튼 속성
         self.x = self.settings['screen'][0] * (1 / 5)
@@ -237,8 +265,9 @@ class TitleMenu(UNOGame):
     def object_init(self):
         i = 0
         button_li = []
-        for button in TITLE_MENU_BUTTONS:
-            button = Button(self.screen, self.x + self.width * i, self.y, button, self.width, self.height)
+        for button in c.TITLE_MENU_BUTTONS:
+            button = rf.Button(self.screen, self.x + self.width * i,
+                               self.y, button, self.width, self.height)
             button_li.append(button)
             i += 1
         return button_li
@@ -278,7 +307,7 @@ class TitleMenu(UNOGame):
                     elif selected == 2:
                         StoryMode().menu()
                     elif selected == 3:
-                        Achievements().menu()
+                        AchievementsScreen().menu()
                     elif selected == 4:
                         SettingScreen().menu()
                     else:
@@ -588,7 +617,7 @@ class SettingScreen(UNOGame):
                 elif self.rect.collidepoint(event.pos):
                     if self.rect.x == int(self.settings['screen'][0] * (8 / 11)):
                         self.rect.x += 50
-                        
+
                     elif self.rect.x == int(self.settings['screen'][0] * (8 / 11)) + 50:
                         self.rect.x -= 50
 
@@ -805,7 +834,7 @@ class ClientScreen(UnoGame):
         self.set_password()
         self.set_username()
         print(self.ipaddress, self.password, self.username)
-        client = Client(self.screen, self.password, self.username)
+        client = cl.Client(self.screen, self.password, self.username)
         # client.connect()
         client.lobby()
         # 로비에 접속하는 코드
@@ -821,7 +850,8 @@ class ClientScreen(UnoGame):
         self.password = get_input_screen.input
 
     def set_username(self):
-        get_input_screen = GetInput("사용자 이름을 입력하세요", self.username, ClientScreen)
+        get_input_screen = GetInput(
+            "사용자 이름을 입력하세요", self.username, ClientScreen)
         get_input_screen.run()
         self.username = get_input_screen.input
 
@@ -829,7 +859,8 @@ class ClientScreen(UnoGame):
 class ServerScreen(UnoGame):
     def __init__(self):
         super().__init__()
-        self.screen = pygame.display.set_mode((self.settings['screen']), flags = self.settings['fullscreen'])
+        self.screen = pygame.display.set_mode(
+            (self.settings['screen']), flags=self.settings['fullscreen'])
         self.password = ''
 
     def object_init(self):
@@ -843,9 +874,9 @@ class ServerScreen(UnoGame):
 
     def handle_event(self):
         for event in pygame.event.get():
-                if event.type == QUIT:
-                    pygame.quit()
-                    return
+            if event.type == QUIT:
+                pygame.quit()
+                return
 
     def menu(self):
         self.set_password()
@@ -854,8 +885,7 @@ class ServerScreen(UnoGame):
         # 로비화면으로 전환
         client = sv.Client(self.screen, self.password, 'player1')
         client.lobby()
-        
-    
+
     def run_server(self):
         # 서버를 생성합니다.
         localhost = socket.gethostbyname(socket.gethostname())
@@ -869,7 +899,6 @@ class ServerScreen(UnoGame):
         get_input_screen.run()
         self.password = get_input_screen.input
 
-        
 
 class GetInput(UnoGame):
     """
@@ -879,15 +908,18 @@ class GetInput(UnoGame):
     def __init__(self, text, input, class_name):
         super().__init__()
         self.input_box = pygame.Rect(0, 0, 220, 32)
-        self.input_box.center = (self.settings['screen'][0] * (1 / 2), self.settings['screen'][1] * (1 / 2))
+        self.input_box.center = (
+            self.settings['screen'][0] * (1 / 2), self.settings['screen'][1] * (1 / 2))
         self.color_inactive = c.BLACK
         self.color_active = c.RED
         self.color = self.color_inactive
         self.text = rf.TextRect(self.screen, text, 50, c.BLACK)
         self.input = input
         self.input_text = rf.TextRect(self.screen, self.input, 30, c.BLACK)
-        self.yes_button = rf.Button(self.screen, self.settings['screen'][0] * (1 / 4), self.settings['screen'][1] * (3 / 4), YES_BUTTON, 100, 50)
-        self.no_button = rf.Button(self.screen, self.settings['screen'][0] * (3 / 4), self.settings['screen'][1] * (3 / 4), NO_BUTTON, 100, 50)
+        self.yes_button = rf.Button(self.screen, self.settings['screen'][0] * (
+            1 / 4), self.settings['screen'][1] * (3 / 4), c.YES_BUTTON, 100, 50)
+        self.no_button = rf.Button(self.screen, self.settings['screen'][0] * (
+            3 / 4), self.settings['screen'][1] * (3 / 4), c.NO_BUTTON, 100, 50)
         self.active = False
         self.done = False
         self.clock = pygame.time.Clock()
@@ -908,32 +940,33 @@ class GetInput(UnoGame):
                 self.settings['screen'][0] * (1 / 2), self.settings['screen'][1] * (1 / 2))
 
     def handle_event(self):
-         for event in pygame.event.get():
-                if event.type == pygame.QUIT:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.done = True
+                pygame.quit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = pygame.mouse.get_pos()
+                if self.input_box.collidepoint(mouse_pos):
+                    self.active = not self.active
+                else:
+                    self.active = False
+                self.color = self.color_active if self.active else self.color_inactive
+                if self.yes_button.get_rect().collidepoint(mouse_pos):
                     self.done = True
-                    pygame.quit()
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    mouse_pos = pygame.mouse.get_pos()
-                    if self.input_box.collidepoint(mouse_pos):
-                        self.active = not self.active
-                    else:
+                elif self.no_button.get_rect().collidepoint(mouse_pos):
+                    self.class_name().menu()
+
+            if event.type == pygame.KEYDOWN:
+                if self.active:
+                    if event.key == pygame.K_RETURN:
                         self.active = False
+                    elif event.key == pygame.K_BACKSPACE:
+                        self.input = self.input[:-1]
+                    else:
+                        self.input += event.unicode
+                    self.input_text.change_text_surface(self.input)
                     self.color = self.color_active if self.active else self.color_inactive
-                    if self.yes_button.get_rect().collidepoint(mouse_pos):
-                        self.done = True
-                    elif self.no_button.get_rect().collidepoint(mouse_pos):
-                        self.class_name().menu()
-                    
-                if event.type == pygame.KEYDOWN:
-                    if self.active:
-                        if event.key == pygame.K_RETURN:
-                            self.active = False
-                        elif event.key == pygame.K_BACKSPACE:
-                            self.input = self.input[:-1]
-                        else:
-                            self.input += event.unicode
-                        self.input_text.change_text_surface(self.input)
-                        self.color = self.color_active if self.active else self.color_inactive
+
     def run(self):
         while not self.done:
             self.screen.fill(c.WHITE)
@@ -945,8 +978,8 @@ class GetInput(UnoGame):
 class AchievementsScreen(UNOGame):
     def __init__(self):
         super().__init__()
-        self.screen = pygame.display.set_mode((self.settings['screen']), flags=self.settings['fullscreen'])
-        achievement = s.Achievements()
+        self.screen = pygame.display.set_mode(
+            (self.settings['screen']), flags=self.settings['fullscreen'])
 
         self.x = self.settings['screen'][0] * (1 / 16)
         self.y = self.settings['screen'][1] * (1 / 8)
@@ -956,12 +989,14 @@ class AchievementsScreen(UNOGame):
 
     def object_init(self):
         close_button = rf.Button(self.screen, self.settings['screen'][0] * (9 / 10), self.settings['screen'][1] * (1 / 10),
-                              c.SETTING_CLOSE_BUTTON, 20, 20)
+                                 c.SETTING_CLOSE_BUTTON, 20, 20)
 
         achievement_li = []
         for achievement in c.ACHV_LIST:
             achievement = achievement.get_rect(self.screen, self.x,
-                                               self.y + (self.height + self.settings['screen'][1] * (1 / 16)),
+                                               self.y +
+                                               (self.height +
+                                                self.settings['screen'][1] * (1 / 16)),
                                                achievement, self.width, self.height)
             achievement_li.append(achievement)
 

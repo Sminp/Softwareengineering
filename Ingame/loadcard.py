@@ -9,8 +9,8 @@ class Card(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.name = name
         self.image = pygame.image.load('./image/card_img/' + name + '.png')
-        self.colorimg = pygame.image.load(
-            './image/color_card_img/' + name + '.png')
+        # self.colorimg = pygame.image.load(
+        #     './image/color_card_img/' + name + '.png')
         self.size = size
         self.image = pygame.transform.scale(self.image, size)
         self.orig_pos = position
