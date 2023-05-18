@@ -1,8 +1,7 @@
 import pygame
 from abc import ABC, abstractmethod
-from loadcard import Card, Popup
-from UNO import terminate
-from settings import Settings
+import settings as s
+import loadcard as lc
 
 """Game에도 함수 이름은 있되 거기에서 여기 있는 함수들을 활용할 거야."""
 
@@ -45,18 +44,20 @@ class User(Player):
         self.draw_group = None
         self.last_idx = 0
         self.last = None
-        self.settings = Settings().get_setting()
+        self.settings = s.Settings().get_setting()
         self.size = self.settings['screen']
-        self.card_size = (self.settings['screen'][0] / 10, self.settings['screen'][1] / 6)
-        self.startpos = (self.settings['screen'][0] / 3 - self.card_size[0] , self.settings['screen'][1] * (7 / 9))
-
+        self.card_size = (self.settings['screen']
+                          [0] / 10, self.settings['screen'][1] / 6)
+        self.startpos = (self.settings['screen'][0] / 3 -
+                         self.card_size[0], self.settings['screen'][1] * (7 / 9))
 
     def append(self, val):
         self.card.append(val)
 
     def set_card(self):
         for item in self.card:
-            card = Card(item, (self.size[0] * (2 / 5), self.size[1] * (1 / 3)), self.card_size)
+            card = lc.Card(
+                item, (self.size[0] * (2 / 5), self.size[1] * (1 / 3)), self.card_size)
             self.group.append(card)
             self.last_idx += 1
         self.last = self.group[self.last_idx - 1]
@@ -73,13 +74,51 @@ class User(Player):
     def set(self):
         i = 0
         for item in self.group:
-            item.update((self.size[0] * (1 / 3) + self.card_size[0] * i, self.size[1] * (7 / 9)))
+            item.update(
+                (self.size[0] * (1 / 3) + self.card_size[0] * i, self.size[1] * (7 / 9)))
             i += 1
         self.draw_group = pygame.sprite.RenderPlain(*self.group)
         return self.test_set()
 
-    # 수정중이여서 아직 self.card_size로 안 바꿈 
-    def set_lastcard(self): # 아니 근데 이거 안 쓰이는 것 같은데?!
+    def set_d(self):
+        i = 0
+        j = 0
+        k = 0
+        l = 0
+        for item in self.group:
+            if 7 <= i < 14:
+                item.update((self.size[0] * (1 / 3) + 80 * j,
+                             self.size[1] * (7 / 9) + self.size[1] / 10))
+                j += 1
+                i += 1
+            elif 14<= i < 28:
+                item.update((self.size[0] * (1 / 3) + 80 * k,
+                             self.size[1] * (7 / 9) + self.size[1] * 2 / 10))
+                k += 1
+                i += 1
+            elif i >= 28:
+                item.update((self.size[0] * (1 / 3) + 80 * l,
+                             self.size[1] * (7 / 9) + self.size[1] * 3 / 10))
+                l += 1
+                i +=1
+            else:
+                item.update((self.size[0] * (1 / 3) + 80 *
+                             i, self.size[1] * (7 / 9)))
+                i += 1
+        self.draw_group = pygame.sprite.RenderPlain(*self.group)
+        if self.last_idx:
+            last_pos = self.last.getposition()
+            pos = (
+                    self.size[0] * (1 / 3) + 80 * (len(self.group) % 7 - 1),
+                    self.size[1] * (7 / 9) + self.size[1] * 3 / 10)
+            if last_pos == (
+                    self.size[0] * (1 / 3) + 80 * (len(self.group) % 7 - 1),
+                    self.size[1] * (7 / 9) + self.size[1] * 3 / 10):
+                return 0
+        return 1
+
+    # 수정중이여서 아직 self.card_size로 안 바꿈
+    def set_lastcard(self):  # 아니 근데 이거 안 쓰이는 것 같은데?!
         # x, y = self.last.getposition()
         x, y = self.get_lastcard()
 
@@ -95,25 +134,25 @@ class User(Player):
                 y = y - self.size[1] / 10
             else:
                 x -= self.size[0] / 10
-        self.last.setposition(x, y) # 이렇게 하면 last카드의 위치가 x,y로 옮겨지는거라 바꿔야 해!
-    
-    def get_lastcard(self): # 마지막 카드의 위치를 반환
+        self.last.setposition(x, y)  # 이렇게 하면 last카드의 위치가 x,y로 옮겨지는거라 바꿔야 해!
+
+    def get_lastcard(self):  # 마지막 카드의 위치를 반환
         if self.group:
             return self.group[-1].getposition()
         else:
-            return self.startpos    
+            return self.startpos
 
     def remove(self, sprite):
         name = sprite.get_name()
         self.card.remove(name)
         self.group.remove(sprite)
-        self.draw_group.remove(sprite) # 이거 없어도 되나?!
+        self.draw_group.remove(sprite)
         for temp in self.group:
             temp.move(sprite.getposition())
         sprite.setposition(self.size[0] * (3 / 5), self.size[1] * (1 / 3))
 
     def add_card(self, card):
-        temp = Card(card, (self.size[0] * (2 / 5), self.size[1] * (1 / 3)), self.card_size)
+        temp = lc.Card(card, (self.size[0] * (2 / 5), self.size[1] * (1 / 3)), self.card_size)
         # current_pos = self.last.getposition()
         current_pos = self.get_lastcard()
         if current_pos[0] >= self.size[0] * (28 / 30):
@@ -124,12 +163,12 @@ class User(Player):
             x = current_pos[0] + self.size[0] / 10
         temp.setposition(x, y)
         # self.last.setposition(x, y)
-        self.card.append(card) # 여기 왜 self.append(card)라고 했지?
+        self.card.append(card)
         self.group.append(temp)
         self.draw_group.add(temp)
 
-
     # 창에 나타내는거
+    # 이거 안쓰이는데 돌아가
     def update_card(self):
         i = 0
         temp_list = []
@@ -165,35 +204,6 @@ class User(Player):
     def handle_event(self):
         pass
 
-    # 변경할 색 선택 -> 이걸 game_function으로 옮겨야하지 않을까?
-    def pick_color(self, size):
-        # 뒤에 이미지 -> 빼거나 대체
-        red = Popup('red', (306, 320))
-        yellow = Popup('yellow', (368, 320))
-        green = Popup('green', (432, 320))
-        blue = Popup('blue', (494, 320))
-        colors = [red, yellow, green, blue]
-        color_group = pygame.sprite.RenderPlain(*colors)
-
-        while 1:
-            # popup_group.update_card(self.screen)
-            color_group.update_card(screen)
-            pygame.display.update()
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    terminate()
-                if event.type == pygame.MOUSEBUTTONUP:
-                    for sprite in color_group:
-                        if sprite.get_rect().collidepoint(event.pos):
-                            temp_name = sprite.get_name()
-                            temp = Card(temp_name,
-                                        (size[0] * (3 / 5),
-                                         size[1] * (1 / 3)),
-                                        (size[0] / 10, size[1] / 6))
-                            return temp_name
-        # 아마 버그 있을 거 같은데
-        return 0
-
     def clear(self):
         for sprite in self.draw_group:
             self.draw_group.remove(sprite)
@@ -201,7 +211,7 @@ class User(Player):
         self.group = []
         self.last_idx = 0
         self.last = None
-    
+
 
 class Computer(Player):
     def __init__(self, index):
@@ -211,18 +221,21 @@ class Computer(Player):
         self.last_idx = 0
         self.draw_group = None
         self.last = None
-        self.settings = Settings().get_setting()
+        self.settings = s.Settings().get_setting()
         self.size = self.settings['screen']
-        self.card_size = (self.settings['screen'][0] / 30, self.settings['screen'][1] / 18)
+        self.card_size = (
+            self.settings['screen'][0] / 30, self.settings['screen'][1] / 18)
         self.index = index
-        self.startpos = (self.card_size[0] - 10, self.size[1] * (((self.index - 1) * 2 + 1) / 10))
+        self.startpos = (
+            self.card_size[0] - 10, self.size[1] * (((self.index - 1) * 2 + 1) / 10))
 
     def append(self, card):
         self.card.append(card)
 
     def set_card(self):
         for _ in self.card:
-            card = Card('back', (self.size[0] * (2 / 5), self.size[1] * (1 / 3)), self.card_size)
+            card = lc.Card(
+                'back', (self.size[0] * (2 / 5), self.size[1] * (1 / 3)), self.card_size)
             self.group.append(card)
             self.last_idx += 1
         self.last = self.group[self.last_idx - 1]
@@ -238,10 +251,42 @@ class Computer(Player):
     def set(self):
         i = 0
         for item in self.group:
-            item.update((self.size[0] * (1 / 30) + 10 * i, self.size[1] * ((2 * self.index- 1) / 10))) # 이거 애니메이션인데 왜 안될까?
+            item.update((self.size[0] * (1 / 30) + 10 * i, self.size[1]
+                         * ((2 * self.index - 1) / 10)))  # 이거 애니메이션인데 왜 안될까? - 이거 카드 사이즈가 작아서 빨리 되는거야
             i += 1
         self.draw_group = pygame.sprite.RenderPlain(*self.group)
         return self.test_set()
+
+    def set_d(self):
+        i = 0
+        j = 0
+        k = 0
+        for item in self.group:
+            if 12 <= i < 24:
+                item.update((self.size[0] * (1 / 30) + 10 * j,
+                             self.size[1] * ((2 * self.index - 1) / 10) + self.size[1] * (1 / 30)))
+                j += 1
+                i += 1
+            elif i >= 24:
+                item.update((self.size[0] * (1 / 30) + 10 * k,
+                             self.size[1] * ((2 * self.index - 1) / 10) + self.size[1] * (2 / 30)))
+                i += 1
+                k += 1
+            else:
+                item.update((self.size[0] * (1 / 30) + 10 * i,
+                             self.size[1] * ((2 * self.index - 1) / 10)))
+                i += 1
+        self.draw_group = pygame.sprite.RenderPlain(*self.group)
+        if self.last_idx:
+            last_pos = self.last.getposition()
+            pos = ((self.size[0] * (1 / 30) + 10 * ((self.last_idx - 1) % 12 ),
+                     self.size[1] * ((2 * self.index - 1) / 10) + self.size[1] * (2 / 30)))
+            if last_pos == (
+                    (self.size[0] * (1 / 30) + 10 * ((self.last_idx - 1) % 12 ),
+                     self.size[1] * ((2 * self.index - 1) / 10) + self.size[1] * (2 / 30))):
+                return 0
+        return 1
+        """이거 버그 때문에 이렇게 설정했는데 이렇게 하니까 3초가 넘어서 일단은 한번만 하기로 했어 그리고 수정하자."""
 
     def remove(self, val):
         self.card.remove(val)
@@ -251,7 +296,7 @@ class Computer(Player):
                 self.draw_group.remove(sprite)
 
     def add_card(self, card):
-        temp = Card('back', (350, 300), self.card_size)
+        temp = lc.Card('back', (350, 300), self.card_size)
         current_pos = self.get_lastcard()
         if current_pos[0] >= self.size[0] * (1 / 6):
             y = current_pos[1] + self.size[1] / 30
@@ -261,16 +306,15 @@ class Computer(Player):
             x = current_pos[0] + 10
         temp.setposition(x, y)
         # self.last.setposition(x, y)
-        self.card.append(card) # 여기 왜 self.append(card)라고 했지?
+        self.card.append(card)  # 여기 왜 self.append(card)라고 했지?
         self.group.append(temp)
         self.draw_group.add(temp)
 
-    def get_lastcard(self): # 마지막 카드의 위치를 반환
+    def get_lastcard(self):  # 마지막 카드의 위치를 반환
         if self.group:
             return self.group[-1].getposition()
-        else: 
+        else:
             return self.startpos
-
 
     def set_lastcard(self):
         x, y = self.get_lastcard()
@@ -280,9 +324,9 @@ class Computer(Player):
             x = self.size[0] * (1 / 6)
         else:
             x -= 10
-        
 
     # 이거 내 생각에 dictionary로 깔끔하게 만들 수 있을 거 같아, 정렬 알고리즘 활용하기
+
     def most_num_color(self):
         temp_name = None
         r = y = g = b = 0
@@ -308,8 +352,8 @@ class Computer(Player):
             temp_name = 'blue'
         return temp_name
 
-
     # change 카드를 컴퓨터 플레이어가 선택할 때 제일 카드가 적은 플레이어 선택
+
     def check_card_num(self, player_deck_list):
         shortest_list = min(player_deck_list, key=len)
         return player_deck_list.index(shortest_list)
@@ -322,6 +366,7 @@ class Computer(Player):
         self.last_idx = 0
         self.last = None
 
+
 class Waste(Player):
     """나머지 카드들"""
 
@@ -331,16 +376,17 @@ class Waste(Player):
         self.group = []
         self.draw_group = None
         self.last_idx = 0
-        self.settings = Settings().get_setting()
+        self.settings = s.Settings().get_setting()
         self.size = self.settings['screen']
-        self.card_size = (self.settings['screen'][0] / 10, self.settings['screen'][1] / 6)
-
+        self.card_size = (self.settings['screen']
+                          [0] / 10, self.settings['screen'][1] / 6)
 
     def append(self, val):
         self.card.append(val)
 
     def set_card(self):
-        deck = Card('back', (self.size[0] * (2 / 5), self.size[1] * (1 / 3)), self.card_size)
+        deck = lc.Card('back', (self.size[0] * (2 / 5),
+                                self.size[1] * (1 / 3)), self.card_size)
         self.group.append(deck)
         self.draw_group = pygame.sprite.RenderPlain(self.group)
 
@@ -350,19 +396,20 @@ class Waste(Player):
     def update_card(self, sprite):
         self.group.append(sprite)
 
-    # 수정중
-    def update(self, sprite):
-        self.update_card(sprite)
-        self.update_value(sprite.get_name())
-        print("버린카드의 position {}".format(sprite.getposition()))
-        # 밖으로 꺼내기
-        if len(self.card) != 1:
-            self.set_lastcard(self.card[0].group[-1], sprite.getposition())
-        print("내고 나서 lastcard {}".format(self.card[0].group[-1]))
+    # # 수정중 확인하고 지워줘
+    # def update(self, sprite):
+    #     self.update_card(sprite)
+    #     self.update_value(sprite.get_name())
+    #     print("버린카드의 position {}".format(sprite.getposition()))
+    #     # 밖으로 꺼내기
+    #     if len(self.card) != 1:
+    #         self.set_lastcard(self.card[0].group[-1], sprite.getposition())
+    #     print("내고 나서 lastcard {}".format(self.card[0].group[-1]))
 
     def updating(self, val):
         self.update_value(val)
-        temp = Card(val, (self.size[0] * (3 / 5), self.size[1] * (1 / 3)), self.card_size)
+        temp = lc.Card(val, (self.size[0] * (3 / 5),
+                             self.size[1] * (1 / 3)), self.card_size)
         self.update_card(temp)
         self.draw_group = pygame.sprite.RenderPlain(self.group)
 
