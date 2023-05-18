@@ -1,5 +1,7 @@
-
 import pygame
+from pygame.locals import *
+import math
+from settings import Settings, resource_path
 import constant as c
 import math
 
@@ -8,9 +10,11 @@ class Card(pygame.sprite.Sprite):
     def __init__(self, name, position, size):
         pygame.sprite.Sprite.__init__(self)
         self.name = name
-        self.image = pygame.image.load('./image/card_img/' + name + '.png')
-        # self.colorimg = pygame.image.load(
-        #     './image/color_card_img/' + name + '.png')
+        self.settings = Settings().get_setting()
+        if self.settings['setting_color'] == True:
+            self.image = pygame.image.load(resource_path('./image/color_card_img/' + name + '.png'))
+        else:
+            self.image = pygame.image.load('./image/card_img/' + name + '.png')
         self.size = size
         self.image = pygame.transform.scale(self.image, size)
         self.orig_pos = position
@@ -97,13 +101,6 @@ class Card(pygame.sprite.Sprite):
     def get_name(self):
         return self.name
 
-    def set_color_image(self):
-        self.image = self.colorimg
-
-    def set_default_image(self):
-        self.image = pygame.image.load(
-            './image/card_img/' + self.name + '.png')
-
 
 class Popup(pygame.sprite.Sprite):
     def __init__(self, name, position):
@@ -121,10 +118,3 @@ class Popup(pygame.sprite.Sprite):
 
     def get_rect(self):
         return self.rect
-
-    def set_color_image(self):
-        self.image = self.colorimg
-
-    def set_default_image(self):
-        self.image = pygame.image.load(
-            './image/card_img/' + self.name + '.png')
