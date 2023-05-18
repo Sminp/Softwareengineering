@@ -1,245 +1,170 @@
-import unittest
 from unittest import TestCase
-from unittest.mock import Mock
+import unittest
+from unittest.mock import patch, Mock
 import pygame
-import time
-from constant import *
-from game_functions import Game
-from UNO import UNOGame
-from settings import Slider, Button
+import sys
+import UNO
 
 
-class TestGame(TestCase):
-    """Game 클래스 테스트"""
+class TestUnoGame(unittest.TestCase):
+    def setUp(self):
+        pygame.init()
+        self.game = UNO.UNOGame()
 
-    def setUp(self) -> None:
-        """시작화면 테스트에서 사용할 selected 상수를 설정합니다."""
-        self.player_num = [2, 3, 4]
-        self.difficulties = [1, 2, 3, 4]
-        self.test_card_deck = []
-        for color in ['red', 'green', 'blue', 'yellow', 'wild']:
-            if color != 'wild':
-                for number in range(10):
-                    self.test_card_deck.append('_'.join([color, str(number)]))
-            for skill in ['_pass', '_reverse', '_plus_two', '_basic', '_plus_four', '_change']:
-                self.test_card_deck.append(''.join([color, skill]))
-        self.test_card_deck.append('red_yellow')
-        self.test_card_deck.append("blue_green")
+    def test_text_format(self):
+        # 텍스트 형식이 제대로 렌더링되는지 테스트
+        text = UNO.text_format("Hello", "Arial", 24, UNO.c.BLACK)
+        self.assertIsInstance(text, pygame.Surface)
+        self.assertEqual(text.get_width(), 44)
+        self.assertEqual(text.get_height(), 28)
 
-    @unittest.skip
-    def test_set_deck(self) -> None:
-        """카드 묶음이 제대로 생성되는지 테스트"""
-        uno = UNOGame()
-        uno_game = Game(uno)
-        card_list = uno_game.set_deck()
-        for card_name in card_list:
-            self.assertIn(card_name, self.test_card_deck)
-        del uno_game
-
-    @unittest.skip
-    def test_set_deck_len(self) -> None:
-        uno = UNOGame()
-        uno_game = Game(uno)
-        card_list = uno_game.set_deck()
-        self.assertEqual(len(card_list), 116)
-
-    @unittest.skip("시간이 너무 오래 걸림")
-    def test_set_window_difficulty_3(self) -> None:
-        uno = UNOGame()
-        for number in self.player_num:
-            self.uno = Game(uno, number, 3)
-            self.uno.set_window()
-            self.assertTrue(self.uno.card_deck, 0)
-
-    @unittest.skip("수정 중")
-    def test_print_window_estimate_time(self) -> None:
-        """카드 배열이 적절한 시간 내에 나눠지는지 확인"""
-        uno = UNOGame()
-        for number in self.player_num:
-            for difficulty in self.difficulties:
-                self.uno = Game(uno, number, difficulty)
-                start = time.time()
-                self.uno.print_window()
-                end = time.time()
-                if end - start >= 1.0:
-                    self.fail()
-
-    @unittest.skip("테스트하는데 오래걸림")
-    def test_set_window_player_card(self) -> None:
-        uno = UNOGame()
-        """카드 배열이 성공적으로 나눠지는지 확인, 카드가 개수 및 정확한 카드인지 확인"""
-        for number in self.player_num:
-            for difficulty in self.difficulties:
-                self.uno = Game(uno, number, difficulty)
-                card_deck_len = len(self.uno.set_deck())
-                self.uno.set_window()
-                self.assertEqual(len(self.uno.player), number)
-                for num in range(number):
-                    card = set(self.uno.player[num]) & set(self.test_card_deck)
-                    self.assertSetEqual(set(self.uno.player[num]), card)
-                    if difficulty == 3:
-                        print(len(self.uno.player[num]))
-                        pass
-                        # 일단 보류
-                        self.assertEqual(len(self.uno.player[num]), card_deck_len // number)
-                    else:
-                        pass
-                        self.assertEqual(len(self.uno.player[num]), 7)
-                del self.uno
-
-    def test_set_window_card_loading(self) -> None:
-        pass
-
-    def test_next_turn(self) -> None:
-        """현재 턴 표시하는 테스트"""
-        pass
-
-    def test_get_next_turn(self) -> None:
-        """난이도 4에서 그 다음 턴 표시하는 테스트"""
-        pass
-
-    def test_get_next_player(self) -> None:
-        """그 다음 턴으로 넘어가게 하는 테스트"""
-        pass
-
-    def test_select_player(self) -> None:
-        """현재 턴인 플레이어 표시하는 테스트"""
-        pass
-
-    def test_print_window(self) -> None:
-        """창 업데이트 하는 함수 테스트"""
-        pass
-
-    @unittest.skip
-    def test_probability_difficulty_two_deck(self) -> None:
-        """기술카드가 50% 더 잘 나오게 하는 테스트"""
-        uno = UNOGame()
-        uno_game = Game(uno)
-        skill_card = 0
-        rest_card = 0
-        for _ in range(1000):
-            uno_game.card_deck = uno_game.set_deck()
-            uno_game.difficulty_two_deck()
-            for card in uno_game.player[1]:
-                if '0' <= card[-1] <= '9':
-                    rest_card += 1
-                else:
-                    skill_card += 1
-        if 0.45 > skill_card / 7000 or skill_card / 7000 > 0.55:
-            self.fail()
-
-    def tearDown(self) -> None:
-        pass
+    def test_terminate(self):
+        # 종료 함수가 예외 없이 실행되는지 테스트
+        with self.assertRaises(SystemExit):
+            UNO.terminate()
 
 
 class TestUNOGame(TestCase):
-    def setUp(self) -> None:
-        """우노 클래스 테스트"""
-        self.uno = UNOGame()
-        # self.mouse_pos = []
-        # for x in range(self.uno.screen_height):
-        #     for y in range(self.uno.screen_width):
-        #         self.mouse_pos.append((x, y))
-        # self.key_event = []
-
-    def test_bg_img_load_type(self):
-        self.assertTrue(object, type(self.uno.bg_img_load("./image/title_image/title_background.jpg")))
-    def test_main_menu(self):
-        pass
-
-    def test_lobby_screen(self):
-        pass
-
-    @unittest.skip("마우스 버튼 너무 복잡해서 독립적이지 못함")
-    def test_setting_screen(self):
-        start = time.time()
-        for mouse in self.mouse_pos:
-            pygame.mouse.set_pos(mouse)
-            self.uno.setting_screen()
-        end = time.time()
-        print(end - start)
-
-    def test_story(self):
-        pass
-
-    def tearDown(self) -> None:
-        pass
-
-
-# class TestPlayer(unittest.TestCase):
-#     """직접 플레이어가 되어 실행해보는 테스트"""
-#
-#     def setUp(self):
-#         self.mock_screen = Mock()
-#         self.player = Player(0, 0, 5)
-#         self.player.screen = self.mock_screen
-#
-#     def test_move_left(self):
-#         self.player.move('left')
-#         self.assertEqual(self.player.rect.x, -5)
-#
-#     def test_move_right(self):
-#         self.player.move('right')
-#         self.assertEqual(self.player.rect.x, 5)
-#
-#     def test_draw(self):
-#         self.player.draw()
-#         self.mock_screen.assert_called_with(pygame.draw.rect(self.mock_screen, (255, 255, 255), self.player.rect))
-
-
-class TestButton(TestCase):
-    def setUp(self) -> None:
+    def setUp(self):
+        pygame.init()
         self.screen = pygame.display.set_mode((800, 600))
-        self.button = Button(self.screen, 100, 100, "./image/setting image/169.jpg", 100, 100)
-        self.mouse_pos = []
-        for x in range(101, 200):
-            for y in range(101, 200):
-                self.mouse_pos.append((x, y))
+        self.screen.fill((255, 255, 255))
+        self.game_screen = UNO.UNOGame()
 
-    def test_show_button(self):
-        pass
+    def tearDown(self):
+        pygame.quit()
 
-    def test_cliked(self):
-        pass
+    def test_screen_size(self):
+        self.assertEqual(self.game_screen.size, [800, 600])
 
-    def test_check_cliked_num(self):
-        pass
+    def test_bg_img_load(self):
+        self.fail()
 
-    @unittest.skip("수정 중")
-    def test_get_rect(self):
-        for mouse in self.mouse_pos:
-            self.assertTrue(self.button.get_rect().collidepoint(mouse))
+    def test_object_init(self):
+        self.fail()
 
+    def test_object_show(self):
+        self.fail()
 
-class TestSlider(TestCase):
-    def setUp(self) -> None:
-        self.screen_height = SCREEN_HEIGHT
-        self.screen_width = SCREEN_WIDTH
-        self.screen = pygame.display.set_mode((self.screen_height, self.screen_width))
-        self.slider = Slider(self.screen, self.screen_width / 2,
-                             (self.screen_width * (3 / 10), self.screen_height * (6 / 15)), (0, 100))
-        self.length = self.screen_width / 2
-        self.poses = [(self.screen_width * (3 / 10), self.screen_height * (4 / 13)), \
-                      (self.screen_width * (3 / 10), self.screen_height * (6 / 15))]
+    def test_sound(self):
+        self.fail()
 
-    # 비기능 요구사항
-    def test_set_value_time_estimate(self):
-        for pos in self.poses:
-            start = time.time()
-            self.slider.set_value(self.length, pos)
-            end = time.time()
-            if end - start >= 1.0:
-                self.fail()
+    def test_handle_event(self):
+        self.fail()
 
-    def test_draw(self):
-        pass
+    def test_menu(self):
+        self.fail()
 
-    def test_operate(self):
-        pass
-
-    def test_draw_value(self):
-        pass
+    def test_key_select_screen(self):
+        self.fail()
 
 
-if __name__ == '__main__':
-    unittest.main()
+class TestTitleMenu(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        pygame.init()
+        pygame.mixer.init()
+
+    @classmethod
+    def tearDownClass(cls):
+        pygame.quit()
+
+    def setUp(self):
+        self.title_menu = UNO.TitleMenu()
+
+    def test_init(self):
+        self.assertIsInstance(self.title_menu.screen, pygame.Surface)
+        self.assertEqual(
+            self.title_menu.screen.get_size()[0], self.title_menu.settings['screen'][0])
+        self.assertEqual(
+            self.title_menu.screen.get_size()[1], self.title_menu.settings['screen'][1])
+        self.assertEqual(self.title_menu.x, self.title_menu.settings['screen'][0] * (1 / 4))
+        self.assertEqual(self.title_menu.y, self.title_menu.settings['screen'][1] * (5 / 8))
+        self.assertEqual(self.title_menu.width, self.title_menu.settings['screen'][0] * (1 / 8))
+        self.assertEqual(self.title_menu.height, self.title_menu.settings['screen'][1] * (3 / 8))
+        self.assertIsInstance(self.title_menu.button_li, list)
+
+    def test_object_init(self):
+        self.assertIsInstance(self.title_menu.object_init(), list)
+        self.assertIsInstance(self.title_menu.object_init()[0], UNO.rf.Button)
+
+    def test_object_show(self):
+        self.assertIsNone(self.title_menu.object_show(*self.title_menu.button_li))
+
+    def test_sound(self):
+        self.assertIsNone(self.title_menu.sound())
+
+    @unittest.skip("수정중")
+    def test_handle_event(self):
+        event = pygame.event.Event(pygame.QUIT)
+        pygame.event.post(event)
+        with self.assertRaises(SystemExit):
+            self.title_menu.handle_event()
+        event = pygame.event.Event(pygame.KEYDOWN, key=pygame.K_RETURN)
+        pygame.init()
+        pygame.event.post(event)
+        self.assertIsNone(self.title_menu.handle_event())
+        event = pygame.event.Event(pygame.KEYDOWN, key=pygame.K_LEFT)
+        pygame.event.post(event)
+        self.assertIsNone(self.title_menu.handle_event())
+        event = pygame.event.Event(pygame.KEYDOWN, key=pygame.K_RIGHT)
+        pygame.event.post(event)
+        self.assertIsNone(self.title_menu.handle_event())
+        event = pygame.event.Event(pygame.KEYDOWN, key=pygame.K_0)
+        pygame.event.post(event)
+        self.assertIsNone(self.title_menu.handle_event())
+        event = pygame.event.Event(pygame.MOUSEBUTTONUP, pos=(100, 100))
+        pygame.event.post(event)
+        self.assertIsNone(self.title_menu.handle_event())
+
+    @unittest.skip
+    def test_menu(self):
+        with self.assertRaises(SystemExit):
+            self.title_menu.menu()
+
+
+class TestLobbyScreen(unittest.TestCase):
+    def setUp(self):
+        pygame.init()
+        self.screen = pygame.display.set_mode((640, 480))
+        self.lobby = UNO.LobbyScreen()
+
+    def test_object_init(self):
+        self.assertEqual(len(self.lobby.computer_rect), 5)
+        self.assertIsInstance(self.lobby.computer_rect[0][0], pygame.Rect)
+        self.assertIsInstance(self.lobby.computer_rect[0][1], str)
+
+    @unittest.skip("수정")
+    def test_object_show(self):
+        with patch('pygame.display.update') as mock_update:
+            self.lobby.object_show()
+            mock_update.assert_called_once()
+
+    @unittest.skip("수정")
+    def test_handle_event(self):
+        # Test for QUIT event
+        mock_quit_event = Mock()
+        mock_quit_event.type = pygame.QUIT
+        with patch('pygame.event.get', return_value=[mock_quit_event]):
+            with self.assertRaises(SystemExit):
+                self.lobby.handle_event()
+
+        # Test for MOUSEBUTTONDOWN event
+        mock_button_down_event = Mock()
+        mock_button_down_event.type = pygame.MOUSEBUTTONDOWN
+        mock_button_down_event.pos = (320, 240)
+        with patch('pygame.event.get', return_value=[mock_button_down_event]):
+            with patch('UNO.gf.Game.startgame') as mock_startgame:
+                self.lobby.handle_event()
+                mock_startgame.assert_called_once_with()
+
+        # Test for KEYDOWN event
+        mock_keydown_event = Mock()
+        mock_keydown_event.type = pygame.KEYDOWN
+        mock_keydown_event.unicode = 'a'
+        with patch('pygame.event.get', return_value=[mock_keydown_event]):
+            self.lobby.handle_event()
+            self.assertEqual(self.lobby.user_name, 'playera')
+
+    def tearDown(self):
+        pygame.quit()
