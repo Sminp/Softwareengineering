@@ -3,13 +3,12 @@ import socket
 import threading
 from _thread import *
 import pickle
-# from game_functions import *
-import game_functions
+import random
 
 class Server:
-    def __init__(self, host, port, password):
+    def __init__(self, host, password):
         self.host = host
-        self.port = port
+        self.port = 10000
         self.password = password
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
@@ -19,6 +18,8 @@ class Server:
         self.sock.listen(2) # 최대 플레이어 수 
         self.clients = []
         self.player_name = []
+        self.start = False
+        self.full = False
 
     def threaded_client(self, conn, player):
         self.clients.append(conn)
@@ -50,8 +51,12 @@ class Server:
                     del self.clients[data_val]
                     del self.player_name[data_val]
                 elif data_key == 'full':
-                    reply['full'] = data_val
-                                     
+                    self.full = data_val
+                    reply['full'] = self.full
+                elif data_key == 'start':
+                    self.start = data_val
+                elif data_key == 'is_start':
+                    reply['start'] = self.start
                 conn.sendall(pickle.dumps(reply))
 
             except Exception as e:

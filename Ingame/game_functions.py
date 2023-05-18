@@ -8,7 +8,6 @@ from pygame.locals import *
 import constant as c
 import player as pl
 import settings as s
-import UNO as t
 import computer as com
 import loadcard as lc
 import rect_functions as rf
@@ -139,7 +138,8 @@ class Game():
         while setting:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    t.terminate()
+                    pygame.quit()
+                    sys.exit()
 
             for num in range(self.player_num):
                 settings[num] = self.player[num].set()
@@ -355,7 +355,8 @@ class Game():
             pygame.display.update()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    t.terminate()
+                    pygame.quit()
+                    sys.exit()
                 if event.type == MOUSEBUTTONUP:
                     mouse_pos = pygame.mouse.get_pos()
                     for sprite in color_group:
@@ -454,7 +455,8 @@ class Game():
             pygame.display.update()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    t.terminate()
+                    pygame.quit()
+                    sys.exit()
                 if event.type == pygame.MOUSEBUTTONUP:
                     for i in range(self.player_num - 1):
                         if pick_player_button[i].get_rect().collidepoint(event.pos):
@@ -484,45 +486,46 @@ class Game():
         for i in range(0, card_num):
             self.get_from_deck(dest_player)
 
-    # 게임 끝난 화면, 스페이스 버튼 누르면 다시 시작
-    def restart(self):
-        # pygame.mixer.pre_init(44100, -16, 1, 512)
-        # win = pygame.mixer.Sound('./sound/win.wav')
-        # lose = pygame.mixer.Sound('./sound/lose.wav')
-        pygame.draw.rect(self.screen, (255, 51, 0),
-                         pygame.Rect(200, 200, 400, 200))
-        pygame.draw.rect(self.screen, (255, 180, 0),
-                         pygame.Rect(210, 210, 380, 180))
+    # t.text_format 함수 없애야 함 
+    def restart(self): 
+        pass
+        # # pygame.mixer.pre_init(44100, -16, 1, 512)
+        # # win = pygame.mixer.Sound('./sound/win.wav')
+        # # lose = pygame.mixer.Sound('./sound/lose.wav')
+        # pygame.draw.rect(self.screen, (255, 51, 0),
+        #                  pygame.Rect(200, 200, 400, 200))
+        # pygame.draw.rect(self.screen, (255, 180, 0),
+        #                  pygame.Rect(210, 210, 380, 180))
 
-        for i in range(self.player_num):
-            if len(self.player[i].group) == 0:
-                if i == 0:
-                    close_text = t.text_format(
-                        "YOU WIN!", c.BERLIN, 80, (255, 51, 0))
-                    press_text = t.text_format(
-                        "Press SPACE to REPLAY", c.BERLIN, 35, (255, 51, 0))
-                    self.screen.blit(close_text, (230, 220))
-                else:
-                    close_text = t.text_format(
-                        "YOU LOSE!, com{} win!".format(i), c.BERLIN, 40, (255, 51, 0))
-                    press_text = t.text_format(
-                        "Press SPACE to REPLAY", c.BERLIN, 35, (255, 51, 0))
-                    self.screen.blit(close_text, (230, 220))
+        # for i in range(self.player_num):
+        #     if len(self.player[i].group) == 0:
+        #         if i == 0:
+        #             close_text = t.text_format(
+        #                 "YOU WIN!", c.BERLIN, 80, (255, 51, 0))
+        #             press_text = t.text_format(
+        #                 "Press SPACE to REPLAY", c.BERLIN, 35, (255, 51, 0))
+        #             self.screen.blit(close_text, (230, 220))
+        #         else:
+        #             close_text = t.text_format(
+        #                 "YOU LOSE!, com{} win!".format(i), c.BERLIN, 40, (255, 51, 0))
+        #             press_text = t.text_format(
+        #                 "Press SPACE to REPLAY", c.BERLIN, 35, (255, 51, 0))
+        #             self.screen.blit(close_text, (230, 220))
 
-        self.screen.blit(press_text, (228, 330))
-        pygame.display.update()
-        while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    t.terminate()
+        # self.screen.blit(press_text, (228, 330))
+        # pygame.display.update()
+        # while True:
+        #     for event in pygame.event.get():
+        #         if event.type == pygame.QUIT:
+        #             t.terminate()
 
-                if event.type == KEYDOWN:
-                    if event.key == K_SPACE:
-                        self.playing_game = False
-                        # 객체를 생성해서 호출하는게 좋지않을까? - 객체를 미리 생성하고 어떤 곳은 dictionary로 가더라 이것도 좋아
-                        # 그리고 객체를 생성하면 업적이 망가지지 않을까?
-                        return
-        return 0
+        #         if event.type == KEYDOWN:
+        #             if event.key == K_SPACE:
+        #                 self.playing_game = False
+        #                 # 객체를 생성해서 호출하는게 좋지않을까? - 객체를 미리 생성하고 어떤 곳은 dictionary로 가더라 이것도 좋아
+        #                 # 그리고 객체를 생성하면 업적이 망가지지 않을까?
+        #                 return
+        # return 0
 
     # 리팩토링 match로 해도 될 것 같아
     def check_player(self):
@@ -671,7 +674,8 @@ class Game():
             if self.now_turn != 0:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
-                        t.terminate()
+                        pygame.quit()
+                        sys.exit()
                 temp = self.computer_play()
             else:
                 temp = self.user_play()
@@ -688,7 +692,8 @@ class Game():
     def user_play(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                t.terminate()
+                pygame.quit()
+                sys.exit()
 
             if event.type == KEYDOWN:
                 # if event.key == K_ESCAPE:
@@ -861,7 +866,8 @@ class Game():
                     elif setting_button.get_rect().collidepoint(event.pos):
                         pass
                     elif exit_button.get_rect().collidepoint(event.pos):
-                        t.terminate()
+                        pygame.quit()
+                        sys.exit()
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         self.playing_game = True
@@ -958,11 +964,12 @@ class Game():
                             uno = False
             pygame.display.update()
 
-
 class GameA(Game):
     def __init__(self, player_num=2, difficulty=2, user_name="ME"):
         super().__init__()
-        self.difficulty = 2
+        self.player_num = player_num
+        self.difficulty = difficulty
+        self.user_name = user_name
 
     def difficulty_two_deck(self):
         num_card = self.card_deck[:76]
@@ -988,6 +995,61 @@ class GameA(Game):
         for _ in range(7):
             temp = self.card_deck.pop()
             self.player[0].append(temp)
+
+class GameWithA(GameA):
+    def __init__(self, user_name, player_list):
+        super().__init__(player_num=len(player_list),user_name=user_name)
+        self.player_num = len(player_list)
+        self.player_list = player_list
+
+    def difficulty_two_deck(self):
+        num_card = self.card_deck[:76]
+        skill_card = self.card_deck[76:]
+        random.shuffle(num_card)
+        random.shuffle(skill_card)
+        for index,name in enumerate(self.player_list):
+            if name.split(' ')[0] == 'comA':
+                card = []
+                for _ in range(0, 7):
+                    if random.random() < 76 / 164:
+                        temp = num_card.pop()
+                    else:
+                        temp = skill_card.pop()
+                    card.append(temp)
+                self.player[index].card = card
+        card_deck = num_card + skill_card
+        del num_card, skill_card
+        return card_deck
+    
+    def set_name(self): 
+        player_names = []
+        text = rf.TextRect(self.screen, self.user_name, 30, c.WHITE)
+        player_names.append(
+            [text, (self.size[0] * (3 / 5), self.size[1] * (2 / 3))])
+        for index, name in enumerate(self.player_list):
+            if index != 0:
+                if name.split(' ')[0] == 'comA':
+                    text = rf.TextRect(self.screen, "COM_A" + str(index), 20, c.BLACK)
+                    player_names.append(
+                    [text, (self.size[0] * (1 / 10), self.size[1] * ((5 * index - 4) / 25))])
+                else: 
+                    text = rf.TextRect(self.screen, "COM" + str(index), 20, c.BLACK)
+                    player_names.append(
+                    [text, (self.size[0] * (1 / 10), self.size[1] * ((5 * index - 4) / 25))])
+        return player_names
+
+    def hand_out_deck(self):
+        self.card_deck = self.difficulty_two_deck()
+        random.shuffle(self.card_deck)
+        for _ in range(7):
+            temp = self.card_deck.pop()
+            self.player[0].append(temp)
+        for index, name in enumerate(self.player_list):
+            if index != 0 and name.split(' ')[0] != 'comA':
+                for _ in range(7):
+                    temp = self.card_deck.pop()
+                    self.player[index].append(temp)
+
 
 
 class GameB(Game):
@@ -1023,7 +1085,8 @@ class GameB(Game):
         while setting:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    t.terminate()
+                    pygame.quit()
+                    sys.exit()
 
             settings[0] = self.player[0].set_d()
 

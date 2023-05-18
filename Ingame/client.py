@@ -7,24 +7,31 @@ from rect_functions import Button, Slider, TextRect
 from settings import Settings, resource_path
 import sys
 import time
-
+import game_functions as gf
+import constant as c
+import player as pl
+import settings as s
+import computer as com
+import loadcard as lc
+import rect_functions as rf
+import timer
+import time
+import math
 
 class Client:
-    def __init__(self, screen, password, user_name):
-        # self.host = host
-        # self.port = port
+    def __init__(self, screen, password, user_name, ip_address):
         self.password = password
         self.user_name = user_name
-        # self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.screen = screen
         self.settings = Settings().get_setting()
         self.screen = pygame.display.set_mode(
             (self.settings['screen']), flags=self.settings['fullscreen'])
-        self.n = Network()
+        self.n = Network(ip_address)
         self.font = pygame.font.SysFont(self.settings['font'], 30)
         self.button, self.text_list, self.player_rect = self.object_init()
         self.user_name_text = TextRect(self.screen, self.user_name, 30, BLACK)
         self.input_active = False
+        self.lobby_run = True
 
     def show_error_msg(self, image_path):
         image = pygame.transform.scale(pygame.image.load(resource_path(image_path)), [
@@ -59,7 +66,7 @@ class Client:
                 print("Room is full")
                 reply = self.n.send({'full': True})
                 print(reply['full'])
-                self.show_error_msg("image/button_img.png")
+                self.show_error_msg(c.ERROR_MSG)
                 self.n.client.close()
                 return False
             else:
@@ -73,16 +80,22 @@ class Client:
             reply = self.n.send({'full': False})
             print(reply['full'])
 
-        while True:
+        while self.lobby_run:
             try:
                 reply = self.n.send({'get_players': ''})
                 index = reply['players'].index(self.user_name)
                 self.object_show(reply['players'], index)
                 self.handle_event(index)
+                reply = self.n.send({'is_start': ''})
+                if reply['start'] == True:
+                    print(reply['start'])
+                    game = MultiGame(self.n,len(reply['players']),1,self.user_name)
+                    game.startgame()
+                    self.lobby_run = False
                 # 수정 필요 reply['full']이 계속 False여서 안들어가짐
                 if p == 0 and reply['full'] == True:
                     print("Room is full")
-                    self.show_error_msg("image/button_img.png")
+                    self.show_error_msg(c.ERROR_MSG)
                     self.n.send({'full': False})
 
             except Exception as e:
@@ -154,9 +167,6 @@ class Client:
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
 
-                if self.button.get_rect().collidepoint(event.pos):
-                    pass  # 게임 시작
-
                 if self.player_rect[index][0].collidepoint(event.pos):
                     self.input_active = True
                 else:
@@ -170,6 +180,8 @@ class Client:
                             else:  # 아직 컴퓨터 지우는 거는 추가 안함
                                 self.player_rect[i][1] = 'computer'
                                 self.n.send({'add_players': 'computer'})
+                    if self.button.get_rect().collidepoint(event.pos):
+                        self.n.send({'start':True})
 
             elif event.type == pygame.KEYDOWN:
                 if self.input_active:
@@ -186,3 +198,42 @@ class Client:
                         self.user_name)
                     msg = self.user_name+','+str(index)
                     reply = self.n.send({"change_name": msg})
+
+class MultiGame(gf.Game):
+    
+    def __init__(self, network, player_num=2, difficulty=1, user_name="ME"):
+        super().__init__(player_num, difficulty, user_name)
+        self.n = network
+
+    def set_name(self):
+        player_names = []
+        reply = self.n.send({'get_players':''})
+        i = 1
+        for name in reply['players']:
+            if name == self.user_name:
+                text = rf.TextRect(self.screen, self.user_name, 30, c.WHITE)
+                player_names.append([text, (self.size[0] * (3 / 5), self.size[1] * (2 / 3))])
+            elif name != 'computer':
+                text = rf.TextRect(self.screen, name, 20, c.BLACK)
+                player_names.append(
+                [text, (self.size[0] * (1 / 10), self.size[1] * ((5 * i - 4) / 25))])
+                i += 1
+            else:
+                text = rf.TextRect(self.screen, "COM" + str(i), 20, c.BLACK)
+                player_names.append(
+                    [text, (self.size[0] * (1 / 10), self.size[1] * ((5 * i - 4) / 25))])
+                i += 1
+            
+        return player_names
+    
+
+
+
+    
+  
+
+    
+
+    
+
+

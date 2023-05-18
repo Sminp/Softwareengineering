@@ -1,5 +1,5 @@
-import pygame
 import sys
+import pygame
 from pygame.locals import *
 import os
 from datetime import datetime
@@ -325,7 +325,7 @@ class TitleMenu(UNOGame):
                 elif self.button_li[2].get_rect().collidepoint(event.pos):
                     StoryMode().menu()
                 elif self.button_li[3].get_rect().collidepoint(event.pos):
-                    AchievementScreen().menu()
+                    AchievementScreen.menu()
                 elif self.button_li[4].get_rect().collidepoint(event.pos):
                     SettingScreen().menu()
                 elif self.button_li[5].get_rect().collidepoint(event.pos):
@@ -358,6 +358,7 @@ class LobbyScreen(UNOGame):
         self.user_name_text = rf.TextRect(
             self.screen, self.user_name, 30, c.BLACK)
         self.input_active = False
+        self.play_with_a = False
 
     def object_init(self):
         button = rf.Button(self.screen, self.x, self.y,
@@ -368,7 +369,7 @@ class LobbyScreen(UNOGame):
             rect = pygame.Rect(0, 100 * i + (i + 1) * ((self.settings['screen'][1] - 500) / 6),
                                self.settings['screen'][0] / 5, self.settings['screen'][1] / 6)
             if i == 0:
-                label = "computer1"
+                label = "com 1"
             else:
                 label = "add"
             computer_rect.append([rect, label])
@@ -413,10 +414,21 @@ class LobbyScreen(UNOGame):
                 if self.button.get_rect().collidepoint(event.pos):
                     result = 1
                     for rect, text in self.computer_rect:
+                        if text.split(' ')[0] == 'comA':
+                            self.play_with_a = True 
                         if text != "add":
                             result += 1
-                    uno_ = gf.Game(result, user_name=self.user_name)
-                    uno_.startgame()
+                    if self.play_with_a:
+                        player_list = []
+                        player_list.append(self.user_name)
+                        for i in range(len(self.computer_rect)):
+                            if self.computer_rect[i][1] != 'add':
+                                player_list.append(self.computer_rect[i][1])
+                        uno_ = gf.GameWithA(user_name=self.user_name,player_list= player_list)
+                        uno_.startgame()
+                    else:
+                        uno_ = gf.Game(result, user_name=self.user_name)
+                        uno_.startgame()
 
                 for i in range(len(self.computer_rect)):
                     if i == 0:
@@ -424,8 +436,14 @@ class LobbyScreen(UNOGame):
                     else:
                         if self.computer_rect[i][0].collidepoint(event.pos):
                             if self.computer_rect[i][1] == "add" and self.computer_rect[i - 1][1] != "add":
-                                self.computer_rect[i][1] = "computer{}".format(
+                                ask_popup = YesNo('스토리 A 플레이어를 추가하시겠습니까?')
+                                ask_popup.menu()
+                                if ask_popup.y == True:
+                                    self.computer_rect[i][1] = "comA {}".format(
                                     i + 1)
+                                else:
+                                    self.computer_rect[i][1] = "com {}".format(
+                                        i + 1)
                             else:
                                 if i == 4:
                                     self.computer_rect[i][1] = "add"
@@ -645,14 +663,10 @@ class SettingScreen(UNOGame):
                 elif self.rect.collidepoint(event.pos):
                     if self.rect.x == int(self.settings['screen'][0] * (8 / 11)):
                         self.rect.x += 50
-                        self.settings['setting_color'] = True
-                        self.setting.change_setting(self.settings)
-                        
-                        
+                        self.settings['setting_color'] = True 
                     elif self.rect.x == int(self.settings['screen'][0] * (8 / 11)) + 50:
                         self.rect.x -= 50
                         self.settings['setting_color'] = False
-                        self.setting.change_setting(self.settings)
 
     def menu(self):
         selected = 1
@@ -705,16 +719,16 @@ class StoryMode(UNOGame):
                 for i in range(len(self.button_li)):
                     if self.button_li[i].get_rect().collidepoint(event.pos):
                         if i == 0:
-                            ask_popup = YesNo(2, 2, gf.GameA)
+                            ask_popup = YesNoStory(2, 2, gf.GameA)
                             ask_popup.menu()
                         elif i == 1:
-                            ask_popup = YesNo(4, 3, gf.GameB)
+                            ask_popup = YesNoStory(4, 3, gf.GameB)
                             ask_popup.menu()
                         elif i == 2:
-                            ask_popup = YesNo(3, 4, gf.GameC)
+                            ask_popup = YesNoStory(3, 4, gf.GameC)
                             ask_popup.menu()
                         else:
-                            ask_popup = YesNo(3, 5, gf.GameD)
+                            ask_popup = YesNoStory(3, 5, gf.GameD)
                             ask_popup.menu()
 
     def menu(self):
@@ -748,18 +762,16 @@ class UnoGame(UNOGame):
     def menu(self):
         pass
 
-
 class YesNo(UnoGame):
-    def __init__(self, player_num, difficulty, class_name):
+    def __init__(self, ask_text):
         super().__init__()
         self.yes_no = True
-        self.player_num = player_num
-        self.difficulty = difficulty
+        self.ask_text = ask_text
         self.width = self.settings['screen'][0] * (3 / 7)
         self.height = self.settings['screen'][1] * (2 / 5)
         self.button_li, self.text = self.object_init()
-        self.class_name = class_name
-
+        self.y = False
+    
     def object_init(self):
         i = 0
         button_li = []
@@ -768,9 +780,9 @@ class YesNo(UnoGame):
                                self.height + i, button, 100, 50)
             button_li.append(button)
             i += 100
-        text = rf.TextRect(self.screen, "대전을 시작하겠습니까?", 30, c.BLACK)
+        text = rf.TextRect(self.screen, self.ask_text, 20, c.BLACK)
         return button_li, text
-
+    
     def object_show(self):
         pygame.draw.rect(self.screen, c.WHITE, (
             self.settings['screen'][0] / 2 - 200, self.settings['screen'][1] / 3 - 100, 400, 400))
@@ -778,6 +790,32 @@ class YesNo(UnoGame):
             button.show()
         self.text.show(
             (self.settings['screen'][0] / 2, self.settings['screen'][1] / 3))
+        
+    def handle_event(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if self.button_li[0].get_rect().collidepoint(event.pos):
+                    self.y = True
+                    self.yes_no = False
+                elif self.button_li[1].get_rect().collidepoint(event.pos):
+                    self.y = False
+                    self.yes_no = False
+
+    def menu(self):
+        while self.yes_no:
+            self.object_show()
+            self.handle_event()
+
+            pygame.display.update()
+
+class YesNoStory(YesNo):
+    def __init__(self, player_num, difficulty, class_name):
+        super().__init__()
+        self.player_num = player_num
+        self.difficulty = difficulty
+        self.class_name = class_name
 
     def handle_event(self):
         for event in pygame.event.get():
@@ -785,7 +823,6 @@ class YesNo(UnoGame):
                 terminate()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if self.button_li[0].get_rect().collidepoint(event.pos):
-                    # 여기 생성자에 uno_game을 넘겨줘야 함 ..
                     uno = self.class_name()
                     uno.startgame()
                     self.yes_no = False
@@ -800,6 +837,7 @@ class YesNo(UnoGame):
             pygame.display.update()
 
 
+
 class SelectRole(UnoGame):
     def __init__(self):
         super().__init__()
@@ -811,9 +849,9 @@ class SelectRole(UnoGame):
         text = rf.TextRect(self.screen, "멀티 플레이어", 50, c.BLACK)
         button = []
         server_button = rf.Button(self.screen, self.settings['screen'][0] * (
-            1 / 5), self.settings['screen'][1] * (2 / 5), c.YES_BUTTON, 200, 100)
+            1 / 5), self.settings['screen'][1] * (2 / 5), c.MAKEROOM_BUTTON, 200, 100)
         client_button = rf.Button(self.screen, self.settings['screen'][0] * (
-            3 / 5), self.settings['screen'][1] * (2 / 5), c.NO_BUTTON, 200, 100)
+            3 / 5), self.settings['screen'][1] * (2 / 5), c.ROOMENTER_BUTTON, 200, 100)
         button.append(server_button)
         button.append(client_button)
 
@@ -867,7 +905,7 @@ class ClientScreen(UnoGame):
         self.set_password()
         self.set_username()
         print(self.ipaddress, self.password, self.username)
-        client = cl.Client(self.screen, self.password, self.username)
+        client = cl.Client(self.screen, self.password, self.username, self.ipaddress)
         # client.connect()
         client.lobby()
         # 로비에 접속하는 코드
@@ -916,14 +954,15 @@ class ServerScreen(UnoGame):
         server_thread = threading.Thread(target=self.run_server)
         server_thread.start()
         # 로비화면으로 전환
-        client = sv.Client(self.screen, self.password, 'player1')
+        localhost = socket.gethostbyname(socket.gethostname())
+        client = cl.Client(self.screen, self.password, 'player1',localhost)
         client.lobby()
 
     def run_server(self):
         # 서버를 생성합니다.
         localhost = socket.gethostbyname(socket.gethostname())
         port = 10000
-        server = sv.Server(localhost, port, self.password)
+        server = sv.Server(localhost, self.password)
         # 서버를 실행합니다.
         server.run()
 
