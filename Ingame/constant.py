@@ -44,6 +44,15 @@ END_BUTTON = "./image/title_image/end_button.png"
 TITLE_MENU_BUTTONS = [NORMALMODE_BUTTON, MULTI_BUTTON,
                       STORYMODE_BUTTON, ACHV_BUTTON, SETTING_BUTTON, END_BUTTON]
 
+NORMALMODE_HIGHLIGHT = "./image/title_image/normalmode_highlight.png"
+MULTIMODE_HIGHLIGHT = "./image/title_image/multimode_highlight.png"
+STORYMODE_HIGHLIGHT = "./image/title_image/storymode_highlight.png"
+ACHV_HIGHLIGHT = "./image/title_image/achv_highlight.png"
+SETTING_HIGHLIGHT = "./image/title_image/setting_highlight.png"
+END_HIGHLIGHT = "./image/title_image/end_highlight.png"
+TITLE_MENU_HIGHLIGHTS = [NORMALMODE_HIGHLIGHT, MULTIMODE_HIGHLIGHT,
+                            STORYMODE_HIGHLIGHT, ACHV_HIGHLIGHT, SETTING_HIGHLIGHT, END_HIGHLIGHT]
+
 GAMESTART_BUTTON = "./image/playing_image/game_start_button.png"
 
 # close_button = Button(self.screen, self.screen_width * (5 / 6), self.screen_height * (3 / 11),"", 20, 20)
@@ -90,13 +99,13 @@ MACAU_WIN = "./image/achv_image/macauwin_banner.png"
 SINGAPORE_WIN = "./image/achv_image/singaporewin_banner.png"
 KOREA_WIN = "./image/achv_image/koreawin_banner.png"
 SPEED_MASTER = "./image/achv_image/speedmaster_banner.png"
-NO_SKILL_CARD = "./image/achv_image/noskillcard_banner.png"
+NO_SKILL_WIN = "./image/achv_image/noskillwin_banner.png"
 TURTLE_WIN = "./image/achv_image/turtlewin_banner.png"
 FIRST_PLAY = "./image/achv_image/firstplay_banner.png"
 CARD_COLLECTOR = "./image/achv_image/cardcollector_banner.png"
 SKILL_MASTER = "./image/achv_image/skillmaster_banner.png"
 ACHV_LIST = [SINGLE_WIN, AMERICA_WIN, MACAU_WIN, SINGAPORE_WIN, KOREA_WIN,
-             SPEED_MASTER, NO_SKILL_CARD, TURTLE_WIN, FIRST_PLAY, CARD_COLLECTOR, SKILL_MASTER]
+                SPEED_MASTER, NO_SKILL_WIN, TURTLE_WIN, FIRST_PLAY, CARD_COLLECTOR, SKILL_MASTER]
 
 # 게임 중 업적 알림
 SINGLE_WIN_ALARM = "./image/achv_image/singlewin_alarm.png"
@@ -105,13 +114,13 @@ MACAU_WIN_ALARM = "./image/achv_image/macauwin_alarm.png"
 SINGAPORE_WIN_ALARM = "./image/achv_image/singaporewin_alarm.png"
 KOREA_WIN_ALARM = "./image/achv_image/koreawin_alarm.png"
 SPEED_MASTER_ALARM = "./image/achv_image/speedmaster_alarm.png"
-NO_SKILL_CARD_ALARM = "./image/achv_image/noskillcard_alarm.png"
+NO_SKILL_WIN_ALARM = "./image/achv_image/noskillwin_alarm.png"
 TURTLE_WIN_ALARM = "./image/achv_image/turtlewin_alarm.png"
 FIRST_PLAY_ALARM = "./image/achv_image/firstplay_alarm.png"
 CARD_COLLECTOR_ALARM = "./image/achv_image/cardcollector_alarm.png"
 SKILL_MASTER_ALARM = "./image/achv_image/skillmaster_alarm.png"
 ACHV_ALARM_LIST = [SINGLE_WIN_ALARM, AMERICA_WIN_ALARM, MACAU_WIN_ALARM, SINGAPORE_WIN_ALARM, KOREA_WIN_ALARM,
-                   SPEED_MASTER_ALARM, NO_SKILL_CARD_ALARM, TURTLE_WIN_ALARM, FIRST_PLAY_ALARM, CARD_COLLECTOR_ALARM, SKILL_MASTER_ALARM]
+                SPEED_MASTER_ALARM, NO_SKILL_WIN_ALARM, TURTLE_WIN_ALARM, FIRST_PLAY_ALARM, CARD_COLLECTOR_ALARM, SKILL_MASTER_ALARM]
 
 
 # 카드

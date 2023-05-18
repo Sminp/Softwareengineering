@@ -1,5 +1,5 @@
-import sys
 import pygame
+import sys
 from pygame.locals import *
 import os
 from datetime import datetime
@@ -294,9 +294,10 @@ class TitleMenu(UNOGame):
                         selected = 0
                     else:
                         selected = selected - 1
+                        
                 elif event.key == self.keys["right"]:
-                    if selected >= 3:
-                        selected = 3
+                    if selected >= 5:
+                        selected = 5
                     else:
                         selected += 1
                 elif event.key == self.keys["click"]:
@@ -307,7 +308,8 @@ class TitleMenu(UNOGame):
                     elif selected == 2:
                         StoryMode().menu()
                     elif selected == 3:
-                        AchievementsScreen().menu()
+                        AchievementScreen().menu()
+
                     elif selected == 4:
                         SettingScreen().menu()
                     else:
@@ -319,12 +321,14 @@ class TitleMenu(UNOGame):
                 if self.button_li[0].get_rect().collidepoint(event.pos):
                     LobbyScreen().menu()
                 elif self.button_li[1].get_rect().collidepoint(event.pos):
-                    StoryMode().menu()
+                    SelectRole().menu()
                 elif self.button_li[2].get_rect().collidepoint(event.pos):
-                    AchievementsScreen().menu()
+                    StoryMode().menu()
                 elif self.button_li[3].get_rect().collidepoint(event.pos):
-                    SettingScreen().menu()
+                    AchievementScreen().menu()
                 elif self.button_li[4].get_rect().collidepoint(event.pos):
+                    SettingScreen().menu()
+                elif self.button_li[5].get_rect().collidepoint(event.pos):
                     terminate()
 
     def menu(self):
@@ -457,11 +461,12 @@ class SettingScreen(UNOGame):
         super().__init__()
         self.screen = pygame.display.set_mode(
             (self.settings['screen']), flags=self.settings['fullscreen'])
+        self.setting = s.Settings()
 
         self.button_li, self.slider_li, self.rect = self.object_init()
         self.setting_text = rf.TextRect(self.screen, "SETTING", 35, c.WHITE)
-        self.screen_setting_text = rf.TextRect(
-            self.screen, "화면 크기", 20, c.BLACK)
+        self.screen_setting_text = rf.TextRect(self.screen, "화면 크기", 20, c.BLACK)
+        self.volume = 0.0
 
     def object_init(self):
         i = 3
@@ -527,14 +532,37 @@ class SettingScreen(UNOGame):
 
     def sound(self):
         pass
+    
+
+    def calculate_volume(self):
+        # 슬라이더 값을 기반으로 음량을 계산
+        total_value = 0
+        for slider in self.slider_li:
+            total_value += slider.value
+        average_value = total_value / len(self.slider_li)
+        if average_value == 0:  
+            volume = 0  # 음량을 0으로 설정
+        else:
+            volume_percentage = average_value / 100  # 음량의 비율 계산
+            volume = volume_percentage * 1  # 최대 음량 설정
+        
+        return volume
+    
+    def set_volume(self):
+        volume = self.calculate_volume()
+        pygame.mixer.music.set_volume(volume)
 
     def handle_event(self):
+        
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
 
             for slider in self.slider_li:
                 slider.operate(event)
+                if event.type == pygame.MOUSEBUTTONUP:
+                    self.volume = self.calculate_volume()
+                    self.set_volume()
 
             # 키보드 버튼
             if event.type == pygame.KEYDOWN:
@@ -617,9 +645,14 @@ class SettingScreen(UNOGame):
                 elif self.rect.collidepoint(event.pos):
                     if self.rect.x == int(self.settings['screen'][0] * (8 / 11)):
                         self.rect.x += 50
-
+                        self.settings['setting_color'] = True
+                        self.setting.change_setting(self.settings)
+                        
+                        
                     elif self.rect.x == int(self.settings['screen'][0] * (8 / 11)) + 50:
                         self.rect.x -= 50
+                        self.settings['setting_color'] = False
+                        self.setting.change_setting(self.settings)
 
     def menu(self):
         selected = 1
@@ -974,8 +1007,8 @@ class GetInput(UnoGame):
             self.handle_event()
             pygame.display.update()
 
-
-class AchievementsScreen(UNOGame):
+# 수정중
+class AchievementScreen(UNOGame):
     def __init__(self):
         super().__init__()
         self.screen = pygame.display.set_mode(
@@ -985,7 +1018,7 @@ class AchievementsScreen(UNOGame):
         self.y = self.settings['screen'][1] * (1 / 8)
         self.width = self.settings['screen'][0] * (7 / 8)
         self.height = self.settings['screen'][1] * (1 / 8)
-        self.achievement_li = self.object_init()
+        self.achievement_li, self.close_button = self.object_init()
 
     def object_init(self):
         close_button = rf.Button(self.screen, self.settings['screen'][0] * (9 / 10), self.settings['screen'][1] * (1 / 10),
@@ -993,12 +1026,14 @@ class AchievementsScreen(UNOGame):
 
         achievement_li = []
         for achievement in c.ACHV_LIST:
-            achievement = achievement.get_rect(self.screen, self.x,
-                                               self.y +
-                                               (self.height +
-                                                self.settings['screen'][1] * (1 / 16)),
-                                               achievement, self.width, self.height)
-            achievement_li.append(achievement)
+            achievement_image = pygame.image.load(achievement)
+            achievement_rect = achievement_image.get_rect()
+            achievement_rect.topleft = (self.x, self.y)
+            achievement_li.append(achievement_rect)
+
+            self.y += self.height + self.settings['screen'][1] * (1 / 16)
+
+        return achievement_li, close_button
 
         # 리스트에 객체 넣기 - render로 이미지 불러오기 - show로 화면에 띄우기
         # single_win = pygame.image.load(SINGLE_WIN)
@@ -1018,9 +1053,10 @@ class AchievementsScreen(UNOGame):
     def object_show(self):
         self.close_button.show()
 
-        for achievement in self.achievement_li:
-            achievement.show()
-
+        for achievement_rect in self.achievement_li:
+            achievement_image = pygame.image.load(achievement_rect)
+            self.screen.blit(achievement_image, achievement_rect)
+            
     def sound(self):
         pass
 
@@ -1043,7 +1079,7 @@ class AchievementsScreen(UNOGame):
     def menu(self):
         while True:
             self.bg_img_load("./image/setting_image/settingbackground.jpg")
-            self.object_show(*self.achievement_li)
+            self.object_show()
             self.handle_event()
 
             pygame.display.update()
