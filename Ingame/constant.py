@@ -17,13 +17,22 @@ RED = (200, 0, 0)
 GREEN = (0, 80, 0)
 BLUE = (0, 84, 255)
 
+# 배경화면
+TITLE_BACKGROUND = "./image/title_image/title_background.jpg"
+GAME_BACKGROUND = "./image/playing_image/playing_background.png"
+SETTING_BACKGROUND = "./image/setting_image/setting_background.jpg"
+MAP_BACKGROUND = "./image/map_image/map_background.jpg"
+
 # 카드 크기
 CARD_WIDTH = 60
 CARD_HEIGHT = 80
 CARD_SIZE = (CARD_WIDTH, CARD_HEIGHT)
 
 # 소리
-
+TITLE_BGM = './sound/title_bgm.mp3'
+SELECT_BGM = './sound/select_sound.mp3'
+PLAYING_BGM = './sound/playing_bgm.mp3'
+STOTYMODE_BGM = './sound/storymode_bgm.mp3'
 
 # 버튼 리스트
 NORMALMODE_BUTTON = "./image/title_image/normalmode_button.png"
@@ -87,7 +96,7 @@ FIRST_PLAY = "./image/achv_image/firstplay_banner.png"
 CARD_COLLECTOR = "./image/achv_image/cardcollector_banner.png"
 SKILL_MASTER = "./image/achv_image/skillmaster_banner.png"
 ACHV_LIST = [SINGLE_WIN, AMERICA_WIN, MACAU_WIN, SINGAPORE_WIN, KOREA_WIN,
-                SPEED_MASTER, NO_SKILL_CARD, TURTLE_WIN, FIRST_PLAY, CARD_COLLECTOR, SKILL_MASTER]
+             SPEED_MASTER, NO_SKILL_CARD, TURTLE_WIN, FIRST_PLAY, CARD_COLLECTOR, SKILL_MASTER]
 
 # 게임 중 업적 알림
 SINGLE_WIN_ALARM = "./image/achv_image/singlewin_alarm.png"
@@ -102,8 +111,7 @@ FIRST_PLAY_ALARM = "./image/achv_image/firstplay_alarm.png"
 CARD_COLLECTOR_ALARM = "./image/achv_image/cardcollector_alarm.png"
 SKILL_MASTER_ALARM = "./image/achv_image/skillmaster_alarm.png"
 ACHV_ALARM_LIST = [SINGLE_WIN_ALARM, AMERICA_WIN_ALARM, MACAU_WIN_ALARM, SINGAPORE_WIN_ALARM, KOREA_WIN_ALARM,
-                SPEED_MASTER_ALARM, NO_SKILL_CARD_ALARM, TURTLE_WIN_ALARM, FIRST_PLAY_ALARM, CARD_COLLECTOR_ALARM, SKILL_MASTER_ALARM]
-
+                   SPEED_MASTER_ALARM, NO_SKILL_CARD_ALARM, TURTLE_WIN_ALARM, FIRST_PLAY_ALARM, CARD_COLLECTOR_ALARM, SKILL_MASTER_ALARM]
 
 
 # 카드
