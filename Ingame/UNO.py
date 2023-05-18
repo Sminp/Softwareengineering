@@ -319,12 +319,14 @@ class TitleMenu(UNOGame):
                 if self.button_li[0].get_rect().collidepoint(event.pos):
                     LobbyScreen().menu()
                 elif self.button_li[1].get_rect().collidepoint(event.pos):
-                    StoryMode().menu()
+                    SelectRole().menu()
                 elif self.button_li[2].get_rect().collidepoint(event.pos):
-                    AchievementsScreen().menu()
+                    StoryMode().menu()
                 elif self.button_li[3].get_rect().collidepoint(event.pos):
-                    SettingScreen().menu()
+                    AchievementsScreen().menu()
                 elif self.button_li[4].get_rect().collidepoint(event.pos):
+                    SettingScreen().menu()
+                elif self.button_li[5].get_rect().collidepoint(event.pos):
                     terminate()
 
     def menu(self):
@@ -834,7 +836,7 @@ class ClientScreen(UnoGame):
         self.set_password()
         self.set_username()
         print(self.ipaddress, self.password, self.username)
-        client = cl.Client(self.screen, self.password, self.username)
+        client = cl.Client(self.screen, self.password, self.username, self.ipaddress)
         # client.connect()
         client.lobby()
         # 로비에 접속하는 코드
@@ -883,14 +885,15 @@ class ServerScreen(UnoGame):
         server_thread = threading.Thread(target=self.run_server)
         server_thread.start()
         # 로비화면으로 전환
-        client = sv.Client(self.screen, self.password, 'player1')
+        localhost = socket.gethostbyname(socket.gethostname())
+        client = cl.Client(self.screen, self.password, 'player1',localhost)
         client.lobby()
 
     def run_server(self):
         # 서버를 생성합니다.
         localhost = socket.gethostbyname(socket.gethostname())
         port = 10000
-        server = sv.Server(localhost, port, self.password)
+        server = sv.Server(localhost, self.password)
         # 서버를 실행합니다.
         server.run()
 
