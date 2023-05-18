@@ -5,22 +5,20 @@ from network import Network
 from constant import *
 from rect_functions import Button, Slider, TextRect
 from settings import Settings, resource_path
+import game_functions as gf
 import sys
 import time
 
 
 class Client:
-    def __init__(self, screen, password, user_name):
-        # self.host = host
-        # self.port = port
+    def __init__(self, screen, password, user_name, ip_address):
         self.password = password
         self.user_name = user_name
-        # self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.screen = screen
         self.settings = Settings().get_setting()
         self.screen = pygame.display.set_mode(
             (self.settings['screen']), flags=self.settings['fullscreen'])
-        self.n = Network()
+        self.n = Network(ip_address)
         self.font = pygame.font.SysFont(self.settings['font'], 30)
         self.button, self.text_list, self.player_rect = self.object_init()
         self.user_name_text = TextRect(self.screen, self.user_name, 30, BLACK)
@@ -185,4 +183,10 @@ class Client:
                     self.player_rect[index][1].change_text_surface(
                         self.user_name)
                     msg = self.user_name+','+str(index)
-                    reply = self.n.send({"change_name": msg})
+                    reply = self.n.send({"change_name": msg})\
+
+
+
+# class Multi(gf.Game):
+#     def __init__(self, player_num=2, difficulty=1, user_name="ME"):
+#         super().__init__(player_num, difficulty, user_name)

@@ -3,20 +3,20 @@ import socket
 import threading
 from _thread import *
 import pickle
-# from game_functions import *
-import game_functions
+import game_functions as gf
+
 
 class Server:
-    def __init__(self, host, port, password):
+    def __init__(self, host, password):
         self.host = host
-        self.port = port
+        self.port = 10000
         self.password = password
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             self.sock.bind((self.host, self.port))
         except socket.error as e:
             print(str(e))
-        self.sock.listen(2) # 최대 플레이어 수 
+        self.sock.listen(2)  # 최대 플레이어 수
         self.clients = []
         self.player_name = []
 
@@ -24,15 +24,15 @@ class Server:
         self.clients.append(conn)
         conn.send(pickle.dumps(player))
         reply = {}
-        
+
         while True:
             try:
-                    
+
                 data = pickle.loads(conn.recv(2048))
 
                 data_key = list(data.keys())[0]
                 data_val = list(data.values())[0]
-                
+
                 if data_key == 'password':
                     reply['password'] = self.password
                 elif data_key == 'add_players':
@@ -41,7 +41,8 @@ class Server:
                 elif data_key == 'get_players':
                     reply['players'] = self.player_name
                 elif data_key == 'change_name':
-                    self.player_name[int(data_val.split(',')[1])] = data_val.split(',')[0]
+                    self.player_name[int(data_val.split(
+                        ',')[1])] = data_val.split(',')[0]
                     reply['players'] = self.player_name
                 elif data_key == 'disconnect':
                     del reply['players'][data_val]
@@ -51,7 +52,7 @@ class Server:
                     del self.player_name[data_val]
                 elif data_key == 'full':
                     reply['full'] = data_val
-                                     
+
                 conn.sendall(pickle.dumps(reply))
 
             except Exception as e:
@@ -74,4 +75,3 @@ class Server:
 
             start_new_thread(self.threaded_client, (conn, current_player))
             current_player += 1
-
