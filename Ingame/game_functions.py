@@ -36,8 +36,9 @@ class Game():
         self.active = False
         self.user_name = user_name
         self.first = True
-        self.animation_group = None
         self.now_turn = None
+        self.animate_card = None
+        self.animation_group = None
 
         self.uno_button = rf.Button(self.screen, self.size[0] * (3 / 4), self.size[1] * (1 / 3),
                                     c.UNO_BUTTON, self.size[1] * (1 / 20),
@@ -169,7 +170,7 @@ class Game():
                 turn = now_turn - 1
         return turn
 
-    # 지금 현재 턴인 플레이어 표시 - print_window에 있어야 하지 않을까
+    # 지금 현재 턴인 플레이어 표시
     def show_now_turn(self, now_turn):
 
         for i, text in enumerate(self.player_names):
@@ -190,44 +191,6 @@ class Game():
             computer_rect.append(rect)
         return computer_rect
 
-    # 이거 왜 있지? 지워야겠다.
-    # # 얘를 print_window에서 돌려야해
-    # def update(self, temp):
-    #     setting = True
-    #     while setting:
-    #         card = lc.Card('back', (self.size[0] * (2 / 5), self.size[1] * (1 / 3)),
-    #                        self.player[self.now_turn].card_size)
-    #         last_pos = self.player[self.now_turn].last.getposition()
-    #         card.update(last_pos)
-    #         if card.getposition() == last_pos:
-    #             setting = False
-    #             return 0
-
-    # 수정중
-    # 애니메이션
-    # def moving(self):
-    #     x, y = self.player[0].group[-1].getposition()
-    #     dest_x, dest_y = (self.size[0] * (2 / 5), self.size[1] * (1 / 3))
-    #
-    #     # 이동할 거리 계산
-    #     dx = dest_x - x
-    #     dy = dest_y - y
-    #
-    #     self.player[0].group[-1] = lc.Card('back', (self.size[0] * (2 / 5), self.size[1] * (1 / 3)), self.player[self.now_turn].card_size)
-    #
-    #     # 이동할 거리가 남아있는 동안 반복
-    #     while dx != 0 or dy != 0:
-    #         # 이동 거리 결정
-    #         if dx > 0:
-    #             move_x = min(dx, 5)
-
-    # def check_moving(self):
-    #     if self.now_turn == 0:
-    #         self.moving()
-    #         self.print_window()
-    #     else:
-    #         return 0
-
     # 플레이어 이름 표시 초기화
     def print_window(self):
         self.screen.blit(self.bg_img, (0, 0))
@@ -235,15 +198,17 @@ class Game():
         self.timer.show_tmr(self.now_turn)
         for rect in self.print_computer_box():
             pygame.draw.rect(self.screen, c.WHITE, rect)
+        if self.animation_group:
+            self.animation_group.draw(self.screen)
         self.waste.draw_group.draw(self.screen)
         for i in range(self.player_num):
             self.player[i].draw_group.draw(self.screen)
+        if self.animation_group:
+            self.animation_group.draw(self.screen)
+            self.animation_group = None
         self.uno_button.show()
         self.show_now_turn(self.now_turn)
         self.waste.draw_group.draw(self.screen)
-
-        if self.animation_group:
-            self.animation_group.draw(self.screen)
 
     def draw_color_rect(self):
         rect_pos = (self.size[0] * (3 / 4), self.size[1]
@@ -378,7 +343,6 @@ class Game():
         self.player[pick_turn].clear()
         for item in temp_player:
             self.player[pick_turn].add_card(item)
-
         self.print_window()
 
     # 수정중
@@ -400,7 +364,7 @@ class Game():
                     self.rotate = 1
                 else:
                     self.rotate = 0
-        elif name[1] == 'change':  # change 구현   - 지금 상태 바뀌기는 하는데 화면에 카드 표시가 안뜸
+        elif name[1] == 'change':
             if self.now_turn == 0:
                 index = self.pick_player()
                 self.card_change(self.now_turn, index)
@@ -571,13 +535,13 @@ class Game():
 
     def computer_play(self):
         temp = self.difficulty_play()
-        pygame.time.wait(2000)
+        pygame.time.wait(1000)
 
         if temp == 0 or temp is None:
             self.get_from_deck(self.now_turn)
-            self.print_window()
-            pygame.display.update()
-            return 0
+            # self.print_window()
+            # pygame.display.update()
+            return 'Back'
             # self.now_turn = self.get_next_player(self.now_turn)
         else:
             # pygame.mixer.pre_init(44100, -16, 1, 512)
@@ -589,6 +553,8 @@ class Game():
 
             # card.play()
             self.waste.updating(temp)
+            self.set_animation('back', (self.size[0] * (1 / 30) + 10 * (self.player[self.now_turn].last_idx - 1),
+                                        self.size[1] * ((2 * self.player[self.now_turn].index - 1) / 10)))
             # 안해도 될 것 같아 시간 걸려 - 확인하고 삭제해줘
             # self.print_window()
             # pygame.display.update()
@@ -598,42 +564,16 @@ class Game():
                 # pygame.display.update()
                 self.check_uno_button()
             else:
+                pass
                 # 안해도 될 것 같아 시간 걸려 - 확인하고 삭제해줘
                 # self.print_window()
                 # self.now_turn = self.get_next_player(self.now_turn)
-                return 0
+            return temp
             # 안해도 될 것 같아 시간 걸려 - 확인하고 삭제해줘
             # pygame.display.update()
 
     def get_next_turn(self, turn=True):
         pass
-
-    # def animate(self, cards_group, pos):
-    #     # 카드 생성 및 그룹에 추가
-    #     for i in range(5):
-    #         card = Card('back', pos)
-    #         cards_group.add(card)
-    #         pos = (pos[0] + card.rect.width + 10, pos[1])
-    #
-    #     # 애니메이션 루프
-    #     animating = True
-    #     while animating:
-    #         for event in pygame.event.get():
-    #             if event.type == pygame.QUIT:
-    #                 animating = False
-    #
-    #         self.print_window()
-    #         pygame.display.flip()
-    #
-    #         # 그룹에 있는 모든 카드가 제거되면 애니메이션 종료
-    #         if len(cards_group) == 0:
-    #             animating = False
-    #             self.playing_game = True
-    #
-    #         # 프레임 속도 제어
-    #         # clock.tick(60)
-    #
-    #     return
 
     # 게임 시작 (다시 시작 )
     def startgame(self):
@@ -675,8 +615,10 @@ class Game():
                 temp = self.computer_play()
             else:
                 temp = self.user_play()
-                # self.animation(temp)
-            if temp == 0 or tmr_bool is False:
+
+            if temp and type(temp) == str:
+                self.animation(*temp)
+            if temp or tmr_bool is False:
                 self.get_next_turn(self.first)
                 self.now_turn = self.get_next_player(self.now_turn)
 
@@ -720,7 +662,7 @@ class Game():
                 if event.key == K_RETURN:
                     if selected_up == 1:
                         self.get_from_deck(self.now_turn)
-                        return 0
+                        return 'Back'
                         # self.now_turn = self.get_next_player(self.now_turn)
                         # break
                     else:
@@ -737,7 +679,7 @@ class Game():
                                     pygame.display.update()
                                     self.check_uno_button()
                                 # else:
-                                    # self.now_turn = self.get_next_player(self.now_turn)
+                                # self.now_turn = self.get_next_player(self.now_turn)
                                 if selected > len(self.player[0]) - 1:
                                     selected = len(self.player[0]) - 1
                                 break
@@ -748,6 +690,7 @@ class Game():
                     # self.show_now_turn(self.now_turn)
                     for sprite in self.player[0].group:
                         if sprite.get_rect().collidepoint(event.pos) and self.check_card(sprite):
+                            self.set_animation(sprite.get_name(), sprite.getposition())
                             # pygame.mixer.pre_init(44100, -16, 1, 512)
                             # card = pygame.mixer.Sound('./sound/deal_card.wav')
                             self.player[0].remove(sprite)
@@ -758,61 +701,19 @@ class Game():
                             if len(self.player[0].group) == 1:  # 카드 내고 한장 남음
                                 pygame.display.update()
                                 self.check_uno_button()
-                            else:
-                                return 0
-                                # self.now_turn = self.get_next_player(self.now_turn)
-                            break
+                            # else:
+                            # return 0      얘를 없애 볼게
+                            # self.now_turn = self.get_next_player(self.now_turn)
+                            return sprite.get_name()
+                            # return 1
                     for sprite in self.waste.group:
                         if sprite.get_rect().collidepoint(event.pos):
                             self.get_from_deck(self.now_turn)
                             # self.show_uno()
                             # self.now_turn = self.get_next_player(self.now_turn)
-                            return 0
+                            # 수정중
+                            return 'Back'
                             # break
-
-    # def animation(self, temp):
-    #     card = lc.Card('back', (self.size[0] * (2 / 5), self.size[1] * (1 / 3)), self.player[self.now_turn].card_size)
-    #     card.animation((self.player[self.now_turn].get_lastcard()))
-    #     self.animation_group = pygame.sprite.RenderPlain(card)
-
-    # def animation(self, card, speed = 10):
-    #     dest_loc = (self.size[0] * (2 / 5), self.size[1] * (1 / 3))
-    #     clock = pygame.time.Clock()
-    #     """
-    #     선택된 카드를 이동시키는 애니메이션 함수
-    #     :param card: 선택된 카드 객체
-    #     :param dest_x: 이동할 x 좌표
-    #     :param dest_y: 이동할 y 좌표
-    #     :param speed: 이동 속도
-    #     """
-    #     card = lc.Card('back', dest_loc, self.player[self.now_turn].card_size)
-    #
-    #     x, y = (self.player[self.now_turn].get_lastcard()) # 현재 카드의 좌표
-    #     dx, dy = dest_loc[0] - x, dest_loc[0] - y  # 목적지까지의 거리
-    #
-    #     # 이동 거리와 이동 속도를 이용하여 이동에 필요한 시간 계산
-    #     distance = math.sqrt(dx ** 2 + dy ** 2)
-    #     duration = distance / speed
-    #
-    #     # 이동에 필요한 프레임 수 계산
-    #     frames = int(duration * 60)
-    #     if frames == 0:
-    #         frames = 1
-    #
-    #     # 이동할 거리와 각 프레임당 이동할 거리 계산
-    #     move_x = dx / frames
-    #     move_y = dy / frames
-    #
-    #     # 각 프레임마다 카드 이동
-    #     for i in range(frames):
-    #         x += move_x
-    #         y += move_y
-    #         card.rect.x = int(x)
-    #         card.rect.y = int(y)
-    #         # 이동 중인 카드 이미지를 프레임마다 업데이트
-    #         self.print_window()
-    #         pygame.display.update()
-    #         clock.tick(60)
 
     # 수정중
     # 카드 뽑음
@@ -826,23 +727,54 @@ class Game():
             random.shuffle(self.waste.card)
             self.card_deck = self.waste.card[:-1]
             item = self.card_deck.pop()
-
-        # 애니메이션
-        # animation = True
-        # while animation:
-        #     for event in pygame.event.get():
-        #         if event.type == pygame.QUIT:
-        #             t.terminate()
-        #     card = Card('back', (self.size[0] * (2 / 5), self.size[1] * (1 / 3)), self.player[self.now_turn].card_size)
-        #     card.animation((self.player[self.now_turn].get_lastcard()))
-        #     self.animation_group = pygame.sprite.RenderPlain(card)
-        #     if not self.animation_group:
-        #         animation = False
-        #     self.print_window()
-        #     pygame.display.update()
-
         self.player[now_turn].add_card(item)
-        self.print_window()
+        self.set_animation('back', (self.size[0] * (2 / 5),
+                                    self.size[1] * (1 / 3)))
+        # self.print_window()
+
+    def set_animation(self, name, pos):
+        self.animate_card = lc.Card(name, pos, (self.settings['screen']
+                                                [0] / 10, self.settings['screen'][1] / 6))
+
+    def run_animation(self):
+        if self.animation:
+            ori = self.animate_card.getposition()
+            self.animate_card.animate(
+                (self.size[0] * (3 / 5), self.size[1] * (1 / 3)))
+            self.animation_group = pygame.sprite.RenderPlain(self.animate_card)
+            s = self.animate_card.getposition()
+            pos = (self.size[0] * (3 / 5), self.size[1] * (1 / 3))
+            if self.animate_card.getposition() == (self.size[0] * (3 / 5), self.size[1] * (1 / 3)):
+                return 0
+        return 1
+
+    def get_animation(self):
+        if self.animation:
+            ori = (self.size[0] * (2 / 5), self.size[1] * (1 / 3))
+            self.animate_card.animate(
+                self.player[self.now_turn].last.getposition())
+            self.animation_group = pygame.sprite.RenderPlain(self.animate_card)
+            s = self.animate_card.getposition()
+            if self.animate_card.getposition() == self.player[self.now_turn].last.getposition():
+                return 0
+        return 1
+
+    def animation(self, *temp):
+        self.playing_game = False
+        setting = 1
+
+        while setting:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    t.terminate()
+            if temp[0] == 'B':
+                setting = self.get_animation()
+            else:
+                setting = self.run_animation()
+            self.print_window()
+            pygame.display.update()
+
+        self.playing_game = True
 
     def pause(self):
 
@@ -1070,7 +1002,7 @@ class GameC(Game):
             colors = ["red", "yellow", "green", "blue"]
             random_name = colors[random.randint(0, 3)]
             self.waste.updating(random_name)
-            # self.print_window()
+            self.print_window()
 
 
 class GameD(Game):
