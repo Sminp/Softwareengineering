@@ -91,7 +91,7 @@ class User(Player):
                              self.size[1] * (7 / 9) + self.size[1] / 10))
                 j += 1
                 i += 1
-            elif 14<= i < 28:
+            elif 14 <= i < 28:
                 item.update((self.size[0] * (1 / 3) + 80 * k,
                              self.size[1] * (7 / 9) + self.size[1] * 2 / 10))
                 k += 1
@@ -100,7 +100,7 @@ class User(Player):
                 item.update((self.size[0] * (1 / 3) + 80 * l,
                              self.size[1] * (7 / 9) + self.size[1] * 3 / 10))
                 l += 1
-                i +=1
+                i += 1
             else:
                 item.update((self.size[0] * (1 / 3) + 80 *
                              i, self.size[1] * (7 / 9)))
@@ -109,8 +109,8 @@ class User(Player):
         if self.last_idx:
             last_pos = self.last.getposition()
             pos = (
-                    self.size[0] * (1 / 3) + 80 * (len(self.group) % 7 - 1),
-                    self.size[1] * (7 / 9) + self.size[1] * 3 / 10)
+                self.size[0] * (1 / 3) + 80 * (len(self.group) % 7 - 1),
+                self.size[1] * (7 / 9) + self.size[1] * 3 / 10)
             if last_pos == (
                     self.size[0] * (1 / 3) + 80 * (len(self.group) % 7 - 1),
                     self.size[1] * (7 / 9) + self.size[1] * 3 / 10):
@@ -150,9 +150,13 @@ class User(Player):
         for temp in self.group:
             temp.move(sprite.getposition())
         sprite.setposition(self.size[0] * (3 / 5), self.size[1] * (1 / 3))
+        self.last_idx -= 1
+        if self.group:
+            self.last = self.group[self.last_idx - 1]
 
     def add_card(self, card):
-        temp = lc.Card(card, (self.size[0] * (2 / 5), self.size[1] * (1 / 3)), self.card_size)
+        temp = lc.Card(
+            card, (self.size[0] * (2 / 5), self.size[1] * (1 / 3)), self.card_size)
         # current_pos = self.last.getposition()
         current_pos = self.get_lastcard()
         if current_pos[0] >= self.size[0] * (28 / 30):
@@ -166,6 +170,8 @@ class User(Player):
         self.card.append(card)
         self.group.append(temp)
         self.draw_group.add(temp)
+        self.last_idx += 1
+        self.last = self.group[self.last_idx - 1]
 
     # 창에 나타내는거
     # 이거 안쓰이는데 돌아가
@@ -279,10 +285,10 @@ class Computer(Player):
         self.draw_group = pygame.sprite.RenderPlain(*self.group)
         if self.last_idx:
             last_pos = self.last.getposition()
-            pos = ((self.size[0] * (1 / 30) + 10 * ((self.last_idx - 1) % 12 ),
-                     self.size[1] * ((2 * self.index - 1) / 10) + self.size[1] * (2 / 30)))
+            pos = ((self.size[0] * (1 / 30) + 10 * ((self.last_idx - 1) % 12),
+                    self.size[1] * ((2 * self.index - 1) / 10) + self.size[1] * (2 / 30)))
             if last_pos == (
-                    (self.size[0] * (1 / 30) + 10 * ((self.last_idx - 1) % 12 ),
+                    (self.size[0] * (1 / 30) + 10 * ((self.last_idx - 1) % 12),
                      self.size[1] * ((2 * self.index - 1) / 10) + self.size[1] * (2 / 30))):
                 return 0
         return 1
@@ -294,6 +300,9 @@ class Computer(Player):
             if sprite.getposition() == self.get_lastcard():
                 self.group.remove(sprite)
                 self.draw_group.remove(sprite)
+                self.last_idx -= 1
+                if self.group:
+                    self.last = self.group[self.last_idx - 1]
 
     def add_card(self, card):
         temp = lc.Card('back', (350, 300), self.card_size)
@@ -309,6 +318,8 @@ class Computer(Player):
         self.card.append(card)  # 여기 왜 self.append(card)라고 했지?
         self.group.append(temp)
         self.draw_group.add(temp)
+        self.last_idx += 1
+        self.last = self.group[self.last_idx - 1]
 
     def get_lastcard(self):  # 마지막 카드의 위치를 반환
         if self.group:
@@ -395,16 +406,6 @@ class Waste(Player):
 
     def update_card(self, sprite):
         self.group.append(sprite)
-
-    # # 수정중 확인하고 지워줘
-    # def update(self, sprite):
-    #     self.update_card(sprite)
-    #     self.update_value(sprite.get_name())
-    #     print("버린카드의 position {}".format(sprite.getposition()))
-    #     # 밖으로 꺼내기
-    #     if len(self.card) != 1:
-    #         self.set_lastcard(self.card[0].group[-1], sprite.getposition())
-    #     print("내고 나서 lastcard {}".format(self.card[0].group[-1]))
 
     def updating(self, val):
         self.update_value(val)

@@ -1,4 +1,3 @@
-
 import pygame
 from pygame.locals import *
 import math
@@ -24,12 +23,10 @@ class Card(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = self.position
 
-    def update(self, dest_loc):
+    def update(self, dest_loc, speed=10):
         x, y = self.position
         vx, vy = (dest_loc[0] - x, dest_loc[1] - y)
         vx, vy = (x / (x ** 2 + y ** 2) ** 0.5, y / (x ** 2 + y ** 2) ** 0.5)
-
-        speed = 10
 
         x = x + speed * vx
         y = y + speed * vy
@@ -43,28 +40,33 @@ class Card(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = self.position
 
-    # def animation(self, dest_loc):
-    #     x, y = self.position
-    #     vx, vy = (dest_loc[0] - x, dest_loc[1] - y)
-    #     vx, vy = (x / (x ** 2 + y ** 2) ** 0.5, y / (x ** 2 + y ** 2) ** 0.5)
+    def animate(self, dest_loc):
+        x, y = self.position
+        vx, vy = (x / (x ** 2 + y ** 2) ** 0.5, y / (x ** 2 + y ** 2) ** 0.5)
 
-    #     speed = 10
+        speed = 20
 
-    #     x = x + speed * vx
-    #     y = y + speed * vy
+        if x >= dest_loc[0] and y >= dest_loc[1]:
+            x = x - speed * vx
+            y = y - speed * vy
+        elif x >= dest_loc[0] and y < dest_loc[1]:
+            x = x - speed * vx
+            y = y + speed * vy
+        elif x < dest_loc[0] and y >= dest_loc[1]:
+            x = x + speed * vx
+            y = y - speed * vy
+        elif x < dest_loc[0] and y < dest_loc[1]:
+            x = x + speed * vx
+            y = y + speed * vy
 
-    #     if x >= dest_loc[0]:
-    #         x = dest_loc[0]
-    #     if y >= dest_loc[1]:
-    #         y = dest_loc[1]
+        if abs(x - dest_loc[0]) <= 20:
+            x = dest_loc[0]
+        if abs(y - dest_loc[1]) <= 20:
+            y = dest_loc[1]
 
-    #     self.position = (x, y)
-    #     self.rect = self.image.get_rect()
-    #     self.rect.center = self.position
-
-    #     if x == dest_loc[0] and y == dest_loc[1]:
-    #         self.kill()
-
+        self.position = (x, y)
+        self.rect = self.image.get_rect()
+        self.rect.center = self.position
 
     def rotation(self, rotate):
         self.image = pygame.transform.rotate(self.image, rotate)
@@ -88,11 +90,11 @@ class Card(pygame.sprite.Sprite):
             x -= c.SCREEN_WIDTH / 10
 
         elif y > i_y:
-            if x <= c.SCREEN_WIDTH/3:
-                x = c.SCREEN_WIDTH*(28/30)
-                y = y - c.SCREEN_HEIGHT/10
+            if x <= c.SCREEN_WIDTH / 3:
+                x = c.SCREEN_WIDTH * (28 / 30)
+                y = y - c.SCREEN_HEIGHT / 10
             else:
-                x -= c.SCREEN_WIDTH/10
+                x -= c.SCREEN_WIDTH / 10
         self.position = (x, y)
         self.rect = self.image.get_rect()
         self.rect.center = self.position
