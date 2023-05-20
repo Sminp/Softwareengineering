@@ -151,7 +151,8 @@ class User(Player):
             temp.move(sprite.getposition())
         sprite.setposition(self.size[0] * (3 / 5), self.size[1] * (1 / 3))
         self.last_idx -= 1
-        self.last = self.group[self.last_idx - 1]
+        if self.last_idx >= 1:
+            self.last = self.group[self.last_idx - 1]
 
     def add_card(self, card):
         temp = lc.Card(
@@ -300,7 +301,8 @@ class Computer(Player):
                 self.group.remove(sprite)
                 self.draw_group.remove(sprite)
                 self.last_idx -= 1
-                self.last = self.group[self.last_idx - 1]
+                if self.last_idx >= 1:
+                    self.last = self.group[self.last_idx - 1]
 
     def add_card(self, card):
         temp = lc.Card('back', (350, 300), self.card_size)
