@@ -12,9 +12,11 @@ class Card(pygame.sprite.Sprite):
         self.name = name
         self.settings = Settings().get_setting()
         if self.settings['setting_color'] == True:
-            self.image = pygame.image.load(resource_path('./image/color_card_img/' + name + '.png')) # 여기 색약 모드 이미지 불러오는걸로!
+            self.image = pygame.image.load(resource_path(
+                './image/color_card_img/' + name + '.png'))  # 여기 색약 모드 이미지 불러오는걸로!
         else:
-            self.image = pygame.image.load('./image/card_img/' + name + '.png') # 여기는 기본 이미지!
+            self.image = pygame.image.load(
+                './image/card_img/' + name + '.png')  # 여기는 기본 이미지!
         self.size = size
         self.image = pygame.transform.scale(self.image, size)
         self.orig_pos = position
@@ -59,14 +61,19 @@ class Card(pygame.sprite.Sprite):
             x = x + speed * vx
             y = y + speed * vy
 
-        if abs(x - dest_loc[0]) <= 20:
+        x = x + vx / 100
+        y = y + vy / 100
+
+        if x >= dest_loc[0]:
             x = dest_loc[0]
-        if abs(y - dest_loc[1]) <= 20:
+        if y >= dest_loc[1]:
             y = dest_loc[1]
 
-        self.position = (x, y)
-        self.rect = self.image.get_rect()
-        self.rect.center = self.position
+    #     if x == dest_loc[0] and y == dest_loc[1]:
+    #         self.kill()
+
+        if x == dest_loc[0] and y == dest_loc[1]:
+            self.kill()
 
     def rotation(self, rotate):
         self.image = pygame.transform.rotate(self.image, rotate)
@@ -111,6 +118,8 @@ class Popup(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.name = name
         self.image = pygame.image.load('./image/card_img/' + name + '.png')
+        # self.colorimg = pygame.image.load(
+        #     './image/color_card_img/' + name + '.png')
         self.position = position
         self.rect = self.image.get_rect()
         self.rect.center = self.position

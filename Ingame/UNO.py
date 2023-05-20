@@ -294,7 +294,7 @@ class TitleMenu(UNOGame):
                         selected = 0
                     else:
                         selected = selected - 1
-                        
+
                 elif event.key == self.keys["right"]:
                     if selected >= 5:
                         selected = 5
@@ -325,7 +325,7 @@ class TitleMenu(UNOGame):
                 elif self.button_li[2].get_rect().collidepoint(event.pos):
                     StoryMode().menu()
                 elif self.button_li[3].get_rect().collidepoint(event.pos):
-                    AchievementScreen.menu()
+                    AchievementsScreen().menu()
                 elif self.button_li[4].get_rect().collidepoint(event.pos):
                     SettingScreen().menu()
                 elif self.button_li[5].get_rect().collidepoint(event.pos):
@@ -415,7 +415,7 @@ class LobbyScreen(UNOGame):
                     result = 1
                     for rect, text in self.computer_rect:
                         if text.split(' ')[0] == 'comA':
-                            self.play_with_a = True 
+                            self.play_with_a = True
                         if text != "add":
                             result += 1
                     if self.play_with_a:
@@ -424,7 +424,8 @@ class LobbyScreen(UNOGame):
                         for i in range(len(self.computer_rect)):
                             if self.computer_rect[i][1] != 'add':
                                 player_list.append(self.computer_rect[i][1])
-                        uno_ = gf.GameWithA(user_name=self.user_name,player_list= player_list)
+                        uno_ = gf.GameWithA(
+                            user_name=self.user_name, player_list=player_list)
                         uno_.startgame()
                     else:
                         uno_ = gf.Game(result, user_name=self.user_name)
@@ -440,7 +441,7 @@ class LobbyScreen(UNOGame):
                                 ask_popup.menu()
                                 if ask_popup.y == True:
                                     self.computer_rect[i][1] = "comA {}".format(
-                                    i + 1)
+                                        i + 1)
                                 else:
                                     self.computer_rect[i][1] = "com {}".format(
                                         i + 1)
@@ -483,7 +484,8 @@ class SettingScreen(UNOGame):
 
         self.button_li, self.slider_li, self.rect = self.object_init()
         self.setting_text = rf.TextRect(self.screen, "SETTING", 35, c.WHITE)
-        self.screen_setting_text = rf.TextRect(self.screen, "화면 크기", 20, c.BLACK)
+        self.screen_setting_text = rf.TextRect(
+            self.screen, "화면 크기", 20, c.BLACK)
         self.volume = 0.0
 
     def object_init(self):
@@ -550,7 +552,6 @@ class SettingScreen(UNOGame):
 
     def sound(self):
         pass
-    
 
     def calculate_volume(self):
         # 슬라이더 값을 기반으로 음량을 계산
@@ -558,20 +559,20 @@ class SettingScreen(UNOGame):
         for slider in self.slider_li:
             total_value += slider.value
         average_value = total_value / len(self.slider_li)
-        if average_value == 0:  
+        if average_value == 0:
             volume = 0  # 음량을 0으로 설정
         else:
             volume_percentage = average_value / 100  # 음량의 비율 계산
             volume = volume_percentage * 1  # 최대 음량 설정
-        
+
         return volume
-    
+
     def set_volume(self):
         volume = self.calculate_volume()
         pygame.mixer.music.set_volume(volume)
 
     def handle_event(self):
-        
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
@@ -663,7 +664,7 @@ class SettingScreen(UNOGame):
                 elif self.rect.collidepoint(event.pos):
                     if self.rect.x == int(self.settings['screen'][0] * (8 / 11)):
                         self.rect.x += 50
-                        self.settings['setting_color'] = True 
+                        self.settings['setting_color'] = True
                     elif self.rect.x == int(self.settings['screen'][0] * (8 / 11)) + 50:
                         self.rect.x -= 50
                         self.settings['setting_color'] = False
@@ -792,6 +793,7 @@ class UnoGame(UNOGame):
     def menu(self):
         pass
 
+
 class YesNo(UnoGame):
     def __init__(self, ask_text):
         super().__init__()
@@ -801,7 +803,7 @@ class YesNo(UnoGame):
         self.height = self.settings['screen'][1] * (3 / 5)
         self.button_li, self.text = self.object_init()
         self.y = False
-    
+
     def object_init(self):
         i = 0
         button_li = []
@@ -812,7 +814,7 @@ class YesNo(UnoGame):
             i += 70
         text = rf.TextRect(self.screen, self.ask_text, 20, c.BLACK)
         return button_li, text
-    
+
     def object_show(self):
         pygame.draw.rect(self.screen, c.WHITE, (
             self.settings['screen'][0] / 2 - 200, self.settings['screen'][1] / 3 - 100, 400, 400))
@@ -839,6 +841,7 @@ class YesNo(UnoGame):
             self.handle_event()
 
             pygame.display.update()
+
 
 class YesNoStory(YesNo):
     def __init__(self, player_num, difficulty, class_name):
@@ -881,6 +884,8 @@ class YesNoStory(YesNo):
             self.handle_event()
 
             pygame.display.update()
+
+
 
 class SelectRole(UnoGame):
     def __init__(self):
@@ -949,7 +954,8 @@ class ClientScreen(UnoGame):
         self.set_password()
         self.set_username()
         print(self.ipaddress, self.password, self.username)
-        client = cl.Client(self.screen, self.password, self.username, self.ipaddress)
+        client = cl.Client(self.screen, self.password,
+                           self.username, self.ipaddress)
         # client.connect()
         client.lobby()
         # 로비에 접속하는 코드
@@ -999,7 +1005,7 @@ class ServerScreen(UnoGame):
         server_thread.start()
         # 로비화면으로 전환
         localhost = socket.gethostbyname(socket.gethostname())
-        client = cl.Client(self.screen, self.password, 'player1',localhost)
+        client = cl.Client(self.screen, self.password, 'player1', localhost)
         client.lobby()
 
     def run_server(self):
@@ -1091,6 +1097,8 @@ class GetInput(UnoGame):
             pygame.display.update()
 
 # 수정중
+
+
 class AchievementScreen(UNOGame):
     def __init__(self):
         super().__init__()
@@ -1138,7 +1146,7 @@ class AchievementScreen(UNOGame):
         for achievement_rect in self.achievement_li:
             achievement_image = pygame.image.load(achievement_rect)
             self.screen.blit(achievement_image, achievement_rect)
-            
+
     def sound(self):
         pass
 

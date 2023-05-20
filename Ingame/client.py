@@ -5,6 +5,7 @@ from network import Network
 from constant import *
 from rect_functions import Button, Slider, TextRect
 from settings import Settings, resource_path
+import game_functions as gf
 import sys
 import time
 import game_functions as gf
@@ -17,6 +18,7 @@ import rect_functions as rf
 import timer
 import time
 import math
+
 
 class Client:
     def __init__(self, screen, password, user_name, ip_address):
@@ -89,7 +91,8 @@ class Client:
                 reply = self.n.send({'is_start': ''})
                 if reply['start'] == True:
                     print(reply['start'])
-                    game = MultiGame(self.n,len(reply['players']),1,self.user_name)
+                    game = MultiGame(self.n, len(
+                        reply['players']), 1, self.user_name)
                     game.startgame()
                     self.lobby_run = False
                 # 수정 필요 reply['full']이 계속 False여서 안들어가짐
@@ -181,7 +184,7 @@ class Client:
                                 self.player_rect[i][1] = 'computer'
                                 self.n.send({'add_players': 'computer'})
                     if self.button.get_rect().collidepoint(event.pos):
-                        self.n.send({'start':True})
+                        self.n.send({'start': True})
 
             elif event.type == pygame.KEYDOWN:
                 if self.input_active:
@@ -197,43 +200,38 @@ class Client:
                     self.player_rect[index][1].change_text_surface(
                         self.user_name)
                     msg = self.user_name+','+str(index)
-                    reply = self.n.send({"change_name": msg})
+                    reply = self.n.send({"change_name": msg})\
+
+
+
+# class Multi(gf.Game):
+#     def __init__(self, player_num=2, difficulty=1, user_name="ME"):
+#         super().__init__(player_num, difficulty, user_name)
 
 class MultiGame(gf.Game):
-    
+
     def __init__(self, network, player_num=2, difficulty=1, user_name="ME"):
         super().__init__(player_num, difficulty, user_name)
         self.n = network
 
     def set_name(self):
         player_names = []
-        reply = self.n.send({'get_players':''})
+        reply = self.n.send({'get_players': ''})
         i = 1
         for name in reply['players']:
             if name == self.user_name:
                 text = rf.TextRect(self.screen, self.user_name, 30, c.WHITE)
-                player_names.append([text, (self.size[0] * (3 / 5), self.size[1] * (2 / 3))])
+                player_names.append(
+                    [text, (self.size[0] * (3 / 5), self.size[1] * (2 / 3))])
             elif name != 'computer':
                 text = rf.TextRect(self.screen, name, 20, c.BLACK)
                 player_names.append(
-                [text, (self.size[0] * (1 / 10), self.size[1] * ((5 * i - 4) / 25))])
+                    [text, (self.size[0] * (1 / 10), self.size[1] * ((5 * i - 4) / 25))])
                 i += 1
             else:
                 text = rf.TextRect(self.screen, "COM" + str(i), 20, c.BLACK)
                 player_names.append(
                     [text, (self.size[0] * (1 / 10), self.size[1] * ((5 * i - 4) / 25))])
                 i += 1
-            
+
         return player_names
-    
-
-
-
-    
-  
-
-    
-
-    
-
-
