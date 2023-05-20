@@ -42,15 +42,24 @@ class Card(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = self.position
 
-    # def animation(self, dest_loc):
-    #     x, y = self.position
-    #     vx, vy = (dest_loc[0] - x, dest_loc[1] - y)
-    #     vx, vy = (x / (x ** 2 + y ** 2) ** 0.5, y / (x ** 2 + y ** 2) ** 0.5)
+    def animate(self, dest_loc):
+        x, y = self.position
+        vx, vy = (x / (x ** 2 + y ** 2) ** 0.5, y / (x ** 2 + y ** 2) ** 0.5)
 
-    #     speed = 10
+        speed = 20
 
-    #     x = x + speed * vx
-    #     y = y + speed * vy
+        if x >= dest_loc[0] and y >= dest_loc[1]:
+            x = x - speed * vx
+            y = y - speed * vy
+        elif x >= dest_loc[0] and y < dest_loc[1]:
+            x = x - speed * vx
+            y = y + speed * vy
+        elif x < dest_loc[0] and y >= dest_loc[1]:
+            x = x + speed * vx
+            y = y - speed * vy
+        elif x < dest_loc[0] and y < dest_loc[1]:
+            x = x + speed * vx
+            y = y + speed * vy
 
         x = x + vx / 100
         y = y + vy / 100

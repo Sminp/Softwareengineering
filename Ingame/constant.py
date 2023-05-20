@@ -77,9 +77,12 @@ AMERICA_BUTTON = "./image/map_image/america.png"
 MACAU_BUTTON = "./image/map_image/macau.png"
 SINGAPORE_BUTTON = "./image/map_image/singapore.png"
 KOREA_BUTTON = "./image/map_image/korea.png"
+LOCK_MACAU_BUTTON = "./image/map_image/lock_macau.png"
+LOCK_SINGAPORE_BUTTON = "./image/map_image/lock_singapore.png"
+LOCK_KOREA_BUTTON = "./image/map_image/lock_korea.png"
 
 STORYMODE_MENU_BUTTONS = [AMERICA_BUTTON,
-                          MACAU_BUTTON, SINGAPORE_BUTTON, KOREA_BUTTON]
+                          [MACAU_BUTTON, LOCK_MACAU_BUTTON], [SINGAPORE_BUTTON,LOCK_SINGAPORE_BUTTON],[KOREA_BUTTON, LOCK_KOREA_BUTTON]]
 
 YES_BUTTON = "./image/map_image/story_yes.jpg"
 NO_BUTTON = "./image/map_image/story_no.jpg"

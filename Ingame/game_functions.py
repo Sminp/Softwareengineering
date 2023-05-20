@@ -19,7 +19,8 @@ class Game():
     def __init__(self, player_num=2, difficulty=1, user_name="ME"):  # 초기값 임시로 설정 - 지우기
         self.player_num = player_num
         self.difficulty = difficulty
-        self.settings = s.Settings().get_setting()
+        self.setting = s.Settings()
+        self.settings = self.setting.get_setting()
         self.screen = pygame.display.set_mode(
             (self.settings['screen']), flags=self.settings['fullscreen'])
         self.size = self.settings['screen']
@@ -167,6 +168,7 @@ class Game():
                 turn = now_turn + 1
             elif self.rotate == 1:
                 turn = now_turn - 1
+        print("turn : ", turn)
         return turn
 
     # 지금 현재 턴인 플레이어 표시
@@ -207,7 +209,6 @@ class Game():
             self.animation_group = None
         self.uno_button.show()
         self.show_now_turn(self.now_turn)
-        self.waste.draw_group.draw(self.screen)
 
     def draw_color_rect(self):
         rect_pos = (self.size[0] * (3 / 4), self.size[1]
@@ -783,6 +784,7 @@ class Game():
                                                     2 - 200, self.size[1] / 3 - 100, 400, 400))
             pygame.draw.rect(self.screen, c.BLACK, (self.size[0] / 2 - 200, self.size[1] / 3 - 100, 400, 400),
                              5)
+            # t.text_format 수정 필요
             close_text = t.text_format("PAUSE", c.MALGUNGOTHIC, 60, c.BLACK)
             close_text_rect = close_text.get_rect(
                 center=(self.size[0] / 2, self.size[1] / 3))
@@ -815,57 +817,57 @@ class Game():
                         if (end_time - start_time) > com_time:
                             if self.now_turn == 0:  # 유저 턴일 때
                                 print("느리게 누름!")
-                                uno_text = t.text_format(
-                                    "uno", c.BERLIN, 30, (0, 0, 0))
-                                self.screen.blit(uno_text, (45, 100))
+                                # uno_text = t.text_format(
+                                #     "uno", c.BERLIN, 30, (0, 0, 0))
+                                # self.screen.blit(uno_text, (45, 100))
                                 self.get_from_deck(self.now_turn)
-                                self.now_turn = self.get_next_player(
-                                    self.now_turn)
+                                # self.now_turn = self.get_next_player(
+                                #     self.now_turn)
                                 self.first = False
                                 uno = False
                             else:  # 컴퓨터 턴일때 유저가 느리게 누름
                                 print("유저가 느리게 누름")
-                                self.now_turn = self.get_next_player(
-                                    self.now_turn)
+                                # self.now_turn = self.get_next_player(
+                                #     self.now_turn)
                                 self.first = False
                                 uno = False
                         else:
                             if self.now_turn == 0:  # 유저 턴일 때
                                 print("빠르게 누름!")
-                                self.now_turn = self.get_next_player(
-                                    self.now_turn)
+                                # self.now_turn = self.get_next_player(
+                                #     self.now_turn)
                                 self.first = False
                                 uno = False
                             else:  # 컴퓨터 턴일 때 유저가 빠르게 누름
                                 print("유저가 빠르게 누름!")
                                 self.get_from_deck(self.now_turn)
-                                self.now_turn = self.get_next_player(
-                                    self.now_turn)
+                                # self.now_turn = self.get_next_player(
+                                #     self.now_turn)
                                 self.first = False
                                 uno = False
             if (time.time() - start_time) > 3:
                 if self.now_turn == 0:  # 그냥 버튼 안누르고 있을 때 5초 지나면 한 장 먹음
                     print("컴퓨터가 누름")
                     self.get_from_deck(self.now_turn)
-                    self.now_turn = self.get_next_player(self.now_turn)
+                    # self.now_turn = self.get_next_player(self.now_turn)
                     self.first = False
                     uno = False
                 else:  # 이건 컴퓨터가 1장 남았을 때 유저가 버튼을 안 누르고 있는 경우
                     if self.player_num == 2:  # 유저랑 컴퓨터 1명만 있는 경우 컴퓨터가 uno버튼 누른걸로 판단
                         print("컴퓨터가 누름")
-                        self.now_turn = self.get_next_player(self.now_turn)
+                        # self.now_turn = self.get_next_player(self.now_turn)
                         self.first = False
                         uno = False
                     else:  # 다른 컴퓨터랑 경쟁
                         com_time = random.randint(0, 1)  # 그냥 0,1로 했어요.
                         if com_time == 1:  # 빠르게 누른 경우
                             print("컴퓨터가 누름")
-                            self.now_turn = self.get_next_player(self.now_turn)
+                            # self.now_turn = self.get_next_player(self.now_turn)
                             uno = False
                         else:  # 느리게 누른 경우 - 카드 뽑음
                             print("컴퓨터가 못 누름")
                             self.get_from_deck(self.now_turn)
-                            self.now_turn = self.get_next_player(self.now_turn)
+                            # self.now_turn = self.get_next_player(self.now_turn)
                             uno = False
             pygame.display.update()
 
@@ -1013,6 +1015,12 @@ class GameB(Game):
             self.print_window()
             pygame.display.update()
 
+    def restart(self):
+        if len(self.player[0].group) == 0:
+            self.settings['achievement']['storyb_win'] = True
+            self.setting.change_setting(self.settings)
+        return super().restart()
+
 
 class GameC(Game):
     def __init__(self, player_num=3, difficulty=4, user_name="ME"):
@@ -1042,6 +1050,12 @@ class GameC(Game):
             random_name = colors[random.randint(0, 3)]
             self.waste.updating(random_name)
             self.print_window()
+
+    def restart(self):
+        if len(self.player[0].group) == 0:
+            self.settings['achievement']['storyc_win'] = True
+            self.setting.change_setting(self.settings)
+        return super().restart()
 
 
 class GameD(Game):
@@ -1085,4 +1099,9 @@ class GameD(Game):
                     return True
             else:
                 return True
-        return False
+
+    def restart(self):
+        if len(self.player[0].group) == 0:
+            self.settings['achievement']['storyd_win'] = True
+            self.setting.change_setting(self.settings)
+        return super().restart()

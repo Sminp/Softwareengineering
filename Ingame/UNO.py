@@ -325,7 +325,7 @@ class TitleMenu(UNOGame):
                 elif self.button_li[2].get_rect().collidepoint(event.pos):
                     StoryMode().menu()
                 elif self.button_li[3].get_rect().collidepoint(event.pos):
-                    AchievementsScreen().menu()
+                    AchievementScreen().menu()
                 elif self.button_li[4].get_rect().collidepoint(event.pos):
                     SettingScreen().menu()
                 elif self.button_li[5].get_rect().collidepoint(event.pos):
@@ -687,17 +687,44 @@ class StoryMode(UNOGame):
             (self.settings['screen']), flags=self.settings['fullscreen'])
         self.width = self.settings['screen'][0] * (1 / 5)
         self.height = self.settings['screen'][1] * (1 / 5)
+        self.storywin = [self.settings['achievement']['storya_win'], self.settings['achievement']['storyb_win'],
+                         self.settings['achievement']['storyc_win'], self.settings['achievement']['storyd_win']]
         self.button_li, self.text = self.object_init()
 
     def object_init(self):
         i = 1
+        j = 0
         button_li = []
         for button in c.STORYMODE_MENU_BUTTONS:
-            button = rf.Button(self.screen, self.settings['screen'][0] * (i / 40), self.settings['screen'][1] * (2 / 5),
-                               button,
-                               self.width, self.height)
+            if j == 0:
+                button = rf.Button(self.screen, self.settings['screen'][0] * (i / 40), self.settings['screen'][1] * (2 / 5),
+                                   button,
+                                   self.width, self.height)
+                button.lock = False
+            else:
+                if self.storywin[j-1] == False:
+                    button = rf.Button(self.screen, self.settings['screen'][0] * (i / 40), self.settings['screen'][1] * (2 / 5),
+                                       button[1],
+                                       self.width, self.height)
+                    button.lock = True
+                else:
+                    print(button[0])
+                    button = rf.Button(self.screen, self.settings['screen'][0] * (i / 40), self.settings['screen'][1] * (2 / 5),
+                                       button[0],
+                                       self.width, self.height)
+                    button.lock = False
+
             button_li.append(button)
+            j += 1
             i += 10 if i != 1 else i * 10
+
+        # for button in c.STORYMODE_MENU_BUTTONS:
+        #     button = rf.Button(self.screen, self.settings['screen'][0] * (i / 40), self.settings['screen'][1] * (2 / 5),
+        #                        button,
+        #                        self.width, self.height)
+        #     button_li.append(button)
+        #     i += 10 if i != 1 else i * 10
+
         text = rf.TextRect(self.screen, "STORY MODE", 50, c.WHITE)
         return button_li, text
 
@@ -719,18 +746,19 @@ class StoryMode(UNOGame):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 for i in range(len(self.button_li)):
                     if self.button_li[i].get_rect().collidepoint(event.pos):
-                        if i == 0:
-                            ask_popup = YesNoStory(2, 2, gf.GameA)
-                            ask_popup.menu()
-                        elif i == 1:
-                            ask_popup = YesNoStory(4, 3, gf.GameB)
-                            ask_popup.menu()
-                        elif i == 2:
-                            ask_popup = YesNoStory(3, 4, gf.GameC)
-                            ask_popup.menu()
-                        else:
-                            ask_popup = YesNoStory(3, 5, gf.GameD)
-                            ask_popup.menu()
+                        if self.button_li[i].lock == False:
+                            if i == 0:
+                                ask_popup = YesNoStory(2, 2, gf.GameA)
+                                ask_popup.menu()
+                            elif i == 1:
+                                ask_popup = YesNoStory(4, 3, gf.GameB)
+                                ask_popup.menu()
+                            elif i == 2:
+                                ask_popup = YesNoStory(3, 4, gf.GameC)
+                                ask_popup.menu()
+                            else:
+                                ask_popup = YesNoStory(3, 5, gf.GameD)
+                                ask_popup.menu()
 
     def menu(self):
         self.sound()
@@ -770,7 +798,7 @@ class YesNo(UnoGame):
         self.yes_no = True
         self.ask_text = ask_text
         self.width = self.settings['screen'][0] * (3 / 7)
-        self.height = self.settings['screen'][1] * (2 / 5)
+        self.height = self.settings['screen'][1] * (3 / 5)
         self.button_li, self.text = self.object_init()
         self.y = False
 
@@ -781,7 +809,7 @@ class YesNo(UnoGame):
             button = rf.Button(self.screen, self.width,
                                self.height + i, button, 100, 50)
             button_li.append(button)
-            i += 100
+            i += 70
         text = rf.TextRect(self.screen, self.ask_text, 20, c.BLACK)
         return button_li, text
 
@@ -791,7 +819,7 @@ class YesNo(UnoGame):
         for button in self.button_li:
             button.show()
         self.text.show(
-            (self.settings['screen'][0] / 2, self.settings['screen'][1] / 3))
+            (self.settings['screen'][0] / 2, self.settings['screen'][1] / 4))
 
     def handle_event(self):
         for event in pygame.event.get():
@@ -815,10 +843,33 @@ class YesNo(UnoGame):
 
 class YesNoStory(YesNo):
     def __init__(self, player_num, difficulty, class_name):
-        super().__init__()
+        if difficulty == 2:
+            self.info = ["A 지역을 선택하시겠습니까?", "첫 분배시 컴퓨터에게 기술 카드를",
+                         "50% 더 높은 확률로 지급합니다.", "컴퓨터 플레이어가 콤보를 사용합니다.", "인원수 : 2"]
+        elif difficulty == 3:
+            self.info = ["B 지역을 선택하시겠습니까?", "첫 카드를 제외하고 모든 카드를 같은 ",
+                         "수만큼 모든 플레이어들에게 분배합니다.", "인원수 : 4"]
+        elif difficulty == 4:
+            self.info = ["C 지역을 선택하시겠습니까?", "매 5턴마다 낼 수 있는 카드의",
+                         "색상이 무작위로 변경됩니다.", "인원수 : 3"]
+        else:
+            self.info = ["D 지역을 선택하시겠습니까?", "현재 카드의 배수나 약수의 값을 ",
+                         "가지는 카드만 낼 수 있습니다.", "인원수 : 3"]
+        super().__init__(self.info[0])
         self.player_num = player_num
         self.difficulty = difficulty
         self.class_name = class_name
+
+        self.info_list = []
+        for i in range(1, len(self.info)):
+            self.info_list.append(rf.TextRect(
+                self.screen, self.info[i], 20, c.BLACK))
+
+    def object_show(self):
+        super().object_show()
+        for i in range(len(self.info_list)):
+            self.info_list[i].show(
+                (self.settings['screen'][0] / 2, self.settings['screen'][1] / 3 + 40 * i))
 
     def handle_event(self):
         for event in pygame.event.get():
@@ -876,11 +927,10 @@ class SelectRole(UnoGame):
 
             # 버튼 클릭 이벤트 처리
             elif event.type == gf.MOUSEBUTTONDOWN:
-                mouse_pos = pygame.mouse.get_pos()
-                if self.button_li[0].get_rect().collidepoint(mouse_pos):
+                if self.button_li[0].get_rect().collidepoint(event.pos):
                     ServerScreen().menu()
                     # 비번 설정, 로비화면으로 넘어감
-                elif self.button_li[1].get_rect().collidepoint(mouse_pos):
+                elif self.button_li[1].get_rect().collidepoint(event.pos):
                     ClientScreen().menu()
                     pass  # 접속할 게임의 IP주소를 입력하는 창으로 넘어감
 
@@ -1091,8 +1141,6 @@ class AchievementScreen(UNOGame):
         # first_play = pygame.image.load(FIRST_PLAY)
         # card_collector = pygame.image.load(CARD_COLLECTOR)
         # skill_master = pygame.image.load(SKILL_MASTER)
-
-        return achievement_li, close_button
 
     def object_show(self):
         self.close_button.show()

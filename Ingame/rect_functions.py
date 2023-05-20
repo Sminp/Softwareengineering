@@ -54,7 +54,7 @@ class Button():
         self.height = height
         self.position = (x, y)
         self.highlighted = False
-
+        self.lock = False
         self.img = pygame.transform.scale(
             pygame.image.load(s.resource_path(img)), [width, height])
         self.rect = self.img.get_rect()
