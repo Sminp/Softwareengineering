@@ -1,7 +1,6 @@
 import sys
 import random
 import pygame
-import math
 from loadcard import Card, Popup
 import computer
 from pygame.locals import *
@@ -450,8 +449,8 @@ class Game():
         for i in range(0, card_num):
             self.get_from_deck(dest_player)
 
-    # t.text_format 함수 없애야 함 
-    def restart(self): 
+    # t.text_format 함수 없애야 함
+    def restart(self):
         pass
         # # pygame.mixer.pre_init(44100, -16, 1, 512)
         # # win = pygame.mixer.Sound('./sound/win.wav')
@@ -497,33 +496,6 @@ class Game():
         for i in range(self.player_num):
             if len(self.player[i].card) == 0:
                 self.restart()
-
-        # if len(self.player[0].card) == 0:
-        #     self.restart()
-        #     return
-        # elif self.player_num == 6:
-        #     if len(self.player[1].card) == 0 or len(self.player[2].card) == 0 or len(
-        #             self.player[3].card) == 0 or len(
-        #         self.player[4].card) == 0 or len(self.player[5].card) == 0:
-        #         self.restart()
-        #         return
-        # elif self.player_num == 5:
-        #     if len(self.player[1].card) == 0 or len(self.player[2].card) == 0 or len(
-        #             self.player[3].card) == 0 or len(self.player[4].card) == 0:
-        #         self.restart()
-        #         return
-        # elif self.player_num == 4:
-        #     if len(self.player[1].card) == 0 or len(self.player[2].card) == 0 or len(self.player[3].card) == 0:
-        #         self.restart()
-        #         return
-        # elif self.player_num == 3:
-        #     if len(self.player[1].card) == 0 or len(self.player[2].card) == 0:
-        #         self.restart()
-        #         return
-        # elif self.player_num == 2:
-        #     if len(self.player[1].card) == 0:
-        #         self.restart()
-        #         return
 
     def selected_turn(self):
         return random.randint(0, self.player_num - 1)
@@ -695,7 +667,8 @@ class Game():
                     # self.show_now_turn(self.now_turn)
                     for sprite in self.player[0].group:
                         if sprite.get_rect().collidepoint(event.pos) and self.check_card(sprite):
-                            self.set_animation(sprite.get_name(), sprite.getposition())
+                            self.set_animation(
+                                sprite.get_name(), sprite.getposition())
                             # pygame.mixer.pre_init(44100, -16, 1, 512)
                             # card = pygame.mixer.Sound('./sound/deal_card.wav')
                             self.player[0].remove(sprite)
@@ -896,6 +869,7 @@ class Game():
                             uno = False
             pygame.display.update()
 
+
 class GameA(Game):
     def __init__(self, player_num=2, difficulty=2, user_name="ME"):
         super().__init__()
@@ -928,9 +902,10 @@ class GameA(Game):
             temp = self.card_deck.pop()
             self.player[0].append(temp)
 
+
 class GameWithA(GameA):
     def __init__(self, user_name, player_list):
-        super().__init__(player_num=len(player_list),user_name=user_name)
+        super().__init__(player_num=len(player_list), user_name=user_name)
         self.player_num = len(player_list)
         self.player_list = player_list
 
@@ -939,7 +914,7 @@ class GameWithA(GameA):
         skill_card = self.card_deck[76:]
         random.shuffle(num_card)
         random.shuffle(skill_card)
-        for index,name in enumerate(self.player_list):
+        for index, name in enumerate(self.player_list):
             if name.split(' ')[0] == 'comA':
                 card = []
                 for _ in range(0, 7):
@@ -952,8 +927,8 @@ class GameWithA(GameA):
         card_deck = num_card + skill_card
         del num_card, skill_card
         return card_deck
-    
-    def set_name(self): 
+
+    def set_name(self):
         player_names = []
         text = rf.TextRect(self.screen, self.user_name, 30, c.WHITE)
         player_names.append(
@@ -961,13 +936,15 @@ class GameWithA(GameA):
         for index, name in enumerate(self.player_list):
             if index != 0:
                 if name.split(' ')[0] == 'comA':
-                    text = rf.TextRect(self.screen, "COM_A" + str(index), 20, c.BLACK)
+                    text = rf.TextRect(
+                        self.screen, "COM_A" + str(index), 20, c.BLACK)
                     player_names.append(
-                    [text, (self.size[0] * (1 / 10), self.size[1] * ((5 * index - 4) / 25))])
-                else: 
-                    text = rf.TextRect(self.screen, "COM" + str(index), 20, c.BLACK)
+                        [text, (self.size[0] * (1 / 10), self.size[1] * ((5 * index - 4) / 25))])
+                else:
+                    text = rf.TextRect(self.screen, "COM" +
+                                       str(index), 20, c.BLACK)
                     player_names.append(
-                    [text, (self.size[0] * (1 / 10), self.size[1] * ((5 * index - 4) / 25))])
+                        [text, (self.size[0] * (1 / 10), self.size[1] * ((5 * index - 4) / 25))])
         return player_names
 
     def hand_out_deck(self):
@@ -981,7 +958,6 @@ class GameWithA(GameA):
                 for _ in range(7):
                     temp = self.card_deck.pop()
                     self.player[index].append(temp)
-
 
 
 class GameB(Game):
