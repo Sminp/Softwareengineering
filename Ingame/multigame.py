@@ -89,7 +89,7 @@ class MutiGame():
         return random.randint(0, self.player_num - 1)
     
     def card_change(self, now_turn, pick_turn):
-        temp_player = self.player[now_turn]
+        temp_player = self.player[now_turn][:]
         self.player[now_turn].clear()
         for item in self.player[pick_turn]:
             self.player[now_turn].append(item)
