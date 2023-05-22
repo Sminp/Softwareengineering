@@ -39,6 +39,9 @@ class Game():
         self.animate_card = None
         self.animation_group = None
 
+        self.card_limit = [self.size[1] * (7 / 9), self.size[1] * (7 / 9) + self.size[1] / 10, self.size[1] * (
+            7 / 9) + self.size[1] * 2 / 10, self.size[1] * (7 / 9) + self.size[1] * 3 / 10]
+
         self.uno_button = rf.Button(self.screen, self.size[0] * (3 / 4), self.size[1] * (1 / 3),
                                     c.UNO_BUTTON, self.size[1] * (1 / 20),
                                     self.size[1] * (1 / 20))
@@ -602,8 +605,6 @@ class Game():
             self.print_window()
             pygame.display.update()
 
-        # self.animate()
-
     def user_play(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -661,12 +662,67 @@ class Game():
                                 if selected > len(self.player[0]) - 1:
                                     selected = len(self.player[0]) - 1
                                 break
+            for sprite in self.player[0].draw_group:
+                card_pos = sprite.getposition()
+                if sprite.get_rect().collidepoint(pygame.mouse.get_pos()):
+                    index = self.player[0].draw_group.sprites().index(sprite)
+                    card = self.player[0].draw_group.sprites()[index]
+                    if index >= 21:
+                        if card.position[1] == self.card_limit[3]:
+                            self.player[0].draw_group.sprites()[index].setposition(
+                                card.position[0], card.position[1] - 20)
+                    elif index >= 14:
+                        if card.position[1] == self.card_limit[2]:
+                            self.player[0].draw_group.sprites()[index].setposition(
+                                card.position[0], card.position[1] - 20)
+                    elif index >= 7:
+                        if card.position[1] == self.card_limit[1]:
+                            self.player[0].draw_group.sprites()[index].setposition(
+                                card.position[0], card.position[1] - 20)
+                    else:
+                        if card.position[1] == self.card_limit[0]:
+                            self.player[0].draw_group.sprites()[index].setposition(
+                                card.position[0], card.position[1] - 20)
+
+                    # if card.position[1] == self.card_limit[0]:
+                    #     self.player[0].draw_group.sprites()[index].setposition(card.position[0], card.position[1] - 20)
+                else:
+                    index = self.player[0].draw_group.sprites().index(sprite)
+                    card = self.player[0].draw_group.sprites()[index]
+                    if index >= 21:
+                        self.player[0].draw_group.sprites()[index].setposition(
+                            card.position[0], self.card_limit[3])
+                    elif index >= 14:
+                        self.player[0].draw_group.sprites()[index].setposition(
+                            card.position[0], self.card_limit[2])
+                    elif index >= 7:
+                        self.player[0].draw_group.sprites()[index].setposition(
+                            card.position[0], self.card_limit[1])
+                    else:
+                        self.player[0].draw_group.sprites()[index].setposition(
+                            card.position[0], self.card_limit[0])
+
             if event.type == MOUSEBUTTONUP:
                 select_sound = pygame.mixer.Sound('./sound/card_sound.mp3')
                 select_sound.play()
                 if self.now_turn == 0:
                     # self.show_now_turn(self.now_turn)
                     for sprite in self.player[0].group:
+                        index = self.player[0].group.index(sprite)
+                        # index = self.player[0].draw_group.sprites().index(sprite)
+                        card = self.player[0].draw_group.sprites()[index]
+                        if index >= 21:
+                            self.player[0].draw_group.sprites()[index].setposition(
+                                card.position[0], self.card_limit[3])
+                        elif index >= 14:
+                            self.player[0].draw_group.sprites()[index].setposition(
+                                card.position[0], self.card_limit[2])
+                        elif index >= 7:
+                            self.player[0].draw_group.sprites()[index].setposition(
+                                card.position[0], self.card_limit[1])
+                        else:
+                            self.player[0].draw_group.sprites()[index].setposition(
+                                card.position[0], self.card_limit[0])
                         if sprite.get_rect().collidepoint(event.pos) and self.check_card(sprite):
                             self.set_animation(
                                 sprite.get_name(), sprite.getposition())
@@ -770,7 +826,7 @@ class Game():
                     if achievement_button.get_rect().collidepoint(event.pos):
                         pass
                     elif setting_button.get_rect().collidepoint(event.pos):
-                        pass
+                        SettingScreen().menu()
                     elif exit_button.get_rect().collidepoint(event.pos):
                         pygame.quit()
                         sys.exit()
@@ -785,18 +841,17 @@ class Game():
             pygame.draw.rect(self.screen, c.BLACK, (self.size[0] / 2 - 200, self.size[1] / 3 - 100, 400, 400),
                              5)
             # t.text_format 수정 필요
-            close_text = t.text_format("PAUSE", c.MALGUNGOTHIC, 60, c.BLACK)
-            close_text_rect = close_text.get_rect(
-                center=(self.size[0] / 2, self.size[1] / 3))
-            achievement_button = rf.Button(self.screen, self.size[0] * (3 / 7), self.size[1] * (2 / 5) - 100,
-                                           "./image/playing_image/pause_achv.jpg", 200, 100)
-            setting_button = rf.Button(self.screen, self.size[0] * (3 / 7), self.size[1] * (2 / 5),
-                                       "./image/playing_image/pause_setting.jpg", 200, 100)
-            exit_button = rf.Button(self.screen, self.size[0] * (3 / 7), self.size[1] * (2 / 5) + 100,
-                                    "./image/playing_image/pause_end.jpg", 200, 100)
-            setting_button.show_button()
-            exit_button.show_button()
-            self.screen.blit(close_text, close_text_rect)
+            close_text = rf.TextRect(self.screen, "PAUSE", 60, c.BLACK)
+            close_text.show((self.size[0] / 2, self.size[1] / 3))
+            achievement_button = rf.Button(self.screen, self.size[0] * (4 / 9), self.size[1] * (1 / 2) - 70,
+                                           "./image/playing_image/pause_achv.jpg", 100, 50)
+            setting_button = rf.Button(self.screen, self.size[0] * (4 / 9), self.size[1] * (1 / 2),
+                                       "./image/playing_image/pause_setting.jpg", 100, 50)
+            exit_button = rf.Button(self.screen, self.size[0] * (4 / 9), self.size[1] * (1 / 2) + 70,
+                                    "./image/playing_image/pause_end.jpg", 100, 50)
+            achievement_button.show()
+            setting_button.show()
+            exit_button.show()
 
             pygame.display.update()
 
@@ -1105,3 +1160,330 @@ class GameD(Game):
             self.settings['achievement']['storyd_win'] = True
             self.setting.change_setting(self.settings)
         return super().restart()
+
+
+class SettingScreen():
+    def __init__(self):
+        self.setting = s.Settings()
+        self.settings = self.setting.get_setting()
+        self.screen = pygame.display.set_mode(
+            (self.settings['screen']), flags=self.settings['fullscreen'])
+
+        self.button_li, self.slider_li, self.rect = self.object_init()
+        self.setting_text = rf.TextRect(self.screen, "SETTING", 35, c.WHITE)
+        self.screen_setting_text = rf.TextRect(
+            self.screen, "화면 크기", 20, c.BLACK)
+        self.volume = 0.0
+        self.setting_run = True
+
+    def object_init(self):
+        i = 3
+        button_li = []
+        for button in c.SIZE_BUTTONS:
+            button = rf.Button(self.screen, self.settings['screen'][0] * (i / 10), self.settings['screen'][1] * (1 / 2),
+                               button, 100, 50)
+            button_li.append(button)
+            i += 2
+
+        # self.settings['screen'][0] 이렇게 접근하는 거 너무 길지 않나?
+        close_button = rf.Button(self.screen, self.settings['screen'][0] * (
+            5 / 6), self.settings['screen'][1] * (3 / 11), c.SETTING_CLOSE_BUTTON, 20, 20)
+        key_button = rf.Button(self.screen, self.settings['screen'][0] * (
+            1 / 8), self.settings['screen'][1] * (7 / 11), c.SETTING_KEY_BUTTON, 100, 50)
+        init_button = rf.Button(self.screen, self.settings['screen'][0] * (
+            1 / 8), self.settings['screen'][1] * (6 / 8), c.SETTING_INIT_BUTTON, 100, 50)
+        save_button = rf.Button(self.screen, self.settings['screen'][0] * (
+            8 / 11), self.settings['screen'][1] * (6 / 8), c.SETTING_SAVE_BUTTON, 100, 50)
+        settingcolor_button = rf.Button(self.screen, self.settings['screen'][0] * (
+            8 / 11), self.settings['screen'][1] * (7 / 11), c.SETTING_RECT, 100, 50)
+        buttons = [close_button, key_button, init_button,
+                   save_button, settingcolor_button]
+
+        for button in buttons:
+            button_li.append(button)
+
+        j = 6
+        sliders_li = []
+        for text in c.SLIDER_TEXT:
+            slider = rf.Slider(self.screen, text, self.settings['screen'][0] / 2, (self.settings['screen'][0] * (
+                3 / 10), self.settings['screen'][1] * (j / 20)), (0, 100))
+            sliders_li.append(slider)
+            j += 1.5
+
+        rect = pygame.Rect(
+            self.settings['screen'][0] * (8 / 11), self.settings['screen'][1] * (7 / 11), 50, 50)
+
+        return button_li, sliders_li, rect
+
+    def object_show(self):
+        pygame.draw.rect(self.screen, c.WHITE, (
+            self.settings['screen'][0] * (1 / 9), self.settings['screen'][1] * (
+                2 / 8), self.settings['screen'][0] * (7 / 9),
+            self.settings['screen'][1] * (6 / 10)))
+
+        self.setting_text.show(
+            (self.settings['screen'][0] * (1 / 5), self.settings['screen'][1] * (1 / 6)))
+        self.screen_setting_text.show(
+            (self.settings['screen'][0] * (1 / 5), self.settings['screen'][1] * (6 / 11)))
+
+        for button in self.button_li:
+            button.show()
+
+        i = 6
+        for slider in self.slider_li:
+            slider.show()
+            slider.show_value(
+                (self.settings['screen'][0] * (1 / 5), self.settings['screen'][1] * (i / 20)))
+            i += 1.5
+
+        pygame.draw.rect(self.screen, c.BLACK, self.rect)
+
+    def sound(self):
+        pass
+
+    def calculate_volume(self):
+        # 슬라이더 값을 기반으로 음량을 계산
+        total_value = 0
+        for slider in self.slider_li:
+            total_value += slider.value
+        average_value = total_value / len(self.slider_li)
+        if average_value == 0:
+            volume = 0  # 음량을 0으로 설정
+        else:
+            volume_percentage = average_value / 100  # 음량의 비율 계산
+            volume = volume_percentage * 1  # 최대 음량 설정
+
+        return volume
+
+    def set_volume(self):
+        volume = self.calculate_volume()
+        pygame.mixer.music.set_volume(volume)
+
+    def handle_event(self):
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+
+            for slider in self.slider_li:
+                slider.operate(event)
+                if event.type == pygame.MOUSEBUTTONUP:
+                    self.volume = self.calculate_volume()
+                    self.set_volume()
+
+            # 키보드 버튼
+            if event.type == pygame.KEYDOWN:
+                if event.key == self.keys["left"]:
+                    # sound.play()
+                    if selected <= 1:
+                        selected = 1
+                    else:
+                        selected = selected - 1
+                elif event.key == self.keys["right"]:
+                    # sound.play()
+                    if selected >= 3:
+                        selected = 3
+                    else:
+                        selected = selected + 1
+                if event.key == self.keys["click"]:
+                    if selected <= 1:
+                        # 버튼 입력 후 시작 함수 실행 - 해결하면 지우기
+                        pass
+                    if selected == 2:
+                        # 버튼 입력 후 설정 함수 실행 - 해결하면 지우기
+                        pass
+                    if selected >= 3:
+                        # 버튼 입력 후 시작 함수 실행 - 해결하면 지우기
+                        pass
+
+            if event.type == pygame.MOUSEBUTTONUP:
+                if self.button_li[0].get_rect().collidepoint(event.pos):
+                    self.settings['fullscreen'] = pygame.FULLSCREEN
+                    self.screen = pygame.display.set_mode(
+                        (self.settings['screen']), flags=self.settings['fullscreen'])
+                elif self.button_li[1].get_rect().collidepoint(event.pos):
+                    # 테스트 할려고 화면 크기 임시로 정함 -> 나중에 수정
+                    self.settings['screen'][0] = 1280
+                    self.settings['screen'][1] = 720
+                    self.screen = pygame.display.set_mode(
+                        (self.settings['screen']), flags=self.settings['fullscreen'])
+                    self.button_li, self.slider_li, self.rect = self.object_init()
+
+                elif self.button_li[2].get_rect().collidepoint(event.pos):
+                    # 테스트 할려고 화면 크기 임시로 정함 -> 나중에 수정
+                    self.settings['screen'][0] = 800
+                    self.settings['screen'][1] = 600
+                    self.screen = pygame.display.set_mode(
+                        (self.settings['screen']), flags=self.settings['fullscreen'])
+                    self.button_li, self.slider_li, self.rect = self.object_init()
+
+                elif self.button_li[3].get_rect().collidepoint(event.pos):
+                    self.setting_run = False
+
+                elif self.button_li[4].get_rect().collidepoint(event.pos):
+                    self.key_select_screen()  # 키보드 설정 함수 실행
+                elif self.button_li[5].get_rect().collidepoint(event.pos):
+                    self.setting.init_setting()
+                elif self.button_li[6].get_rect().collidepoint(event.pos):
+                    self.setting.change_setting(self.settings)  # 현재 값을 파일에 저장
+
+                elif self.rect.collidepoint(event.pos):
+                    if self.rect.x == int(self.settings['screen'][0] * (8 / 11)):
+                        self.rect.x += 50
+                        self.settings['setting_color'] = True
+                    elif self.rect.x == int(self.settings['screen'][0] * (8 / 11)) + 50:
+                        self.rect.x -= 50
+                        self.settings['setting_color'] = False
+
+    def bg_img_load(self, filename: str) -> object:
+        bg_img = pygame.image.load(s.resource_path(filename))
+        bg_img = pygame.transform.scale(bg_img,
+                                        (self.settings['screen']))
+        return self.screen.blit(bg_img, (0, 0))
+
+    def key_select_screen(self):
+        key_select = True
+        self.bg_img_load("./image/setting_image/settingbackground.jpg")
+        close_button = rf.Button(self.screen, self.settings['screen'][0] * (5 / 6), self.settings['screen'][1] * (3 / 11),
+                                 c.SETTING_CLOSE_BUTTON, 20, 20)
+        save_button = rf.Button(self.screen, self.settings['screen'][0] * (8 / 11), self.settings['screen'][1] * (6 / 8),
+                                c.SETTING_SAVE_BUTTON, 100, 50)
+
+        pygame.draw.rect(self.screen, c.WHITE, (
+            self.settings['screen'][0] *
+            (1 / 9), self.settings['screen'][1] * (2 / 8),
+            self.settings['screen'][0] * (7 / 9),
+            self.settings['screen'][1] * (6 / 10)))
+
+        while key_select:
+
+            self.up_text.show(
+                (self.settings['screen'][0] * (2 / 5), self.settings['screen'][1] * (6 / 18)))
+            self.down_text.show(
+                (self.settings['screen'][0] * (2 / 5), self.settings['screen'][1] * (8 / 18)))
+            self.left_text.show(
+                (self.settings['screen'][0] * (2 / 5), self.settings['screen'][1] * (10 / 18)))
+            self.right_text.show(
+                (self.settings['screen'][0] * (2 / 5), self.settings['screen'][1] * (12 / 18)))
+            self.click_text.show(
+                (self.settings['screen'][0] * (2 / 5), self.settings['screen'][1] * (14 / 18)))
+
+            self.key_setting_text.show(
+                (self.settings['screen'][0] * (1 / 4), self.settings['screen'][1] * (1 / 6)))
+            self.move_up_text.show(
+                (self.settings['screen'][0] * (3 / 5), self.settings['screen'][1] * (6 / 18)))
+            self.move_down_text.show(
+                (self.settings['screen'][0] * (3 / 5), self.settings['screen'][1] * (8 / 18)))
+            self.move_left_text.show(
+                (self.settings['screen'][0] * (3 / 5), self.settings['screen'][1] * (10 / 18)))
+            self.move_right_text.show(
+                (self.settings['screen'][0] * (3 / 5), self.settings['screen'][1] * (12 / 18)))
+            self.move_click_text.show(
+                (self.settings['screen'][0] * (3 / 5), self.settings['screen'][1] * (14 / 18)))
+
+            close_button.show()
+            save_button.show()
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    terminate()
+
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if self.move_up_text.rect.collidepoint(event.pos):
+                        key_change = True
+                        while key_change:
+                            event = pygame.event.wait()
+                            if event.type == pygame.KEYDOWN:
+                                key = event.key
+                                print(key)
+                                self.keys["up"] = key
+                                print(self.keys)
+                                self.move_up = event.unicode
+                                pygame.draw.rect(
+                                    self.screen, c.WHITE, self.move_up_text.rect)
+                                self.move_up_text.change_text_surface(
+                                    self.move_up)
+                                key_change = False
+
+                    elif self.move_down_text.rect.collidepoint(event.pos):
+                        key_change = True
+                        while key_change:
+                            event = pygame.event.wait()
+                            if event.type == pygame.KEYDOWN:
+                                key = event.key
+                                print(key)
+                                self.keys["down"] = key
+                                print(self.keys)
+                                self.move_down = event.unicode
+                                pygame.draw.rect(
+                                    self.screen, c.WHITE, self.move_down_text.rect)
+                                self.move_down_text.change_text_surface(
+                                    self.move_down)
+                                key_change = False
+
+                    elif self.move_left_text.rect.collidepoint(event.pos):
+                        key_change = True
+                        while key_change:
+                            event = pygame.event.wait()
+                            if event.type == pygame.KEYDOWN:
+                                key = event.key
+                                print(key)
+                                self.keys["left"] = key
+                                print(self.keys)
+                                self.move_left = event.unicode
+                                pygame.draw.rect(
+                                    self.screen, c.WHITE, self.move_left_text.rect)
+                                self.move_left_text.change_text_surface(
+                                    self.move_left)
+                                key_change = False
+
+                    elif self.move_right_text.rect.collidepoint(event.pos):
+                        key_change = True
+                        while key_change:
+                            event = pygame.event.wait()
+                            if event.type == pygame.KEYDOWN:
+                                key = event.key
+                                print(key)
+                                self.keys["right"] = key
+                                print(self.keys)
+                                self.move_right = event.unicode
+                                pygame.draw.rect(
+                                    self.screen, c.WHITE, self.move_right_text.rect)
+                                self.move_right_text.change_text_surface(
+                                    self.move_right)
+                                key_change = False
+
+                    elif self.move_click_text.rect.collidepoint(event.pos):
+                        key_change = True
+                        while key_change:
+                            event = pygame.event.wait()
+                            if event.type == pygame.KEYDOWN:
+                                key = event.key
+                                print(key)
+                                self.keys["click"] = key
+                                print(self.keys)
+                                self.move_click = event.unicode
+                                pygame.draw.rect(
+                                    self.screen, c.WHITE, self.move_click_text.rect)
+                                self.move_click_text.change_text_surface(
+                                    self.move_click)
+                                key_change = False
+
+                    elif close_button.get_rect().collidepoint(event.pos):
+                        # key_select = False
+                        self.setting_run = False
+
+                    elif save_button.get_rect().collidepoint(event.pos):
+                        self.setting.change_setting(self.settings)
+
+            pygame.display.update()
+
+    def menu(self):
+        selected = 1
+
+        while self.setting_run:
+            self.bg_img_load(c.SETTING_BACKGROUND)
+            self.object_show()
+            self.handle_event()
+
+            pygame.display.update()

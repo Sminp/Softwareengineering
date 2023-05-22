@@ -134,6 +134,7 @@ CARD_SKILL = {11: '_pass', 12: '_reverse', 13: '_plus_two',
 TIME = 10
 
 ERROR_MSG = "./image/multi_image/error_message.png"
+IP_FALSE_MSG = "./image/multi_image/if_false.png"
 
 # # 카드
 # RED_0 = pygame.transform.scale(pygame.image.load("image/card_img/red_0.png"), CARD_SIZE).convert_alpha()

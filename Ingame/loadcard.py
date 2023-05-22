@@ -61,19 +61,14 @@ class Card(pygame.sprite.Sprite):
             x = x + speed * vx
             y = y + speed * vy
 
-        x = x + vx / 100
-        y = y + vy / 100
-
-        if x >= dest_loc[0]:
+        if abs(x - dest_loc[0]) <= 20:
             x = dest_loc[0]
-        if y >= dest_loc[1]:
+        if abs(y - dest_loc[1]) <= 20:
             y = dest_loc[1]
 
-    #     if x == dest_loc[0] and y == dest_loc[1]:
-    #         self.kill()
-
-        if x == dest_loc[0] and y == dest_loc[1]:
-            self.kill()
+        self.position = (x, y)
+        self.rect = self.image.get_rect()
+        self.rect.center = self.position
 
     def rotation(self, rotate):
         self.image = pygame.transform.rotate(self.image, rotate)

@@ -27,6 +27,7 @@ class Client:
         self.settings = Settings().get_setting()
         self.screen = pygame.display.set_mode(
             (self.settings['screen']), flags=self.settings['fullscreen'])
+        self.size = self.settings['screen']
         self.n = Network(ip_address)
         self.font = pygame.font.SysFont(self.settings['font'], 30)
         self.button, self.text_list, self.player_rect = self.object_init()
@@ -34,6 +35,10 @@ class Client:
         self.input_active = False
         self.lobby_run = True
         self.game_run = False
+        self.waste = []
+        self.user = []
+        self.card_size = (self.settings['screen']
+                          [0] / 10, self.settings['screen'][1] / 6)
 
     def show_error_msg(self, image_path):
         image = pygame.transform.scale(pygame.image.load(resource_path(image_path)), [
@@ -50,37 +55,28 @@ class Client:
     def lobby(self):
 
         p = self.n.getP()
-        print(p)
 
         pygame.init()
         self.screen.fill(WHITE)
         pygame.display.update()
-
+    
         reply = self.n.send({"password": ''})
         if reply["password"] != self.password:
-            print("Wrong password")
             self.n.client.close()
             return False
 
         if p != 0:
             reply = self.n.send({'get_players': ''})
             if len(reply['players']) >= 2:
-                print("Room is full")
                 reply = self.n.send({'full': True})
-                print(reply['full'])
                 self.show_error_msg(c.ERROR_MSG)
                 self.n.client.close()
                 return False
             else:
                 reply = self.n.send({"add_players": self.user_name})
-                print(reply)
-                print(reply["players"])
         else:
             reply = self.n.send({"add_players": self.user_name})
-            print(reply)
-            print(reply["players"])
             reply = self.n.send({'full': False})
-            print(reply['full'])
 
         while self.lobby_run:
             try:
@@ -90,12 +86,10 @@ class Client:
                 self.handle_event(index)
                 reply = self.n.send({'is_start': ''})
                 if reply['start'] == True:
-                    print(reply['start'])
                     self.game_screen()
                     self.lobby_run = False
                 # 수정 필요 reply['full']이 계속 False여서 안들어가짐
                 if p == 0 and reply['full'] == True:
-                    print("Room is full")
                     self.show_error_msg(c.ERROR_MSG)
                     self.n.send({'full': False})
 
@@ -202,14 +196,74 @@ class Client:
     def game_screen(self):
         pygame.init()
         reply = self.n.send({'get_players': ''})
+        print(reply)
         index = reply['players'].index(self.user_name)
-        self.user = ClientUser(len(reply['players']), index, self.n)
-        self.user.set()
-        # while self.game_run:
-        #     self.screen.fill(WHITE)
-        #     for event in pygame.event.get():
-        #         if event.type == pygame.QUIT:
-        #             self.n.send({'disconnect': self.n.getP()})
-        #             pygame.quit()
-        #             sys.exit()
-        #     pygame.display.update()
+        reply = self.n.send({'game': ''})
+        game = reply['game']
+        self.set_waste(game.waste[0])
+        self.set_user(game.player[index], index)
+        self.draw_user = pygame.sprite.RenderPlain(*self.user)
+        print(self.draw_waste)
+        print(self.draw_user)
+        for card in self.user:
+            print(card.position)
+        self.game_run = True
+        self.now_turn = game.now_turn
+        while self.game_run:
+            self.screen.fill(WHITE)
+            self.draw_waste.draw(self.screen)
+            self.draw_user.draw(self.screen)
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.n.send({'disconnect': self.n.getP()})
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.MOUSEBUTTONUP:
+                    select_sound = pygame.mixer.Sound('./sound/card_sound.mp3')
+                    select_sound.play()
+                    if self.now_turn == 0:
+                        for sprite in self.player[0].user:
+                            if sprite.get_rect().collidepoint(event.pos) and self.check_card(sprite):
+                                self.set_animation(
+                                    sprite.get_name(), sprite.getposition())
+                                # pygame.mixer.pre_init(44100, -16, 1, 512)
+                                # card = pygame.mixer.Sound('./sound/deal_card.wav')
+                                self.player[0].remove(sprite)
+                                self.waste.updating(sprite.get_name())
+                                self.card_skill(sprite.get_name())
+                                if len(self.player[0].user) == 1:  # 카드 내고 한장 남음
+                                    pygame.display.update()
+                                    self.check_uno_button()
+                                return sprite.get_name()
+                                # return 1
+                        for sprite in self.waste.user:
+                            if sprite.get_rect().collidepoint(event.pos):
+                                self.get_from_deck(self.now_turn)
+                                return 'Back'
+            pygame.display.update()
+
+    
+    def set_waste(self, val: str):
+        waste = lc.Card(val, (self.size[0] * (3 / 5),
+                              self.size[1] * (1 / 3)), self.card_size)
+        self.waste.append(waste)
+        self.draw_waste = pygame.sprite.RenderPlain(self.waste)
+
+    def set_user(self, list, idx: int) -> int:
+        for i,val in enumerate(list):
+            card = lc.Card(
+                val, (self.size[0] * (1 / 3) + self.card_size[0] * i, self.size[1] * (7 / 9)), self.card_size)
+            self.user.append(card)
+            print(self.size[0] * (1 / 3) + self.card_size[0] * i, self.size[1] * (7 / 9))
+        print(self.user)
+
+        # i = 0
+        # for item in self.user:
+        #     item.update(
+        #         (self.size[0] * (2 / 3) + self.card_size[0] * i, self.size[1] * (7 / 9)))
+        #     print(self.size[0] * (2 / 3) + self.card_size[0] * i, self.size[1] * (7 / 9))
+        #     i += 1
+
+
+
+

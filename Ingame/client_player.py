@@ -15,7 +15,7 @@ import timer
 
 
 class ClientUser():
-    def __init__(self, player_num: int, user_idx: int, network):
+    def __init__(self, screen, player_num: int, user_idx: int, network):
         super().__init__()
         self.player_num = player_num
         self.user_idx = user_idx
@@ -31,12 +31,21 @@ class ClientUser():
         self.playing_game = True
         self.time_limit = 10  # -> 시간 제한 설정
         self.time = 0
-        self.screen = pygame.display.set_mode(
-            (self.settings['screen']), flags=self.settings['fullscreen'])
+        self.screen = screen
 
         self.uno_button = rf.Button(self.screen, self.size[0] * (3 / 4), self.size[1] * (1 / 3),
                                     c.UNO_BUTTON, self.size[1] * (1 / 20),
                                     self.size[1] * (1 / 20))
+        
+        self.user = []
+        self.draw_user = None
+        self.others = []
+        self.draw_others = None
+        self.waste = []
+        self.draw_waste = None
+        self.last_idx = 0
+        self.last = None
+        self.now_turn = 0
 
         pygame.init()
         self.timer = timer.Timer()
