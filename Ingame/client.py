@@ -5,7 +5,6 @@ from network import Network
 from constant import *
 from rect_functions import Button, Slider, TextRect
 from settings import Settings, resource_path
-import game_functions as gf
 import sys
 import time
 import game_functions as gf
@@ -18,7 +17,7 @@ import rect_functions as rf
 import timer
 import time
 import math
-
+from client_player import ClientUser
 
 class Client:
     def __init__(self, screen, password, user_name, ip_address):
@@ -34,6 +33,7 @@ class Client:
         self.user_name_text = TextRect(self.screen, self.user_name, 30, BLACK)
         self.input_active = False
         self.lobby_run = True
+        self.game_run = False
 
     def show_error_msg(self, image_path):
         image = pygame.transform.scale(pygame.image.load(resource_path(image_path)), [
@@ -91,9 +91,7 @@ class Client:
                 reply = self.n.send({'is_start': ''})
                 if reply['start'] == True:
                     print(reply['start'])
-                    game = MultiGame(self.n, len(
-                        reply['players']), 1, self.user_name)
-                    game.startgame()
+                    self.game_screen()
                     self.lobby_run = False
                 # 수정 필요 reply['full']이 계속 False여서 안들어가짐
                 if p == 0 and reply['full'] == True:
@@ -107,7 +105,6 @@ class Client:
                 sys.exit()
 
     def init_player_list(self, list, index):
-
         for i in range(len(list)):
             if self.player_rect[i][1] != list[i]:
                 if i == index:
@@ -184,7 +181,7 @@ class Client:
                                 self.player_rect[i][1] = 'computer'
                                 self.n.send({'add_players': 'computer'})
                     if self.button.get_rect().collidepoint(event.pos):
-                        self.n.send({'start': True})
+                        self.n.send({'start':True})
 
             elif event.type == pygame.KEYDOWN:
                 if self.input_active:
@@ -200,38 +197,19 @@ class Client:
                     self.player_rect[index][1].change_text_surface(
                         self.user_name)
                     msg = self.user_name+','+str(index)
-                    reply = self.n.send({"change_name": msg})\
+                    reply = self.n.send({"change_name": msg})
 
-
-
-# class Multi(gf.Game):
-#     def __init__(self, player_num=2, difficulty=1, user_name="ME"):
-#         super().__init__(player_num, difficulty, user_name)
-
-class MultiGame(gf.Game):
-
-    def __init__(self, network, player_num=2, difficulty=1, user_name="ME"):
-        super().__init__(player_num, difficulty, user_name)
-        self.n = network
-
-    def set_name(self):
-        player_names = []
+    def game_screen(self):
+        pygame.init()
         reply = self.n.send({'get_players': ''})
-        i = 1
-        for name in reply['players']:
-            if name == self.user_name:
-                text = rf.TextRect(self.screen, self.user_name, 30, c.WHITE)
-                player_names.append(
-                    [text, (self.size[0] * (3 / 5), self.size[1] * (2 / 3))])
-            elif name != 'computer':
-                text = rf.TextRect(self.screen, name, 20, c.BLACK)
-                player_names.append(
-                    [text, (self.size[0] * (1 / 10), self.size[1] * ((5 * i - 4) / 25))])
-                i += 1
-            else:
-                text = rf.TextRect(self.screen, "COM" + str(i), 20, c.BLACK)
-                player_names.append(
-                    [text, (self.size[0] * (1 / 10), self.size[1] * ((5 * i - 4) / 25))])
-                i += 1
-
-        return player_names
+        index = reply['players'].index(self.user_name)
+        self.user = ClientUser(len(reply['players']), index, self.n)
+        self.user.set()
+        # while self.game_run:
+        #     self.screen.fill(WHITE)
+        #     for event in pygame.event.get():
+        #         if event.type == pygame.QUIT:
+        #             self.n.send({'disconnect': self.n.getP()})
+        #             pygame.quit()
+        #             sys.exit()
+        #     pygame.display.update()

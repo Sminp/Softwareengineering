@@ -3,8 +3,7 @@ import socket
 import threading
 from _thread import *
 import pickle
-import random
-
+from multigame import *
 
 class Server:
     def __init__(self, host, password):
@@ -16,7 +15,7 @@ class Server:
             self.sock.bind((self.host, self.port))
         except socket.error as e:
             print(str(e))
-        self.sock.listen(2)  # 최대 플레이어 수
+        self.sock.listen(2) # 최대 플레이어 수 
         self.clients = []
         self.player_name = []
         self.start = False
@@ -26,15 +25,15 @@ class Server:
         self.clients.append(conn)
         conn.send(pickle.dumps(player))
         reply = {}
-
+        
         while True:
             try:
-
+                    
                 data = pickle.loads(conn.recv(2048))
 
                 data_key = list(data.keys())[0]
                 data_val = list(data.values())[0]
-
+                
                 if data_key == 'password':
                     reply['password'] = self.password
                 elif data_key == 'add_players':
@@ -43,8 +42,7 @@ class Server:
                 elif data_key == 'get_players':
                     reply['players'] = self.player_name
                 elif data_key == 'change_name':
-                    self.player_name[int(data_val.split(
-                        ',')[1])] = data_val.split(',')[0]
+                    self.player_name[int(data_val.split(',')[1])] = data_val.split(',')[0]
                     reply['players'] = self.player_name
                 elif data_key == 'disconnect':
                     del reply['players'][data_val]
@@ -57,8 +55,14 @@ class Server:
                     reply['full'] = self.full
                 elif data_key == 'start':
                     self.start = data_val
+                    self.game = MutiGame(self.player_name)
+                    self.game.startgame()
+                    reply['game'] = self.game
                 elif data_key == 'is_start':
                     reply['start'] = self.start
+                elif data_key == 'game':
+                    reply['game'] = self.game
+                    reply['card_deck'] = self.game.card_deck
                 conn.sendall(pickle.dumps(reply))
 
             except Exception as e:
@@ -81,3 +85,4 @@ class Server:
 
             start_new_thread(self.threaded_client, (conn, current_player))
             current_player += 1
+

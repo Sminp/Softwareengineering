@@ -15,10 +15,11 @@ import timer
 
 
 class ClientUser():
-    def __init__(self, player_num: int, user_idx: int):
+    def __init__(self, player_num: int, user_idx: int, network):
         super().__init__()
         self.player_num = player_num
         self.user_idx = user_idx
+        self.n = network
         self.settings = s.Settings().get_setting()
         self.size = self.settings['screen']
         self.card_size = (self.settings['screen']
@@ -30,6 +31,8 @@ class ClientUser():
         self.playing_game = True
         self.time_limit = 10  # -> 시간 제한 설정
         self.time = 0
+        self.screen = pygame.display.set_mode(
+            (self.settings['screen']), flags=self.settings['fullscreen'])
 
         self.uno_button = rf.Button(self.screen, self.size[0] * (3 / 4), self.size[1] * (1 / 3),
                                     c.UNO_BUTTON, self.size[1] * (1 / 20),
@@ -50,7 +53,7 @@ class ClientUser():
         self.now_turn = 0
 
     def set_card(self, deck: list) -> int:
-        for num in range(len(self.player_num)):
+        for num in range(self.player_num):
             if num == self.user_idx:
                 idx = 0
                 for val in deck[num]:
@@ -60,21 +63,21 @@ class ClientUser():
                 idx = 0
                 for _ in deck[num]:
                     order = num
-                    self.set_user(order, idx)
+                    self.set_others(order, idx)
                     idx += 1
 
     def set_user(self, val: str, idx: int) -> int:
         card = lc.Card(
             val, (self.size[0] * (1 / 3) + self.card_size[0] * idx, self.size[1] * (7 / 9)), self.card_size)
-        self.others.append(card)
+        self.user.append(card)
         self.draw_user = pygame.sprite.RenderPlain(*self.user)
 
     def set_others(self, order: int, idx: int) -> int:
         card = lc.Card(
             'back', (self.size[0] * (1 / 30) + 10 * idx, self.size[1]
                      * ((2 * order - 1) / 10)), self.card_size)
-        self.user.append(card)
-        self.draw_user = pygame.sprite.RenderPlain(*self.user)
+        self.others.append(card)
+        self.draw_others = pygame.sprite.RenderPlain(*self.others)
 
     def set_waste(self, val: str):
         waste = lc.Card(val, (self.size[0] * (3 / 5),
@@ -90,7 +93,7 @@ class ClientUser():
 
     def set_name(self):  # 이름이랑 위치 리스트로 저장하는거 어때?! - 이거 json파일로 하면 훨씬 편해.
         player_names = []
-        text = rf.TextRect(self.screen, self.user_name, 30, c.WHITE)
+        text = rf.TextRect(self.screen, "ME", 30, c.WHITE)
         player_names.append(
             [text, (self.size[0] * (3 / 5), self.size[1] * (2 / 3))])
         for i in range(1, self.player_num):
@@ -307,7 +310,7 @@ class ClientUser():
         self.set_name()
         self.reply_server()
         self.timer.reset_tmr()
-        self.update(self)
+        self.update()
 
     def print_computer_box(self) -> list:
         computer_rect = []
@@ -329,7 +332,7 @@ class ClientUser():
 
     def draw(self):
         self.screen.blit(self.bg_img, (0, 0))
-        self.draw_color_rect()
+        # self.draw_color_rect()
         self.timer.show_tmr(self.now_turn)
         for rect in self.print_computer_box():
             pygame.draw.rect(self.screen, c.WHITE, rect)
@@ -342,16 +345,18 @@ class ClientUser():
 
     # 서버로 받을 것 : 카드 리스트, 현재 턴, 낸 카드
     def reply_server(self):
-        waste = None
-        deck = None
-        self.now_turn = None
-        pick_color = None
-        pick_player = None
+        reply = self.n.send({'game':''})
+        game = reply['game']
+        waste = game.waste
+        deck = game.card_deck
+        self.now_turn = game.now_turn
+        # pick_color = None
+        # pick_player = None
         self.set_back()
         self.set_waste(waste)
         self.set_card(deck)
-        self.pick_color(pick_color)
-        self.pick_player(pick_player)
+        # self.pick_color(pick_color)
+        # self.pick_player(pick_player)
 
     # 서버로 보낼 것 : 낸 카드, 다음 턴
     def send_server(self, temp: str):
