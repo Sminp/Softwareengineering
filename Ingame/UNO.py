@@ -325,7 +325,7 @@ class TitleMenu(UNOGame):
                 elif self.button_li[2].get_rect().collidepoint(event.pos):
                     StoryMode().menu()
                 elif self.button_li[3].get_rect().collidepoint(event.pos):
-                    AchievementsScreen().menu()
+                    AchievementScreen().menu()
                 elif self.button_li[4].get_rect().collidepoint(event.pos):
                     SettingScreen().menu()
                 elif self.button_li[5].get_rect().collidepoint(event.pos):
