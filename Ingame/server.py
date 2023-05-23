@@ -63,6 +63,19 @@ class Server:
                 elif data_key == 'game':
                     reply['game'] = self.game
                     reply['card_deck'] = self.game.card_deck
+                elif data_key == 'waste':
+                    self.game.waste.append(data_val)
+                elif data_key == 'next_turn':
+                    self.game.now_turn = data_val
+                elif data_key == 'put_card':
+                    self.game.player[data_val[0]].remove(data_val[1])
+                elif data_key == 'card_change':
+                    self.game.card_change(data_val[0], data_val[1])
+                elif data_key == 'get_from_deck':
+                    self.game.get_from_deck(data_val)
+                elif data_key == 'color_change':
+                    self.game.waste.append(data_val)
+
                 conn.sendall(pickle.dumps(reply))
 
             except Exception as e:

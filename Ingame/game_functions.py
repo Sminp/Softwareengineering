@@ -1,6 +1,7 @@
 import sys
 import random
 import pygame
+import math
 from loadcard import Card, Popup
 import computer
 from pygame.locals import *
@@ -13,14 +14,28 @@ import rect_functions as rf
 import timer
 import time
 import math
+from datetime import datetime
+
+
+def terminate():
+    pygame.quit()
+    sys.exit()
+
+
+def text_format(message, text_font, text_size, text_color):
+    new_font = pygame.font.SysFont(text_font, text_size)
+    new_text = new_font.render(
+        message, True, text_color)
+    return new_text
 
 
 class Game():
     def __init__(self, player_num=2, difficulty=1, user_name="ME"):  # 초기값 임시로 설정 - 지우기
         self.player_num = player_num
         self.difficulty = difficulty
+        self.settings = s.Settings().get_setting()
         self.setting = s.Settings()
-        self.settings = self.setting.get_setting()
+        self.keys = self.settings['keys']
         self.screen = pygame.display.set_mode(
             (self.settings['screen']), flags=self.settings['fullscreen'])
         self.size = self.settings['screen']
@@ -54,7 +69,18 @@ class Game():
         self.waste = pl.Waste()
         self.player_names = []
 
+        self.achv_alarm_li = []
+        for achv_alarm in c.ACHV_ALARM_LIST:
+            achv_alarm = rf.Button(self.screen, self.size[0] * (4 / 5), self.size[1] * (6 / 7),
+                                   achv_alarm, self.size[0] * (1 / 5),
+                                   self.size[1] * (1 / 7))
+            self.achv_alarm_li.append(achv_alarm)
+
+        self.selected = 0
+        self.selected_up = 0
+
     # 카드 생성
+
     def set_deck(self) -> list:
         card_deck = []
         for color_idx in range(1, 5):
@@ -221,44 +247,92 @@ class Game():
                          (1 / 40), self.size[1] * (1 / 3) - self.size[1] * (1 / 20))
         half_rect_size = (self.size[1] * (1 / 40), self.size[1] * (1 / 20))
 
-        if len(self.waste.card) == 0:
-            pygame.draw.rect(self.screen, c.BLACK, (rect_pos, rect_size))
-        else:
-            w_name = self.waste.card[-1]
-            w_name = w_name.split('_')
-            if w_name[0] == 'wild':
+        if self.settings['setting_color'] == False:
+            if len(self.waste.card) == 0:
                 pygame.draw.rect(self.screen, c.BLACK, (rect_pos, rect_size))
-            elif w_name[0] == "red":
-                if len(w_name) > 1:
-                    if w_name[1] == 'yellow':
-                        pygame.draw.rect(self.screen, c.RED,
-                                         (rect_pos, half_rect_size))
-                        pygame.draw.rect(self.screen, c.YELLOW,
-                                         (half_rect_pos, half_rect_size))
-                    else:
-                        pygame.draw.rect(self.screen, c.RED,
-                                         (rect_pos, rect_size))
-                else:
-                    pygame.draw.rect(self.screen, c.RED, (rect_pos, rect_size))
-            elif w_name[0] == "yellow":
-                pygame.draw.rect(self.screen, c.YELLOW, (rect_pos, rect_size))
-            elif w_name[0] == "blue":
-                if len(w_name) > 1:
-                    if w_name[1] == 'green':
-                        pygame.draw.rect(self.screen, c.BLUE,
-                                         (rect_pos, half_rect_size))
-                        pygame.draw.rect(self.screen, c.GREEN,
-                                         (half_rect_pos, half_rect_size))
-                    else:
-                        pygame.draw.rect(self.screen, c.BLUE,
-                                         (rect_pos, rect_size))
-                else:
-                    pygame.draw.rect(self.screen, c.BLUE,
+            else:
+                w_name = self.waste.card[-1]
+                w_name = w_name.split('_')
+                if w_name[0] == 'wild':
+                    pygame.draw.rect(self.screen, c.BLACK,
                                      (rect_pos, rect_size))
-            elif w_name[0] == "green":
-                pygame.draw.rect(self.screen, c.GREEN, (rect_pos, rect_size))
+                elif w_name[0] == "red":
+                    if len(w_name) > 1:
+                        if w_name[1] == 'yellow':
+                            pygame.draw.rect(self.screen, c.RED,
+                                             (rect_pos, half_rect_size))
+                            pygame.draw.rect(self.screen, c.YELLOW,
+                                             (half_rect_pos, half_rect_size))
+                        else:
+                            pygame.draw.rect(self.screen, c.RED,
+                                             (rect_pos, rect_size))
+                    else:
+                        pygame.draw.rect(self.screen, c.RED,
+                                         (rect_pos, rect_size))
+                elif w_name[0] == "yellow":
+                    pygame.draw.rect(self.screen, c.YELLOW,
+                                     (rect_pos, rect_size))
+                elif w_name[0] == "blue":
+                    if len(w_name) > 1:
+                        if w_name[1] == 'green':
+                            pygame.draw.rect(self.screen, c.BLUE,
+                                             (rect_pos, half_rect_size))
+                            pygame.draw.rect(self.screen, c.GREEN,
+                                             (half_rect_pos, half_rect_size))
+                        else:
+                            pygame.draw.rect(self.screen, c.BLUE,
+                                             (rect_pos, rect_size))
+                    else:
+                        pygame.draw.rect(self.screen, c.BLUE,
+                                         (rect_pos, rect_size))
+                elif w_name[0] == "green":
+                    pygame.draw.rect(self.screen, c.GREEN,
+                                     (rect_pos, rect_size))
+
+        elif self.settings['setting_color'] == True:
+            if len(self.waste.card) == 0:
+                pygame.draw.rect(self.screen, c.BLACK, (rect_pos, rect_size))
+            else:
+                w_name = self.waste.card[-1]
+                w_name = w_name.split('_')
+                if w_name[0] == 'wild':
+                    pygame.draw.rect(self.screen, c.BLACK,
+                                     (rect_pos, rect_size))
+                elif w_name[0] == "red":
+                    if len(w_name) > 1:
+                        if w_name[1] == 'yellow':
+                            pygame.draw.rect(self.screen, c.VERMILION,
+                                             (rect_pos, half_rect_size))
+                            pygame.draw.rect(self.screen, c.YELLOW,
+                                             (half_rect_pos, half_rect_size))
+                        else:
+                            pygame.draw.rect(self.screen, c.VERMILION,
+                                             (rect_pos, rect_size))
+                    else:
+                        pygame.draw.rect(
+                            self.screen, c.VERMILION, (rect_pos, rect_size))
+                elif w_name[0] == "yellow":
+                    pygame.draw.rect(self.screen, c.YELLOW,
+                                     (rect_pos, rect_size))
+                elif w_name[0] == "blue":
+                    if len(w_name) > 1:
+                        if w_name[1] == 'green':
+                            pygame.draw.rect(self.screen, c.C_BLUE,
+                                             (rect_pos, half_rect_size))
+                            pygame.draw.rect(self.screen, c.BLUISH_GREEN,
+                                             (half_rect_pos, half_rect_size))
+                        else:
+                            pygame.draw.rect(self.screen, c.C_BLUE,
+                                             (rect_pos, rect_size))
+                    else:
+                        pygame.draw.rect(self.screen, c.C_BLUE,
+                                         (rect_pos, rect_size))
+                elif w_name[0] == "green":
+                    pygame.draw.rect(
+                        self.screen, c.BLUISH_GREEN, (rect_pos, rect_size))
 
     # 낼 수 있는지 확인
+
     def check_card(self, sprite):
         if len(self.waste.card) == 0:
             return True
@@ -354,12 +428,21 @@ class Game():
     # if name[0] 해서 기능 추가
     def card_skill(self, name):
         name = name.split('_')
+        pass_button = rf.Button(self.screen, self.settings['screen'][0] * (
+            1 / 3), self.settings['screen'][1] * (1 / 3), c.PASS, 150, 150)
+        reverse_button = rf.Button(self.screen, self.settings['screen'][0] * (
+            1 / 3), self.settings['screen'][1] * (1 / 3), c.REVERSE, 150, 150)
+        change_button = rf.Button(self.screen, self.settings['screen'][0] * (
+            1 / 3), self.settings['screen'][1] * (1 / 3), c.CHANGE, 150, 150)
+
         if name[1] == 'pass':
+            pass_button.show()
             pygame.time.wait(500)
             self.now_turn = self.get_next_player(self.now_turn)
             self.first = False
         elif name[1] == 'reverse':
             if self.player_num == 2:
+                reverse_button.show()
                 pygame.time.wait(500)
                 self.now_turn = self.get_next_player(self.now_turn)
                 self.first = False
@@ -371,6 +454,8 @@ class Game():
         elif name[1] == 'change':
             if self.now_turn == 0:
                 index = self.pick_player()
+                change_button.show()
+                pygame.time.wait(500)
                 self.card_change(self.now_turn, index)
             else:
                 index = self.least_num(self.now_turn)
@@ -401,6 +486,23 @@ class Game():
             # select = pygame.mixer.Sound('./sound/select.wav')
             # select.play()
             self.pick_color_card()
+
+    def user_skill_count(self):
+        self.count = 0
+        if self.card_skill == True:
+            if self.now_turn == 0:
+                self.count += 1
+
+        if self.count >= 10:
+            self.settings['win_count']['skill'] += 1
+            start_time = time.time()
+            if self.settings['win_count']['skill'] == 1 and not self.settings['achievement']['skill_master']:
+                while time.time() - start_time < 5:
+                    self.achv_alarm_li[10].show()
+                self.settings['achievement']['skill_master'] = True
+                self.settings['achievement']['skill_master'] = datetime.now().strftime(
+                    '%Y-%m-%d')
+                self.setting.change_setting(self.settings)
 
     def pick_player(self):
 
@@ -455,44 +557,96 @@ class Game():
 
     # t.text_format 함수 없애야 함
     def restart(self):
-        pass
-        # # pygame.mixer.pre_init(44100, -16, 1, 512)
-        # # win = pygame.mixer.Sound('./sound/win.wav')
-        # # lose = pygame.mixer.Sound('./sound/lose.wav')
-        # pygame.draw.rect(self.screen, (255, 51, 0),
-        #                  pygame.Rect(200, 200, 400, 200))
-        # pygame.draw.rect(self.screen, (255, 180, 0),
-        #                  pygame.Rect(210, 210, 380, 180))
+        pygame.mixer.pre_init(44100, -16, 1, 512)
+        win = pygame.mixer.Sound('./sound/win.wav')
+        lose = pygame.mixer.Sound('./sound/lose.wav')
+        pygame.draw.rect(self.screen, (255, 51, 0),
+                         pygame.Rect(200, 200, 400, 200))
+        pygame.draw.rect(self.screen, (255, 180, 0),
+                         pygame.Rect(210, 210, 380, 180))
+        restart = True
+        if restart:
+            self.settings['win_count']['first'] += 1
+            start_time = time.time()
+            if self.settings['win_count']['first'] == 1 and not self.settings['achievement']['first_play']:
+                while time.time() - start_time < 5:
+                    self.achv_alarm_li[7].show()
+                self.settings['achievement']['first_play'] = True
+                self.settings['achievement']['first_play'] = datetime.now().strftime(
+                    '%Y-%m-%d')
+                self.setting.change_setting(self.settings)
 
-        # for i in range(self.player_num):
-        #     if len(self.player[i].group) == 0:
-        #         if i == 0:
-        #             close_text = t.text_format(
-        #                 "YOU WIN!", c.BERLIN, 80, (255, 51, 0))
-        #             press_text = t.text_format(
-        #                 "Press SPACE to REPLAY", c.BERLIN, 35, (255, 51, 0))
-        #             self.screen.blit(close_text, (230, 220))
-        #         else:
-        #             close_text = t.text_format(
-        #                 "YOU LOSE!, com{} win!".format(i), c.BERLIN, 40, (255, 51, 0))
-        #             press_text = t.text_format(
-        #                 "Press SPACE to REPLAY", c.BERLIN, 35, (255, 51, 0))
-        #             self.screen.blit(close_text, (230, 220))
+        for i in range(self.player_num):
+            if len(self.player[i].group) == 0:
+                if i == 0:
+                    close_text = text_format(
+                        "YOU WIN!", c.BERLIN, 80, (255, 51, 0))
+                    press_text = text_format(
+                        "Press SPACE to REPLAY", c.BERLIN, 35, (255, 51, 0))
+                    self.screen.blit(close_text, (230, 220))
+                    self.settings['win_count']['single'] += 1
+                    start_time = time.time()  # 업적 달성 알림 표시 시작 시간
+                    if self.settings['win_count']['single'] == 1 and not self.settings['achievement']['single_win']:
+                        while time.time() - start_time < 5:
+                            self.achv_alarm_li[0].show()
+                        self.settings['achievement']['single_win'] = True
+                        self.settings['achievement_date']['single_win'] = datetime.now().strftime(
+                            '%Y-%m-%d')
+                        self.setting.change_setting(self.settings)
 
-        # self.screen.blit(press_text, (228, 330))
-        # pygame.display.update()
-        # while True:
-        #     for event in pygame.event.get():
-        #         if event.type == pygame.QUIT:
-        #             t.terminate()
+                    elif self.game_turn <= 10:
+                        self.settings['win_count']['speed'] += 1
+                        start_time = time.time()
+                        if self.settings['win_count']['speed'] == 1 and not self.settings['achievement']['speed_win']:
+                            while time.time() - start_time < 5:
+                                self.achv_alarm_li[5].show()
+                            self.settings['achievement']['speed_win'] = True
+                            self.settings['achievement_date']['speed_win'] = datetime.now().strftime(
+                                '%Y-%m-%d')
+                            self.setting.change_setting(self.settings)
 
-        #         if event.type == KEYDOWN:
-        #             if event.key == K_SPACE:
-        #                 self.playing_game = False
-        #                 # 객체를 생성해서 호출하는게 좋지않을까? - 객체를 미리 생성하고 어떤 곳은 dictionary로 가더라 이것도 좋아
-        #                 # 그리고 객체를 생성하면 업적이 망가지지 않을까?
-        #                 return
-        # return 0
+                    elif self.count == 0:
+                        self.settings['win_count']['no_skill'] += 1
+                        start_time = time.time()
+                        if self.settings['win_count']['no_skill'] == 1 and not self.settings['achievement']['no_skill_card']:
+                            while time.time() - start_time < 5:
+                                self.achv_alarm_li[6].show()
+                            self.settings['achievement']['no_skill_card'] = True
+                            self.settings['achievement_date']['no_skill_card'] = datetime.now().strftime(
+                                '%Y-%m-%d')
+                            self.setting.change_setting(self.settings)
+
+                    elif self.turtle_win == True:
+                        self.settings['win_count']['turtle'] += 1
+                        start_time = time.time()
+                        if self.settings['win_count']['turtle_win'] == 1 and not self.settings['achievement']['turtle_win']:
+                            while time.time() - start_time < 5:
+                                self.achv_alarm_li[7].show()
+                            self.settings['achievement']['turtle_win'] = True
+                            self.settings['achievement_date']['turtle_win'] = datetime.now().strftime(
+                                '%Y-%m-%d')
+                            self.setting.change_setting(self.settings)
+                else:
+                    close_text = text_format(
+                        "YOU LOSE!, com{} win!".format(i), c.BERLIN, 40, (255, 51, 0))
+                    press_text = text_format(
+                        "Press SPACE to REPLAY", c.BERLIN, 35, (255, 51, 0))
+                    self.screen.blit(close_text, (230, 220))
+
+        self.screen.blit(press_text, (228, 330))
+        pygame.display.update()
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    terminate()
+
+                if event.type == KEYDOWN:
+                    if event.key == K_SPACE:
+                        self.playing_game = False
+                        # 객체를 생성해서 호출하는게 좋지않을까? - 객체를 미리 생성하고 어떤 곳은 dictionary로 가더라 이것도 좋아
+                        # 그리고 객체를 생성하면 업적이 망가지지 않을까?
+                        return
+        return 0
 
     # 리팩토링 match로 해도 될 것 같아
     def check_player(self):
@@ -569,9 +723,8 @@ class Game():
 
     # 수정중
     # 게임 구현
+
     def playgame(self):
-        selected = 0
-        selected_up = 0
 
         while self.playing_game:
             self.check_player()
@@ -602,6 +755,17 @@ class Game():
                 self.get_next_turn(self.first)
                 self.now_turn = self.get_next_player(self.now_turn)
 
+            if len(self.player[0].group) >= 20:
+                self.settings['win_count']['collector'] += 1
+                start_time = time.time()
+                if self.settings['win_count']['collector'] == 1 and not self.settings['achievement']['card_collector']:
+                    while time.time() - start_time < 5:
+                        self.achv_alarm_li[9].show()
+                    self.settings['achievement']['card_collector'] = True
+                    self.settings['achievement']['card_collector'] = datetime.now().strftime(
+                        '%Y-%m-%d')
+                    self.setting.change_setting(self.settings)
+
             self.print_window()
             pygame.display.update()
 
@@ -617,36 +781,36 @@ class Game():
                 if event.key == K_ESCAPE:
                     self.pause()
                     self.print_window()
-                if event.key == K_LEFT:
-                    if selected <= 0:
-                        selected = 0
+                if event.key == self.keys["left"]:
+                    if self.selected <= 0:
+                        self.selected = 0
                     else:
-                        selected = selected - 1
-                elif event.key == K_RIGHT:
-                    if selected >= len(self.player[0]) - 1:
-                        selected = len(self.player[0]) - 1
+                        self.selected = self.selected - 1
+                elif event.key == self.keys["right"]:
+                    if self.selected >= len(self.player[0].card) - 1:
+                        self.selected = len(self.player[0].card) - 1
                     else:
-                        selected = selected + 1
-                elif event.key == K_UP:
-                    if selected_up == 0:
-                        selected_up = 1
+                        self.selected = self.selected + 1
+                elif event.key == self.keys["up"]:
+                    if self.selected_up == 0:
+                        self.selected_up = 1
                     else:
-                        selected_up = 1
-                elif event.key == K_DOWN:
-                    if selected_up == 1:
-                        selected_up = 0
+                        self.selected_up = 1
+                elif event.key == self.keys["down"]:
+                    if self.selected_up == 1:
+                        self.selected_up = 0
                     else:
-                        selected_up = 0
+                        self.selected_up = 0
 
-                if event.key == K_RETURN:
-                    if selected_up == 1:
+                if event.key == self.keys["click"]:
+                    if self.selected_up == 1:
                         self.get_from_deck(self.now_turn)
                         return 'Back'
                         # self.now_turn = self.get_next_player(self.now_turn)
                         # break
                     else:
                         for sprite in self.player[0].group:
-                            if sprite.get_name() == self.player[0].card[selected] and self.check_card(sprite):
+                            if sprite.get_name() == self.player[0].card[self.selected] and self.check_card(sprite):
                                 self.player[0].remove(sprite)
                                 for temp in self.player[0].group:
                                     temp.move(sprite.getposition())
@@ -659,8 +823,9 @@ class Game():
                                     self.check_uno_button()
                                 # else:
                                 # self.now_turn = self.get_next_player(self.now_turn)
-                                if selected > len(self.player[0]) - 1:
-                                    selected = len(self.player[0]) - 1
+                                if self.selected > len(self.player[0].card) - 1:
+                                    self.selected = len(
+                                        self.player[0].card) - 1
                                 break
             for sprite in self.player[0].draw_group:
                 card_pos = sprite.getposition()
@@ -801,7 +966,7 @@ class Game():
         while setting:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    t.terminate()
+                    terminate()
             if temp[0] == 'B':
                 setting = self.get_animation()
             else:
@@ -824,7 +989,7 @@ class Game():
                     self.playing_game = True
                     paused = False
                     if achievement_button.get_rect().collidepoint(event.pos):
-                        pass
+                        AchievementScreen().menu()
                     elif setting_button.get_rect().collidepoint(event.pos):
                         SettingScreen().menu()
                     elif exit_button.get_rect().collidepoint(event.pos):
@@ -856,6 +1021,8 @@ class Game():
             pygame.display.update()
 
     def check_uno_button(self):
+        self.turtle_win = False
+
         self.print_window()
         print("한장 남음!")
         uno = True
@@ -908,6 +1075,7 @@ class Game():
                     self.first = False
                     uno = False
                 else:  # 이건 컴퓨터가 1장 남았을 때 유저가 버튼을 안 누르고 있는 경우
+                    self.turtle_win = True
                     if self.player_num == 2:  # 유저랑 컴퓨터 1명만 있는 경우 컴퓨터가 uno버튼 누른걸로 판단
                         print("컴퓨터가 누름")
                         # self.now_turn = self.get_next_player(self.now_turn)
@@ -958,6 +1126,19 @@ class GameA(Game):
         for _ in range(7):
             temp = self.card_deck.pop()
             self.player[0].append(temp)
+
+    def restart(self):
+        if len(self.player[0].group) == 0:
+            self.settings['win_count']['storya'] += 1
+            start_time = time.time()
+            if self.settings['win_count']['storya'] == 1 and not self.settings['achievement']['storya_win']:
+                while time.time() - start_time < 5:
+                    self.achv_alarm_li[1].show()
+                self.settings['achievement']['storya_win'] = True
+                self.settings['achievement_date']['storya_win'] = datetime.now().strftime(
+                    '%Y-%m-%d')
+                self.setting.change_setting(self.settings)
+        return super().restart()
 
 
 class GameWithA(GameA):
@@ -1072,8 +1253,15 @@ class GameB(Game):
 
     def restart(self):
         if len(self.player[0].group) == 0:
-            self.settings['achievement']['storyb_win'] = True
-            self.setting.change_setting(self.settings)
+            self.settings['win_count']['storyb'] += 1
+            start_time = time.time()
+            if self.settings['win_count']['storyb'] == 1 and not self.settings['achievement']['storyb_win']:
+                while time.time() - start_time < 5:
+                    self.achv_alarm_li[2].show()
+                self.settings['achievement']['storyb_win'] = True
+                self.settings['achievement_date']['storyb_win'] = datetime.now().strftime(
+                    '%Y-%m-%d')
+                self.setting.change_setting(self.settings)
         return super().restart()
 
 
@@ -1108,8 +1296,15 @@ class GameC(Game):
 
     def restart(self):
         if len(self.player[0].group) == 0:
-            self.settings['achievement']['storyc_win'] = True
-            self.setting.change_setting(self.settings)
+            self.settings['win_count']['storyc'] += 1
+            start_time = time.time()
+            if self.settings['win_count']['storyc'] == 1 and not self.settings['achievement']['storyc_win']:
+                while time.time() - start_time < 5:
+                    self.achv_alarm_li[3].show()
+                self.settings['achievement']['storyc_win'] = True
+                self.settings['achievement_date']['storyc_win'] = datetime.now().strftime(
+                    '%Y-%m-%d')
+                self.setting.change_setting(self.settings)
         return super().restart()
 
 
@@ -1157,24 +1352,34 @@ class GameD(Game):
 
     def restart(self):
         if len(self.player[0].group) == 0:
-            self.settings['achievement']['storyd_win'] = True
-            self.setting.change_setting(self.settings)
+            self.settings['win_count']['storyd'] += 1
+            start_time = time.time()
+            if self.settings['win_count']['storyd'] == 1 and not self.settings['achievement']['storyd_win']:
+                while time.time() - start_time < 5:
+                    self.achv_alarm_li[4].show()
+                self.settings['achievement']['storyd_win'] = True
+                self.settings['achievement_date']['storyd_win'] = datetime.now().strftime(
+                    '%Y-%m-%d')
+                self.setting.change_setting(self.settings)
         return super().restart()
 
 
 class SettingScreen():
     def __init__(self):
-        self.setting = s.Settings()
-        self.settings = self.setting.get_setting()
+        super().__init__()
         self.screen = pygame.display.set_mode(
             (self.settings['screen']), flags=self.settings['fullscreen'])
+        self.settings = s.Settings().get_setting()
+        self.setting = s.Settings()
 
         self.button_li, self.slider_li, self.rect = self.object_init()
         self.setting_text = rf.TextRect(self.screen, "SETTING", 35, c.WHITE)
         self.screen_setting_text = rf.TextRect(
             self.screen, "화면 크기", 20, c.BLACK)
         self.volume = 0.0
-        self.setting_run = True
+
+        self.selected = 0
+        self.current_slider = 0
 
     def object_init(self):
         i = 3
@@ -1210,8 +1415,12 @@ class SettingScreen():
             sliders_li.append(slider)
             j += 1.5
 
-        rect = pygame.Rect(
-            self.settings['screen'][0] * (8 / 11), self.settings['screen'][1] * (7 / 11), 50, 50)
+        if self.settings['setting_color'] == True:
+            rect = pygame.Rect(
+                self.settings['screen'][0] * (8 / 11)+50, self.settings['screen'][1] * (7 / 11), 50, 50)
+        elif self.settings['setting_color'] == False:
+            rect = pygame.Rect(
+                self.settings['screen'][0] * (8 / 11), self.settings['screen'][1] * (7 / 11), 50, 50)
 
         return button_li, sliders_li, rect
 
@@ -1237,6 +1446,8 @@ class SettingScreen():
             i += 1.5
 
         pygame.draw.rect(self.screen, c.BLACK, self.rect)
+
+        pygame.display.update()
 
     def sound(self):
         pass
@@ -1335,6 +1546,10 @@ class SettingScreen():
                         self.rect.x -= 50
                         self.settings['setting_color'] = False
 
+        for i, button in enumerate(self.button_li):
+            if i == self.selected:
+                button.highlight()  # 선택된 메뉴 크기 조정
+
     def bg_img_load(self, filename: str) -> object:
         bg_img = pygame.image.load(s.resource_path(filename))
         bg_img = pygame.transform.scale(bg_img,
@@ -1395,14 +1610,13 @@ class SettingScreen():
                             event = pygame.event.wait()
                             if event.type == pygame.KEYDOWN:
                                 key = event.key
-                                print(key)
+                                # print(key)
                                 self.keys["up"] = key
-                                print(self.keys)
-                                self.move_up = event.unicode
+                                # print(self.keys)
                                 pygame.draw.rect(
                                     self.screen, c.WHITE, self.move_up_text.rect)
                                 self.move_up_text.change_text_surface(
-                                    self.move_up)
+                                    pygame.key.name(self.keys["up"]))
                                 key_change = False
 
                     elif self.move_down_text.rect.collidepoint(event.pos):
@@ -1411,14 +1625,13 @@ class SettingScreen():
                             event = pygame.event.wait()
                             if event.type == pygame.KEYDOWN:
                                 key = event.key
-                                print(key)
+                                # print(key)
                                 self.keys["down"] = key
-                                print(self.keys)
-                                self.move_down = event.unicode
+                                # print(self.keys)
                                 pygame.draw.rect(
                                     self.screen, c.WHITE, self.move_down_text.rect)
                                 self.move_down_text.change_text_surface(
-                                    self.move_down)
+                                    pygame.key.name(self.keys["down"]))
                                 key_change = False
 
                     elif self.move_left_text.rect.collidepoint(event.pos):
@@ -1427,14 +1640,13 @@ class SettingScreen():
                             event = pygame.event.wait()
                             if event.type == pygame.KEYDOWN:
                                 key = event.key
-                                print(key)
+                                # print(key)
                                 self.keys["left"] = key
-                                print(self.keys)
-                                self.move_left = event.unicode
+                                # print(self.keys)
                                 pygame.draw.rect(
                                     self.screen, c.WHITE, self.move_left_text.rect)
                                 self.move_left_text.change_text_surface(
-                                    self.move_left)
+                                    pygame.key.name(self.keys["left"]))
                                 key_change = False
 
                     elif self.move_right_text.rect.collidepoint(event.pos):
@@ -1443,14 +1655,13 @@ class SettingScreen():
                             event = pygame.event.wait()
                             if event.type == pygame.KEYDOWN:
                                 key = event.key
-                                print(key)
+                                # print(key)
                                 self.keys["right"] = key
-                                print(self.keys)
-                                self.move_right = event.unicode
+                                # print(self.keys)
                                 pygame.draw.rect(
                                     self.screen, c.WHITE, self.move_right_text.rect)
                                 self.move_right_text.change_text_surface(
-                                    self.move_right)
+                                    pygame.key.name(self.keys["right"]))
                                 key_change = False
 
                     elif self.move_click_text.rect.collidepoint(event.pos):
@@ -1459,14 +1670,13 @@ class SettingScreen():
                             event = pygame.event.wait()
                             if event.type == pygame.KEYDOWN:
                                 key = event.key
-                                print(key)
+                                # print(key)
                                 self.keys["click"] = key
-                                print(self.keys)
-                                self.move_click = event.unicode
+                                # print(self.keys)
                                 pygame.draw.rect(
                                     self.screen, c.WHITE, self.move_click_text.rect)
                                 self.move_click_text.change_text_surface(
-                                    self.move_click)
+                                    pygame.key.name(self.keys["click"]))
                                 key_change = False
 
                     elif close_button.get_rect().collidepoint(event.pos):
@@ -1481,7 +1691,203 @@ class SettingScreen():
     def menu(self):
         selected = 1
 
-        while self.setting_run:
+        while True:
+            self.bg_img_load(c.SETTING_BACKGROUND)
+            self.object_show()
+            self.handle_event()
+
+            pygame.display.update()
+
+
+class AchievementScreen():
+    def __init__(self):
+        super().__init__()
+        self.screen = pygame.display.set_mode(
+            (self.settings['screen']), flags=self.settings['fullscreen'])
+        self.setting = s.Settings()
+
+        self.achv_text = rf.TextRect(self.screen, "업적", 35, c.WHITE)
+
+        self.x = self.settings['screen'][0] * (1 / 8)
+        self.y = self.settings['screen'][1] * (1 / 5)
+        self.width = self.settings['screen'][0] * (6 / 8)
+        self.height = self.settings['screen'][1] * (1 / 6)
+        self.achievement_li, self.close_button = self.object_init()
+
+        self.achv_completed_img = pygame.transform.scale(pygame.image.load(c.ACHV_COMPLETED),
+                                                         (self.settings['screen'][0]*(1/9), self.settings['screen'][1]*(1/9)))
+        self.achv_completed_rect = self.achv_completed_img.get_rect()
+
+    def object_init(self):
+        close_button = rf.Button(self.screen, self.settings['screen'][0] * (7 / 8), self.settings['screen'][1] * (1 / 7),
+                                 c.SETTING_CLOSE_BUTTON, 20, 20)
+
+        i = 1
+        achievement_li = []
+        for achievement in c.ACHV_LIST:
+            achievement = rf.Button(self.screen, self.x, self.y * i,
+                                    achievement, self.width, self.height)
+            achievement_li.append(achievement)
+            i += 1
+
+        return achievement_li, close_button
+
+    def object_show(self):
+        self.achv_text.show(
+            (self.settings['screen'][0] * (1 / 5), self.settings['screen'][1] * (1 / 7)))
+        self.close_button.show()
+
+        for achievement in self.achievement_li:
+            achievement.show()
+
+        font = pygame.font.SysFont(c.MALGUNGOTHIC, 20)
+        if self.settings['achievement']['single_win'] == True:
+            self.achv_completed_rect.center = self.achievement_li[0].midright
+            self.screen.blit(self.achv_completed_img, self.achv_completed_rect)
+
+            single_win_date_rect = rf.TextRect(
+                self.screen, "self.settings['achievement_date']['single_win']", 20, c.WHITE)
+            single_win_date_rect.x = self.achievement_li[0].midright
+            single_win_date_rect.y = self.achv_completed_rect.y + achievement.rect.height
+            self.screen.blit(
+                single_win_date_rect, (single_win_date_rect.midright, single_win_date_rect.y))
+
+        if self.settings['achievement']['storya_win'] == True:
+            self.achv_completed_rect.center = self.achievement_li[1].midright
+            self.screen.blit(self.achv_completed_img, self.achv_completed_rect)
+
+            storya_win_date_rect = rf.TextRect(
+                self.screen, "self.settings['achievement_date']['storya_win']", 20, c.WHITE)
+            storya_win_date_rect.x = self.achievement_li[1].midright
+            storya_win_date_rect.y = self.achv_completed_rect.y + achievement.rect.height
+            self.screen.blit(
+                storya_win_date_rect, (storya_win_date_rect.midright, storya_win_date_rect.y))
+
+        if self.settings['achievement']['storyb_win'] == True:
+            self.achv_completed_rect.center = self.achievement_li[2].midright
+            self.screen.blit(self.achv_completed_img, self.achv_completed_rect)
+
+            storyb_win_date_rect = rf.TextRect(
+                self.screen, "self.settings['achievement_date']['storyb_win']", 20, c.WHITE)
+            storyb_win_date_rect.x = self.achievement_li[2].midright
+            storyb_win_date_rect.y = self.achv_completed_rect.y + achievement.rect.height
+            self.screen.blit(
+                storyb_win_date_rect, (storyb_win_date_rect.midright, storyb_win_date_rect.y))
+
+        if self.settings['achievement']['storyc_win'] == True:
+            self.achv_completed_rect.center = self.achievement_li[3].midright
+            self.screen.blit(self.achv_completed_img, self.achv_completed_rect)
+
+            storyc_win_date_rect = rf.TextRect(
+                self.screen, "self.settings['achievement_date']['storyc_win']", 20, c.WHITE)
+            storyc_win_date_rect.x = self.achievement_li[2].midright
+            storyc_win_date_rect.y = self.achv_completed_rect.y + achievement.rect.height
+            self.screen.blit(
+                storyc_win_date_rect, (storyc_win_date_rect.midright, storyc_win_date_rect.y))
+
+        if self.settings['achievement']['storyd_win'] == True:
+            self.achv_completed_rect.center = self.achievement_li[4].midright
+            self.screen.blit(self.achv_completed_img, self.achv_completed_rect)
+
+            storyd_win_date_rect = rf.TextRect(
+                self.screen, "self.settings['achievement_date']['storyd_win']", 20, c.WHITE)
+            storyd_win_date_rect.x = self.achievement_li[4].midright
+            storyd_win_date_rect.y = self.achv_completed_rect.y + achievement.rect.height
+            self.screen.blit(
+                storyd_win_date_rect, (storyd_win_date_rect.midright, storyd_win_date_rect.y))
+
+        if self.settings['achievement']['speed_master'] == True:
+            self.achv_completed_rect.center = self.achievement_li[5].midright
+            self.screen.blit(self.achv_completed_img, self.achv_completed_rect)
+
+            speed_master_date_rect = rf.TextRect(
+                self.screen, "self.settings['achievement_date']['speed_master']", 20, c.WHITE)
+            speed_master_date_rect.x = self.achievement_li[5].midright
+            speed_master_date_rect.y = self.achv_completed_rect.y + achievement.rect.height
+            self.screen.blit(
+                speed_master_date_rect, (speed_master_date_rect.midright, speed_master_date_rect.y))
+
+        if self.settings['achievement']['no_skill_card'] == True:
+            self.achv_completed_rect.center = self.achievement_li[6].midright
+            self.screen.blit(self.achv_completed_img, self.achv_completed_rect)
+
+            no_skill_card_date_rect = rf.TextRect(
+                self.screen, "self.settings['achievement_date']['no_skill_card']", 20, c.WHITE)
+            no_skill_card_date_rect.x = self.achievement_li[6].midright
+            no_skill_card_date_rect.y = self.achv_completed_rect.y + achievement.rect.height
+            self.screen.blit(
+                no_skill_card_date_rect, (no_skill_card_date_rect.midright, no_skill_card_date_rect.y))
+
+        if self.settings['achievement']['turtle_win'] == True:
+            self.achv_completed_rect.center = self.achievement_li[7].midright
+            self.screen.blit(self.achv_completed_img, self.achv_completed_rect)
+
+            turtle_win_date_rect = rf.TextRect(
+                self.screen, "self.settings['achievement_date']['turtle_win']", 20, c.WHITE)
+            turtle_win_date_rect.x = self.achievement_li[7].midright
+            turtle_win_date_rect.y = self.achv_completed_rect.y + achievement.rect.height
+            self.screen.blit(
+                turtle_win_date_rect, (turtle_win_date_rect.midright, turtle_win_date_rect.y))
+
+        if self.settings['achievement']['first_play'] == True:
+            self.achv_completed_rect.center = self.achievement_li[8].midright
+            self.screen.blit(self.achv_completed_img, self.achv_completed_rect)
+
+            first_play_date_rect = rf.TextRect(
+                self.screen, "self.settings['achievement_date']['first_play']", 20, c.WHITE)
+            first_play_date_rect.x = self.achievement_li[8].midright
+            first_play_date_rect.y = self.achv_completed_rect.y + achievement.rect.height
+            self.screen.blit(
+                first_play_date_rect, (first_play_date_rect.midright, first_play_date_rect.y))
+
+        if self.settings['achievement']['card_collector'] == True:
+            self.achv_completed_rect.center = self.achievement_li[9].midright
+            self.screen.blit(self.achv_completed_img, self.achv_completed_rect)
+
+            card_collector_date_rect = rf.TextRect(
+                self.screen, "self.settings['achievement_date']['card_collector']", 20, c.WHITE)
+            card_collector_date_rect.x = self.achievement_li[9].midright
+            card_collector_date_rect.y = self.achv_completed_rect.y + achievement.rect.height
+            self.screen.blit(card_collector_date_rect,
+                             (card_collector_date_rect.midright, card_collector_date_rect.y))
+
+        if self.settings['achievement']['skill_master'] == True:
+            self.achv_completed_rect.center = self.achievement_li[10].midright
+            self.screen.blit(self.achv_completed_img, self.achv_completed_rect)
+
+            skill_master_date_rect = rf.TextRect(
+                self.screen, "self.settings['achievement_date']['skill_master']", 20, c.WHITE)
+            skill_master_date_rect.x = self.achievement_li[10].midright
+            skill_master_date_rect.y = self.achv_completed_rect.y + achievement.rect.height
+            self.screen.blit(
+                skill_master_date_rect, (skill_master_date_rect.midright, skill_master_date_rect.y))
+
+    def sound(self):
+        pass
+
+    def handle_event(self):
+
+        scroll_speed = 5
+        scroll_pos = 0
+
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                achievement_menu = False
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 4:
+                    scroll_pos += scroll_speed
+                elif event.button == 5:
+                    scroll_pos -= scroll_speed
+
+            elif event.type == pygame.MOUSEBUTTONUP:
+                if self.close_button.get_rect().collidepoint(event.pos):
+                    self.achv_run = False
+
+        for achievement in self.achievement_li:
+            achievement.y += scroll_pos
+
+    def menu(self):
+        while True:
             self.bg_img_load(c.SETTING_BACKGROUND)
             self.object_show()
             self.handle_event()
