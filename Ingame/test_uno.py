@@ -11,13 +11,6 @@ class TestUnoGame(unittest.TestCase):
         pygame.init()
         self.game = UNO.UNOGame()
 
-    def test_text_format(self):
-        # 텍스트 형식이 제대로 렌더링되는지 테스트
-        text = UNO.text_format("Hello", "Arial", 24, UNO.c.BLACK)
-        self.assertIsInstance(text, pygame.Surface)
-        self.assertEqual(text.get_width(), 44)
-        self.assertEqual(text.get_height(), 28)
-
     def test_terminate(self):
         # 종료 함수가 예외 없이 실행되는지 테스트
         with self.assertRaises(SystemExit):

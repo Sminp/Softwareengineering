@@ -69,8 +69,8 @@ class Button():
         new_width = int(self.width * scale_factor)
         new_height = int(self.height * scale_factor)
         scaled_img = pygame.transform.scale(self.img, [new_width, new_height])
-        self.screen.blit(scaled_img, (self.x - (new_width - self.width) / 2, self.y - (new_height - self.height) / 2))
-
+        self.screen.blit(scaled_img, (self.x - (new_width -
+                         self.width) / 2, self.y - (new_height - self.height) / 2))
 
     def get_rect(self):
         return self.rect
@@ -134,11 +134,10 @@ class Slider():
                 elif self.button_rect.x >= (self.x + self.length) - 1 / 10 * self.length:
                     self.button_rect.x = int(
                         (self.x + self.length) - 1 / 10 * self.length)
-                    
 
         self.value = self.max + (self.min - self.max) * (
             1 - (self.button_rect.x - self.x) / (9 / 10 * self.length))  # value 수정
-        
+
     def key_operate(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key == self.keys["left"]:  # 왼쪽 방향키를 눌렀을 때
@@ -150,7 +149,7 @@ class Slider():
                 self.button_rect.x += 10
                 if self.button_rect.x <= self.x:  # 드래그 제한
                     self.button_rect.x = self.x
-                    
+
             elif event.key == self.keys["click"]:
                 self.value = self.max + (self.min - self.max) * (
                     1 - (self.button_rect.x - self.x) / (9 / 10 * self.length))  # value 수정

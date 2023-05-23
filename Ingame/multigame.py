@@ -15,6 +15,7 @@ import timer
 import time
 import math
 
+
 class MutiGame():
     def __init__(self, player_list):
         self.player_list = player_list
@@ -84,10 +85,10 @@ class MutiGame():
                 turn = now_turn - 1
         print("turn : ", turn)
         return turn
-    
+
     def selected_turn(self):
         return random.randint(0, self.player_num - 1)
-    
+
     def card_change(self, now_turn, pick_turn):
         temp_player = self.player[now_turn][:]
         self.player[now_turn].clear()
@@ -107,7 +108,7 @@ class MutiGame():
                     least_player_idx = num
                     least_player_num = len(self.player[num])
         return least_player_idx
-    
+
     # 다음 차례 플레이어에게 카드 뽑게 함 -> draw 카드
     def give_card(self, card_num):
         if len(self.waste) == 1:  # 처음 카드가 +2,+4일때 처음 플레이어가 카드 받음
@@ -125,7 +126,7 @@ class MutiGame():
             self.card_deck = self.waste.card[:-1]
             item = self.card_deck.pop()
         self.player[now_turn].append(item)
-    
+
     # 덱 세팅, 플레이어 세팅, 덱 분배
     def startgame(self):
         self.card_deck = self.set_deck()
@@ -133,11 +134,9 @@ class MutiGame():
         self.waste.append(self.card_deck.pop())
         self.now_turn = self.selected_turn()
 
-    def restart(self): 
+    def restart(self):
         for i in range(self.player_num):
             self.player[i].clear()
         self.waste.clear()
         self.card_deck.clear()
         self.startgame()
-
-

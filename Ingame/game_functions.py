@@ -15,6 +15,7 @@ import timer
 import time
 import math
 from datetime import datetime
+import UNO
 
 
 def terminate():
@@ -57,9 +58,7 @@ class Game():
         self.card_limit = [self.size[1] * (7 / 9), self.size[1] * (7 / 9) + self.size[1] / 10, self.size[1] * (
             7 / 9) + self.size[1] * 2 / 10, self.size[1] * (7 / 9) + self.size[1] * 3 / 10]
 
-        self.uno_button = rf.Button(self.screen, self.size[0] * (3 / 4), self.size[1] * (1 / 3),
-                                    c.UNO_BUTTON, self.size[1] * (1 / 20),
-                                    self.size[1] * (1 / 20))
+        self.uno_button = self.button_init()
 
         pygame.init()
         self.timer = timer.Timer()
@@ -78,6 +77,17 @@ class Game():
 
         self.selected = 0
         self.selected_up = 0
+
+    def button_init(self):
+        self.uno = 0
+        button = rf.Button(self.screen, self.size[0] * (3 / 4), self.size[1] * (1 / 3),
+                           c.UNO_BUTTON, self.size[1] * (1 / 20),
+                           self.size[1] * (1 / 20))
+        button_highlight = rf.Button(self.screen, self.size[0] * (3 / 4), self.size[1] * (1 / 3),
+                                     c.UNO_BUTTON_HIGHLIGHT, self.size[1] * (
+            1 / 20),
+            self.size[1] * (1 / 20))
+        return button, button_highlight
 
     # 카드 생성
 
@@ -236,7 +246,7 @@ class Game():
         if self.animation_group:
             self.animation_group.draw(self.screen)
             self.animation_group = None
-        self.uno_button.show()
+        self.uno_button[self.uno].show()
         self.show_now_turn(self.now_turn)
 
     def draw_color_rect(self):
@@ -557,102 +567,118 @@ class Game():
 
     # t.text_format 함수 없애야 함
     def restart(self):
-        pygame.mixer.pre_init(44100, -16, 1, 512)
-        win = pygame.mixer.Sound('./sound/win.wav')
-        lose = pygame.mixer.Sound('./sound/lose.wav')
-        pygame.draw.rect(self.screen, (255, 51, 0),
+        # pygame.mixer.pre_init(44100, -16, 1, 512)
+        # win = pygame.mixer.Sound('./sound/win.wav')
+        # lose = pygame.mixer.Sound('./sound/lose.wav')
+        pygame.draw.rect(self.screen, c.BLUE,
                          pygame.Rect(200, 200, 400, 200))
         pygame.draw.rect(self.screen, (255, 180, 0),
                          pygame.Rect(210, 210, 380, 180))
         restart = True
         if restart:
             self.settings['win_count']['first'] += 1
-            start_time = time.time()
             if self.settings['win_count']['first'] == 1 and not self.settings['achievement']['first_play']:
-                while time.time() - start_time < 5:
-                    self.achv_alarm_li[7].show()
+                self.achv_alarm_li[7].show()
+                pygame.display.update()
+                pygame.time.wait(1500)
                 self.settings['achievement']['first_play'] = True
                 self.settings['achievement']['first_play'] = datetime.now().strftime(
                     '%Y-%m-%d')
                 self.setting.change_setting(self.settings)
 
-        for i in range(self.player_num):
-            if len(self.player[i].group) == 0:
-                if i == 0:
-                    close_text = text_format(
-                        "YOU WIN!", c.BERLIN, 80, (255, 51, 0))
-                    press_text = text_format(
-                        "Press SPACE to REPLAY", c.BERLIN, 35, (255, 51, 0))
-                    self.screen.blit(close_text, (230, 220))
-                    self.settings['win_count']['single'] += 1
-                    start_time = time.time()  # 업적 달성 알림 표시 시작 시간
-                    if self.settings['win_count']['single'] == 1 and not self.settings['achievement']['single_win']:
-                        while time.time() - start_time < 5:
+            for i in range(self.player_num):
+                if len(self.player[i].group) == 0:
+                    if i == 0:
+                        close_text = text_format(
+                            "YOU WIN!", c.BERLIN, 80, c.BLUE)
+                        press_text = text_format(
+                            "Press SPACE to MENU", c.BERLIN, 35, c.BLUE)
+                        self.screen.blit(close_text, (230, 220))
+                        pygame.display.update()
+                        self.settings['win_count']['single'] += 1
+                        if self.settings['win_count']['single'] == 1 and not self.settings['achievement']['single_win']:
                             self.achv_alarm_li[0].show()
-                        self.settings['achievement']['single_win'] = True
-                        self.settings['achievement_date']['single_win'] = datetime.now().strftime(
-                            '%Y-%m-%d')
-                        self.setting.change_setting(self.settings)
+                            pygame.display.update()
+                            pygame.time.wait(1500)
+                            self.settings['achievement']['single_win'] = True
+                            self.settings['achievement_date']['single_win'] = datetime.now().strftime(
+                                '%Y-%m-%d')
+                            self.setting.change_setting(self.settings)
 
-                    elif self.game_turn <= 10:
-                        self.settings['win_count']['speed'] += 1
-                        start_time = time.time()
-                        if self.settings['win_count']['speed'] == 1 and not self.settings['achievement']['speed_win']:
-                            while time.time() - start_time < 5:
+                        elif self.game_turn <= 10:
+                            self.settings['win_count']['speed'] += 1
+                            if self.settings['win_count']['speed'] == 1 and self.settings['achievement']['speed_win'] == False:
                                 self.achv_alarm_li[5].show()
-                            self.settings['achievement']['speed_win'] = True
-                            self.settings['achievement_date']['speed_win'] = datetime.now().strftime(
-                                '%Y-%m-%d')
-                            self.setting.change_setting(self.settings)
+                                pygame.display.update()
+                                pygame.time.wait(1500)
+                                self.settings['achievement']['speed_win'] = True
+                                self.settings['achievement_date']['speed_win'] = datetime.now().strftime(
+                                    '%Y-%m-%d')
+                                self.setting.change_setting(self.settings)
 
-                    elif self.count == 0:
-                        self.settings['win_count']['no_skill'] += 1
-                        start_time = time.time()
-                        if self.settings['win_count']['no_skill'] == 1 and not self.settings['achievement']['no_skill_card']:
-                            while time.time() - start_time < 5:
+                        elif self.count == 0:
+                            self.settings['win_count']['no_skill'] += 1
+                            if self.settings['win_count']['no_skill'] == 1 and not self.settings['achievement']['no_skill_card']:
                                 self.achv_alarm_li[6].show()
-                            self.settings['achievement']['no_skill_card'] = True
-                            self.settings['achievement_date']['no_skill_card'] = datetime.now().strftime(
-                                '%Y-%m-%d')
-                            self.setting.change_setting(self.settings)
+                                pygame.display.update()
+                                pygame.time.wait(1500)
+                                self.settings['achievement']['no_skill_card'] = True
+                                self.settings['achievement_date']['no_skill_card'] = datetime.now().strftime(
+                                    '%Y-%m-%d')
+                                self.setting.change_setting(self.settings)
 
-                    elif self.turtle_win == True:
-                        self.settings['win_count']['turtle'] += 1
-                        start_time = time.time()
-                        if self.settings['win_count']['turtle_win'] == 1 and not self.settings['achievement']['turtle_win']:
-                            while time.time() - start_time < 5:
+                        elif self.turtle_win == True:
+                            self.settings['win_count']['turtle'] += 1
+                            if self.settings['win_count']['turtle_win'] == 1 and not self.settings['achievement']['turtle_win']:
                                 self.achv_alarm_li[7].show()
-                            self.settings['achievement']['turtle_win'] = True
-                            self.settings['achievement_date']['turtle_win'] = datetime.now().strftime(
-                                '%Y-%m-%d')
+                                pygame.display.update()
+                                pygame.time.wait(1500)
+                                self.settings['achievement']['turtle_win'] = True
+                                self.settings['achievement_date']['turtle_win'] = datetime.now().strftime(
+                                    '%Y-%m-%d')
+                                self.setting.change_setting(self.settings)
+                        self.screen.blit(self.bg_img, (0, 0))
+                        pygame.draw.rect(self.screen, c.BLUE,
+                                         pygame.Rect(200, 200, 400, 200))
+                        pygame.draw.rect(self.screen, (255, 180, 0),
+                                         pygame.Rect(210, 210, 380, 180))
+                        close_text = text_format(
+                            "YOU WIN!", c.BERLIN, 80, c.BLUE)
+                        press_text = text_format(
+                            "Press SPACE to MENU", c.BERLIN, 35, c.BLUE)
+                        self.screen.blit(close_text, (230, 220))
+                        self.screen.blit(press_text, (228, 330))
+                        pygame.display.update()
+                    else:
+                        close_text = text_format(
+                            "YOU LOSE!, com{} win!".format(i), c.BERLIN, 40, c.BLUE)
+                        press_text = text_format(
+                            "Press SPACE to go MENU", c.BERLIN, 35, c.BLUE)
+                        self.screen.blit(close_text, (230, 220))
+                        self.screen.blit(press_text, (228, 330))
+                        pygame.display.update()
+            while True:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        terminate()
+
+                    if event.type == KEYDOWN:
+                        if event.key == K_SPACE:
+                            restart = False
+                            self.playing_game = False
                             self.setting.change_setting(self.settings)
-                else:
-                    close_text = text_format(
-                        "YOU LOSE!, com{} win!".format(i), c.BERLIN, 40, (255, 51, 0))
-                    press_text = text_format(
-                        "Press SPACE to REPLAY", c.BERLIN, 35, (255, 51, 0))
-                    self.screen.blit(close_text, (230, 220))
-
-        self.screen.blit(press_text, (228, 330))
-        pygame.display.update()
-        while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    terminate()
-
-                if event.type == KEYDOWN:
-                    if event.key == K_SPACE:
-                        self.playing_game = False
-                        # 객체를 생성해서 호출하는게 좋지않을까? - 객체를 미리 생성하고 어떤 곳은 dictionary로 가더라 이것도 좋아
-                        # 그리고 객체를 생성하면 업적이 망가지지 않을까?
-                        return
-        return 0
+                            UNO.TitleMenu().menu()
+                            # 객체를 생성해서 호출하는게 좋지않을까? - 객체를 미리 생성하고 어떤 곳은 dictionary로 가더라 이것도 좋아
+                            # 그리고 객체를 생성하면 업적이 망가지지 않을까?
+                            return
+            return 0
 
     # 리팩토링 match로 해도 될 것 같아
     def check_player(self):
 
         for i in range(self.player_num):
             if len(self.player[i].card) == 0:
+                self.playing_game = False
                 self.restart()
 
     def selected_turn(self):
@@ -939,8 +965,8 @@ class Game():
     def run_animation(self):
         if self.animation:
             ori = self.animate_card.getposition()
-            self.animate_card.animate(
-                (self.size[0] * (3 / 5), self.size[1] * (1 / 3)))
+            self.animate_card.update(
+                (self.size[0] * (3 / 5), self.size[1] * (1 / 3)), 20)
             self.animation_group = pygame.sprite.RenderPlain(self.animate_card)
             s = self.animate_card.getposition()
             pos = (self.size[0] * (3 / 5), self.size[1] * (1 / 3))
@@ -950,11 +976,9 @@ class Game():
 
     def get_animation(self):
         if self.animation:
-            ori = (self.size[0] * (2 / 5), self.size[1] * (1 / 3))
-            self.animate_card.animate(
-                self.player[self.now_turn].last.getposition())
+            self.animate_card.update(
+                self.player[self.now_turn].last.getposition(), 20)
             self.animation_group = pygame.sprite.RenderPlain(self.animate_card)
-            s = self.animate_card.getposition()
             if self.animate_card.getposition() == self.player[self.now_turn].last.getposition():
                 return 0
         return 1
@@ -966,7 +990,8 @@ class Game():
         while setting:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    terminate()
+                    pygame.quit()
+                    sys.exit()
             if temp[0] == 'B':
                 setting = self.get_animation()
             else:
@@ -1029,10 +1054,17 @@ class Game():
         start_time = time.time()
         while uno:  # 여기
             for event in pygame.event.get():
+                mouse_pos = pygame.mouse.get_pos()
+                if self.uno_button[0].get_rect().collidepoint(mouse_pos):
+                    self.uno_button[1].show()
+                    pygame.display.update()
+                else:
+                    self.uno_button[0].show()
+                    pygame.display.update()
                 if event.type == pygame.QUIT:
                     pygame.quit()
                 if event.type == MOUSEBUTTONUP or event.type == KEYDOWN:
-                    if self.uno_button.get_rect().collidepoint(event.pos) or event.type == K_SPACE:
+                    if self.uno_button[0].get_rect().collidepoint(event.pos) or event.type == K_SPACE:
                         print("버튼 누름!")
                         end_time = time.time()
                         com_time = random.randint(1, 3)
@@ -1047,12 +1079,16 @@ class Game():
                                 #     self.now_turn)
                                 self.first = False
                                 uno = False
+                                self.uno = 0
+                                return 0
                             else:  # 컴퓨터 턴일때 유저가 느리게 누름
                                 print("유저가 느리게 누름")
                                 # self.now_turn = self.get_next_player(
                                 #     self.now_turn)
                                 self.first = False
                                 uno = False
+                                self.uno = 0
+                                return 0
                         else:
                             if self.now_turn == 0:  # 유저 턴일 때
                                 print("빠르게 누름!")
@@ -1060,6 +1096,8 @@ class Game():
                                 #     self.now_turn)
                                 self.first = False
                                 uno = False
+                                self.uno = 0
+                                return 0
                             else:  # 컴퓨터 턴일 때 유저가 빠르게 누름
                                 print("유저가 빠르게 누름!")
                                 self.get_from_deck(self.now_turn)
@@ -1067,6 +1105,8 @@ class Game():
                                 #     self.now_turn)
                                 self.first = False
                                 uno = False
+                                self.uno = 0
+                                return 0
             if (time.time() - start_time) > 3:
                 if self.now_turn == 0:  # 그냥 버튼 안누르고 있을 때 5초 지나면 한 장 먹음
                     print("컴퓨터가 누름")
@@ -1074,6 +1114,8 @@ class Game():
                     # self.now_turn = self.get_next_player(self.now_turn)
                     self.first = False
                     uno = False
+                    self.uno = 0
+                    return 0
                 else:  # 이건 컴퓨터가 1장 남았을 때 유저가 버튼을 안 누르고 있는 경우
                     self.turtle_win = True
                     if self.player_num == 2:  # 유저랑 컴퓨터 1명만 있는 경우 컴퓨터가 uno버튼 누른걸로 판단
@@ -1081,18 +1123,23 @@ class Game():
                         # self.now_turn = self.get_next_player(self.now_turn)
                         self.first = False
                         uno = False
+                        self.uno = 0
+                        return 0
                     else:  # 다른 컴퓨터랑 경쟁
                         com_time = random.randint(0, 1)  # 그냥 0,1로 했어요.
                         if com_time == 1:  # 빠르게 누른 경우
                             print("컴퓨터가 누름")
                             # self.now_turn = self.get_next_player(self.now_turn)
                             uno = False
+                            self.uno = 0
+                            return 0
                         else:  # 느리게 누른 경우 - 카드 뽑음
                             print("컴퓨터가 못 누름")
                             self.get_from_deck(self.now_turn)
                             # self.now_turn = self.get_next_player(self.now_turn)
                             uno = False
-            pygame.display.update()
+                            self.uno = 0
+                            return 0
 
 
 class GameA(Game):
@@ -1130,10 +1177,10 @@ class GameA(Game):
     def restart(self):
         if len(self.player[0].group) == 0:
             self.settings['win_count']['storya'] += 1
-            start_time = time.time()
             if self.settings['win_count']['storya'] == 1 and not self.settings['achievement']['storya_win']:
-                while time.time() - start_time < 5:
-                    self.achv_alarm_li[1].show()
+                self.achv_alarm_li[1].show()
+                pygame.display.update()
+                pygame.time.wait(1500)
                 self.settings['achievement']['storya_win'] = True
                 self.settings['achievement_date']['storya_win'] = datetime.now().strftime(
                     '%Y-%m-%d')
@@ -1254,10 +1301,10 @@ class GameB(Game):
     def restart(self):
         if len(self.player[0].group) == 0:
             self.settings['win_count']['storyb'] += 1
-            start_time = time.time()
             if self.settings['win_count']['storyb'] == 1 and not self.settings['achievement']['storyb_win']:
-                while time.time() - start_time < 5:
-                    self.achv_alarm_li[2].show()
+                self.achv_alarm_li[2].show()
+                pygame.display.update()
+                pygame.time.wait(1500)
                 self.settings['achievement']['storyb_win'] = True
                 self.settings['achievement_date']['storyb_win'] = datetime.now().strftime(
                     '%Y-%m-%d')
@@ -1297,10 +1344,10 @@ class GameC(Game):
     def restart(self):
         if len(self.player[0].group) == 0:
             self.settings['win_count']['storyc'] += 1
-            start_time = time.time()
             if self.settings['win_count']['storyc'] == 1 and not self.settings['achievement']['storyc_win']:
-                while time.time() - start_time < 5:
-                    self.achv_alarm_li[3].show()
+                self.achv_alarm_li[3].show()
+                pygame.display.update()
+                pygame.time.wait(1500)
                 self.settings['achievement']['storyc_win'] = True
                 self.settings['achievement_date']['storyc_win'] = datetime.now().strftime(
                     '%Y-%m-%d')
@@ -1353,10 +1400,10 @@ class GameD(Game):
     def restart(self):
         if len(self.player[0].group) == 0:
             self.settings['win_count']['storyd'] += 1
-            start_time = time.time()
             if self.settings['win_count']['storyd'] == 1 and not self.settings['achievement']['storyd_win']:
-                while time.time() - start_time < 5:
-                    self.achv_alarm_li[4].show()
+                self.achv_alarm_li[4].show()
+                pygame.display.update()
+                pygame.time.wait(1500)
                 self.settings['achievement']['storyd_win'] = True
                 self.settings['achievement_date']['storyd_win'] = datetime.now().strftime(
                     '%Y-%m-%d')
@@ -1366,20 +1413,18 @@ class GameD(Game):
 
 class SettingScreen():
     def __init__(self):
-        super().__init__()
+        self.setting = s.Settings()
+        self.settings = self.setting.get_setting()
         self.screen = pygame.display.set_mode(
             (self.settings['screen']), flags=self.settings['fullscreen'])
-        self.settings = s.Settings().get_setting()
-        self.setting = s.Settings()
 
         self.button_li, self.slider_li, self.rect = self.object_init()
         self.setting_text = rf.TextRect(self.screen, "SETTING", 35, c.WHITE)
         self.screen_setting_text = rf.TextRect(
             self.screen, "화면 크기", 20, c.BLACK)
         self.volume = 0.0
-
-        self.selected = 0
-        self.current_slider = 0
+        self.setting_run = True
+        print(self.settings)
 
     def object_init(self):
         i = 3
@@ -1447,8 +1492,6 @@ class SettingScreen():
 
         pygame.draw.rect(self.screen, c.BLACK, self.rect)
 
-        pygame.display.update()
-
     def sound(self):
         pass
 
@@ -1471,10 +1514,12 @@ class SettingScreen():
         pygame.mixer.music.set_volume(volume)
 
     def handle_event(self):
+        current_time = time.time()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                terminate()
+                pygame.quit()
+                sys.exit()
 
             for slider in self.slider_li:
                 slider.operate(event)
@@ -1507,7 +1552,7 @@ class SettingScreen():
                         # 버튼 입력 후 시작 함수 실행 - 해결하면 지우기
                         pass
 
-            if event.type == pygame.MOUSEBUTTONUP:
+            if event.type == pygame.MOUSEBUTTONUP and current_time - self.start_time >= 1:
                 if self.button_li[0].get_rect().collidepoint(event.pos):
                     self.settings['fullscreen'] = pygame.FULLSCREEN
                     self.screen = pygame.display.set_mode(
@@ -1601,7 +1646,8 @@ class SettingScreen():
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    terminate()
+                    pygame.quit()
+                    sys.exit()
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if self.move_up_text.rect.collidepoint(event.pos):

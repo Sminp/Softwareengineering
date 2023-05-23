@@ -37,24 +37,6 @@ class TestCard(unittest.TestCase):
         self.assertEqual(card.position, dest_loc)
         card.image.get_rect.assert_called_once_with()
 
-    @unittest.skip ("UI이라 판단하기 어려움")
-    def test_rotation(self):
-        screen = pygame.display.set_mode((800, 600))
-        name = 'back'
-        position = (100, 100)
-        size = (50, 50)
-
-        card = lc.Card(name, position, size)
-        card.image = Mock()
-
-        rotate = 45
-        card.rotation(rotate)
-
-        card.image.get_rect.assert_called_once_with()
-        card.image.get_rect.return_value.inflate.assert_called_once_with(0.05, 0.05)
-        card.image.get_rect.return_value.inflate.return_value.center.assert_called_once_with(card.rect.center)
-        pygame.transform.rotate.assert_called_once_with(card.image, rotate)
-
 
 class TestPopup(unittest.TestCase):
 

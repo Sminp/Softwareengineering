@@ -1,5 +1,5 @@
-import pygame
 import sys
+import pygame
 from pygame.locals import *
 import os
 from datetime import datetime
@@ -23,17 +23,7 @@ import time
 
 #     return os.path.join(base_path, relative_path)
 
-
 img_basic_address = './image/'
-
-
-# 지울 예정
-# 텍스트 구현
-def text_format(message, text_font, text_size, text_color):
-    new_font = pygame.font.SysFont(text_font, text_size)
-    new_text = new_font.render(
-        message, True, text_color)
-    return new_text
 
 
 # 끝내는 함수
@@ -277,6 +267,7 @@ class TitleMenu(UNOGame):
 
     # keysetting 하이라이트 따로 변수 만들어서 저장.
     def handle_event(self):
+        selected = 0
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
@@ -489,7 +480,7 @@ class SettingScreen(UNOGame):
         self.volume = 0.0
 
         self.selected = 0
-        self.current_slider = 0
+        self.slider = False
 
     def object_init(self):
         i = 3
@@ -557,12 +548,16 @@ class SettingScreen(UNOGame):
 
         pygame.draw.rect(self.screen, c.BLACK, self.rect)
 
+        if self.selected >= 0:
+            self.button_li[self.selected].highlight()
+
         pygame.display.update()
 
     def sound(self):
         pass
 
     def calculate_volume(self):
+        volume = self.settings['sound']['background']
         # 슬라이더 값을 기반으로 음량을 계산
         total_value = 0
         for slider in self.slider_li:
@@ -581,7 +576,6 @@ class SettingScreen(UNOGame):
         pygame.mixer.music.set_volume(volume)
 
     def handle_event(self):
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
@@ -596,26 +590,66 @@ class SettingScreen(UNOGame):
             if event.type == pygame.KEYDOWN:
                 if event.key == self.keys["left"]:
                     # sound.play()
-                    if selected <= 1:
-                        selected = 1
+                    if self.selected <= -3:
+                        self.selected = -3
                     else:
-                        selected = selected - 1
+                        self.selected = self.selected - 1
+
                 elif event.key == self.keys["right"]:
-                    # sound.play()
-                    if selected >= 3:
-                        selected = 3
+                    if self.selected >= 7:
+                        self.selected = 7
                     else:
-                        selected = selected + 1
-                if event.key == self.keys["click"]:
-                    if selected <= 1:
-                        # 버튼 입력 후 시작 함수 실행 - 해결하면 지우기
-                        pass
-                    if selected == 2:
-                        # 버튼 입력 후 설정 함수 실행 - 해결하면 지우기
-                        pass
-                    if selected >= 3:
-                        # 버튼 입력 후 시작 함수 실행 - 해결하면 지우기
-                        pass
+                        self.selected = self.selected + 1
+
+                elif event.key == self.keys["click"]:
+                    self.slider = True
+                    if self.selected == 0:
+                        self.settings['fullscreen'] = pygame.FULLSCREEN
+                        self.screen = pygame.display.set_mode(
+                            (self.settings['screen']), flags=self.settings['fullscreen'])
+                    elif self.selected == 1:
+                        self.settings['screen'][0] = 1280
+                        self.settings['screen'][1] = 720
+                        self.screen = pygame.display.set_mode(
+                            (self.settings['screen']), flags=self.settings['fullscreen'])
+                        self.button_li, self.slider_li, self.rect = self.object_init()
+                    elif self.selected == 2:
+                        self.settings['screen'][0] = 800
+                        self.settings['screen'][1] = 600
+                        self.screen = pygame.display.set_mode(
+                            (self.settings['screen']), flags=self.settings['fullscreen'])
+                        self.button_li, self.slider_li, self.rect = self.object_init()
+                    elif self.selected == 3:
+                        title = TitleMenu()
+                        title.menu()
+                    elif self.selected == 4:
+                        self.key_select_screen()
+                    elif self.selected == 5:
+                        self.setting.init_setting()
+                    elif self.selected == 6:
+                        self.setting.change_setting(self.settings)
+                    elif self.selected == 7:
+                        if self.rect.x == int(self.settings['screen'][0] * (8 / 11)):
+                            self.rect.x += 50
+                            self.settings['setting_color'] = True
+                        elif self.rect.x == int(self.settings['screen'][0] * (8 / 11)) + 50:
+                            self.rect.x -= 50
+                            self.settings['setting_color'] = False
+
+                if self.slider and self.selected < 0:
+                    button_rect = self.slider_li[self.selected].button
+                    line = self.slider_li[self.selected]
+                    if event.key == self.keys["left"]:  # 왼쪽 방향키를 눌렀을 때
+                        button_rect.x -= 10
+                        if button_rect.x >= (line.x + line.length) - 1 / 10 * line.length:
+                            button_rect.x = int(
+                                (line.x + line.length) - 1 / 10 * line.length)
+                    elif event.key == self.keys["right"]:  # 오른쪽 방향키를 눌렀을 때
+                        button_rect.x += 10
+                        if button_rect.x <= line.x:  # 드래그 제한
+                            button_rect.x = line.x
+                    elif event.key == self.keys["click"]:
+                        self.slider = False
 
             if event.type == pygame.MOUSEBUTTONUP:
                 if self.button_li[0].get_rect().collidepoint(event.pos):
@@ -678,12 +712,145 @@ class SettingScreen(UNOGame):
                         self.rect.x -= 50
                         self.settings['setting_color'] = False
 
-        for i, button in enumerate(self.button_li):
-            if i == self.selected:
-                button.highlight()  # 선택된 메뉴 크기 조정
+    def key_select_screen(self):
+        key_select = True
+        self.bg_img_load("./image/setting_image/settingbackground.jpg")
+        close_button = rf.Button(self.screen, self.settings['screen'][0] * (5 / 6), self.settings['screen'][1] * (3 / 11),
+                                 c.SETTING_CLOSE_BUTTON, 20, 20)
+        save_button = rf.Button(self.screen, self.settings['screen'][0] * (8 / 11), self.settings['screen'][1] * (6 / 8),
+                                c.SETTING_SAVE_BUTTON, 100, 50)
+
+        pygame.draw.rect(self.screen, c.WHITE, (
+            self.settings['screen'][0] *
+            (1 / 9), self.settings['screen'][1] * (2 / 8),
+            self.settings['screen'][0] * (7 / 9),
+            self.settings['screen'][1] * (6 / 10)))
+
+        while key_select:
+
+            self.up_text.show(
+                (self.settings['screen'][0] * (2 / 5), self.settings['screen'][1] * (6 / 18)))
+            self.down_text.show(
+                (self.settings['screen'][0] * (2 / 5), self.settings['screen'][1] * (8 / 18)))
+            self.left_text.show(
+                (self.settings['screen'][0] * (2 / 5), self.settings['screen'][1] * (10 / 18)))
+            self.right_text.show(
+                (self.settings['screen'][0] * (2 / 5), self.settings['screen'][1] * (12 / 18)))
+            self.click_text.show(
+                (self.settings['screen'][0] * (2 / 5), self.settings['screen'][1] * (14 / 18)))
+
+            self.key_setting_text.show(
+                (self.settings['screen'][0] * (1 / 4), self.settings['screen'][1] * (1 / 6)))
+            self.move_up_text.show(
+                (self.settings['screen'][0] * (3 / 5), self.settings['screen'][1] * (6 / 18)))
+            self.move_down_text.show(
+                (self.settings['screen'][0] * (3 / 5), self.settings['screen'][1] * (8 / 18)))
+            self.move_left_text.show(
+                (self.settings['screen'][0] * (3 / 5), self.settings['screen'][1] * (10 / 18)))
+            self.move_right_text.show(
+                (self.settings['screen'][0] * (3 / 5), self.settings['screen'][1] * (12 / 18)))
+            self.move_click_text.show(
+                (self.settings['screen'][0] * (3 / 5), self.settings['screen'][1] * (14 / 18)))
+
+            close_button.show()
+            save_button.show()
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    terminate()
+
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if self.move_up_text.rect.collidepoint(event.pos):
+                        key_change = True
+                        while key_change:
+                            event = pygame.event.wait()
+                            if event.type == pygame.KEYDOWN:
+                                key = event.key
+                                print(key)
+                                self.keys["up"] = key
+                                print(self.keys)
+                                self.move_up = event.unicode
+                                pygame.draw.rect(
+                                    self.screen, c.WHITE, self.move_up_text.rect)
+                                self.move_up_text.change_text_surface(
+                                    self.move_up)
+                                key_change = False
+
+                    elif self.move_down_text.rect.collidepoint(event.pos):
+                        key_change = True
+                        while key_change:
+                            event = pygame.event.wait()
+                            if event.type == pygame.KEYDOWN:
+                                key = event.key
+                                print(key)
+                                self.keys["down"] = key
+                                print(self.keys)
+                                self.move_down = event.unicode
+                                pygame.draw.rect(
+                                    self.screen, c.WHITE, self.move_down_text.rect)
+                                self.move_down_text.change_text_surface(
+                                    self.move_down)
+                                key_change = False
+
+                    elif self.move_left_text.rect.collidepoint(event.pos):
+                        key_change = True
+                        while key_change:
+                            event = pygame.event.wait()
+                            if event.type == pygame.KEYDOWN:
+                                key = event.key
+                                print(key)
+                                self.keys["left"] = key
+                                print(self.keys)
+                                self.move_left = event.unicode
+                                pygame.draw.rect(
+                                    self.screen, c.WHITE, self.move_left_text.rect)
+                                self.move_left_text.change_text_surface(
+                                    self.move_left)
+                                key_change = False
+
+                    elif self.move_right_text.rect.collidepoint(event.pos):
+                        key_change = True
+                        while key_change:
+                            event = pygame.event.wait()
+                            if event.type == pygame.KEYDOWN:
+                                key = event.key
+                                print(key)
+                                self.keys["right"] = key
+                                print(self.keys)
+                                self.move_right = event.unicode
+                                pygame.draw.rect(
+                                    self.screen, c.WHITE, self.move_right_text.rect)
+                                self.move_right_text.change_text_surface(
+                                    self.move_right)
+                                key_change = False
+
+                    elif self.move_click_text.rect.collidepoint(event.pos):
+                        key_change = True
+                        while key_change:
+                            event = pygame.event.wait()
+                            if event.type == pygame.KEYDOWN:
+                                key = event.key
+                                print(key)
+                                self.keys["click"] = key
+                                print(self.keys)
+                                self.move_click = event.unicode
+                                pygame.draw.rect(
+                                    self.screen, c.WHITE, self.move_click_text.rect)
+                                self.move_click_text.change_text_surface(
+                                    self.move_click)
+                                key_change = False
+
+                    elif close_button.get_rect().collidepoint(event.pos):
+                        # key_select = False
+                        setting = SettingScreen()
+                        setting.menu()
+
+                    elif save_button.get_rect().collidepoint(event.pos):
+                        self.setting.change_setting(self.settings)
+
+            pygame.display.update()
 
     def menu(self):
-        selected = 1
 
         while True:
             self.bg_img_load(c.SETTING_BACKGROUND)
@@ -811,28 +978,7 @@ class StoryMode(UNOGame):
             pygame.display.update()
 
 
-class UnoGame(UNOGame):
-    def __init__(self):
-        super().__init__()
-        pass
-
-    def object_init(self):
-        pass
-
-    def object_show(self):
-        pass
-
-    def sound(self):
-        pass
-
-    def handle_event(self):
-        pass
-
-    def menu(self):
-        pass
-
-
-class YesNo(UnoGame):
+class YesNo(UNOGame):
     def __init__(self, ask_text):
         super().__init__()
         self.yes_no = True
@@ -960,7 +1106,7 @@ class YesNoStory(YesNo):
             pygame.display.update()
 
 
-class SelectRole(UnoGame):
+class SelectRole(UNOGame):
     def __init__(self):
         super().__init__()
         self.screen = pygame.display.set_mode(
@@ -1012,7 +1158,7 @@ class SelectRole(UnoGame):
             pygame.display.update()
 
 
-class ClientScreen(UnoGame):
+class ClientScreen(UNOGame):
     def __init__(self):
         super().__init__()
         self.screen = pygame.display.set_mode(
@@ -1065,7 +1211,7 @@ class ClientScreen(UnoGame):
         pygame.display.update()
 
 
-class ServerScreen(UnoGame):
+class ServerScreen(UNOGame):
     def __init__(self):
         super().__init__()
         self.screen = pygame.display.set_mode(
@@ -1110,7 +1256,7 @@ class ServerScreen(UnoGame):
         self.password = get_input_screen.input
 
 
-class GetInput(UnoGame):
+class GetInput(UNOGame):
     """
     password, ipaddress, user_name등을 입력받는 화면
     """

@@ -86,24 +86,24 @@ class User(Player):
         k = 0
         l = 0
         for item in self.group:
-            if 7 <= i < 14:
+            if i < 7:
+                item.update((self.size[0] * (1 / 3) +
+                            80 * i, self.size[1] * (7 / 9)), 20)
+                i += 1
+            elif 7 <= i < 14:
                 item.update((self.size[0] * (1 / 3) + 80 * j,
-                             self.size[1] * (7 / 9) + self.size[1] / 10))
+                             self.size[1] * (7 / 9) + self.size[1] / 10), 20)
                 j += 1
                 i += 1
             elif 14 <= i < 28:
                 item.update((self.size[0] * (1 / 3) + 80 * k,
-                             self.size[1] * (7 / 9) + self.size[1] * 2 / 10))
+                             self.size[1] * (7 / 9) + self.size[1] * 2 / 10), 20)
                 k += 1
                 i += 1
             elif i >= 28:
                 item.update((self.size[0] * (1 / 3) + 80 * l,
-                             self.size[1] * (7 / 9) + self.size[1] * 3 / 10))
+                             self.size[1] * (7 / 9) + self.size[1] * 3 / 10), 15)
                 l += 1
-                i += 1
-            else:
-                item.update((self.size[0] * (1 / 3) + 80 *
-                             i, self.size[1] * (7 / 9)))
                 i += 1
         self.draw_group = pygame.sprite.RenderPlain(*self.group)
         if self.last_idx:
@@ -268,20 +268,20 @@ class Computer(Player):
         j = 0
         k = 0
         for item in self.group:
-            if 12 <= i < 24:
+            if i < 12:
+                item.update((self.size[0] * (1 / 30) + 10 * i,
+                             self.size[1] * ((2 * self.index - 1) / 10)), 20)
+                i += 1
+            elif 12 <= i < 24:
                 item.update((self.size[0] * (1 / 30) + 10 * j,
-                             self.size[1] * ((2 * self.index - 1) / 10) + self.size[1] * (1 / 30)))
+                             self.size[1] * ((2 * self.index - 1) / 10) + self.size[1] * (1 / 30)), 20)
                 j += 1
                 i += 1
             elif i >= 24:
                 item.update((self.size[0] * (1 / 30) + 10 * k,
-                             self.size[1] * ((2 * self.index - 1) / 10) + self.size[1] * (2 / 30)))
+                             self.size[1] * ((2 * self.index - 1) / 10) + self.size[1] * (2 / 30)), 15)
                 i += 1
                 k += 1
-            else:
-                item.update((self.size[0] * (1 / 30) + 10 * i,
-                             self.size[1] * ((2 * self.index - 1) / 10)))
-                i += 1
         self.draw_group = pygame.sprite.RenderPlain(*self.group)
         if self.last_idx:
             last_pos = self.last.getposition()

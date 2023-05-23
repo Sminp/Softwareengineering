@@ -25,7 +25,7 @@ class Settings:
         # self.player_num = 2
         # self.difficulty = 1
 
-        self.setting = self.get_setting()
+        self.setting = self.init_setting()
 
     def init_setting(self):
         # 초기값을 setting.pickle에 저장
@@ -53,8 +53,8 @@ class Settings:
                                  'first_play': None, 'card_collector': None, 'skill_master': None},
 
             'win_count': {'single': 0, 'storya': 0, 'storyb': 0, 'storyc': 0, 'storyd': 0,
-                         'speed': 0, 'no_skill': 0, 'turtle': 0, 'first': 0, 'collector': 0,
-                         'skill': 0},
+                          'speed': 0, 'no_skill': 0, 'turtle': 0, 'first': 0, 'collector': 0,
+                          'skill': 0},
 
         }
 
