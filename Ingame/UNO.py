@@ -1,5 +1,5 @@
-import sys
 import pygame
+import sys
 from pygame.locals import *
 import os
 from datetime import datetime
@@ -48,6 +48,7 @@ class UNOGame:
     def __init__(self):
         pygame.init()
         self.settings = s.Settings().get_setting()
+        self.setting = s.Settings()
         self.screen = pygame.display.set_mode(
             (self.settings['screen']), flags=self.settings['fullscreen'])
         self.size = (self.settings['screen'])
@@ -67,21 +68,17 @@ class UNOGame:
         self.right_text = rf.TextRect(self.screen, "RIGHT", 30, c.BLACK)
         self.click_text = rf.TextRect(self.screen, "CLICK", 30, c.BLACK)
 
-        self.move_up = "↑"
-        self.move_down = "↓"
-        self.move_left = "←"
-        self.move_right = "→"
-        self.move_click = "Enter"
 
-        self.move_up_text = rf.TextRect(self.screen, self.move_up, 30, c.BLACK)
+        self.move_up_text = rf.TextRect(
+            self.screen, pygame.key.name(self.keys["up"]), 30, c.BLACK)
         self.move_down_text = rf.TextRect(
-            self.screen, self.move_down, 30, c.BLACK)
+            self.screen, pygame.key.name(self.keys["down"]), 30, c.BLACK)
         self.move_left_text = rf.TextRect(
-            self.screen, self.move_left, 30, c.BLACK)
+            self.screen, pygame.key.name(self.keys["left"]), 30, c.BLACK)
         self.move_right_text = rf.TextRect(
-            self.screen, self.move_right, 30, c.BLACK)
+            self.screen, pygame.key.name(self.keys["right"]), 30, c.BLACK)
         self.move_click_text = rf.TextRect(
-            self.screen, self.move_click, 30, c.BLACK)
+            self.screen, pygame.key.name(self.keys["click"]), 30, c.BLACK)
 
     def bg_img_load(self, filename: str) -> object:
         bg_img = pygame.image.load(s.resource_path(filename))
@@ -165,14 +162,13 @@ class UNOGame:
                             event = pygame.event.wait()
                             if event.type == pygame.KEYDOWN:
                                 key = event.key
-                                print(key)
+                                #print(key)
                                 self.keys["up"] = key
-                                print(self.keys)
-                                self.move_up = event.unicode
+                                #print(self.keys)
                                 pygame.draw.rect(
                                     self.screen, c.WHITE, self.move_up_text.rect)
                                 self.move_up_text.change_text_surface(
-                                    self.move_up)
+                                    pygame.key.name(self.keys["up"]))
                                 key_change = False
 
                     elif self.move_down_text.rect.collidepoint(event.pos):
@@ -181,14 +177,13 @@ class UNOGame:
                             event = pygame.event.wait()
                             if event.type == pygame.KEYDOWN:
                                 key = event.key
-                                print(key)
+                                #print(key)
                                 self.keys["down"] = key
-                                print(self.keys)
-                                self.move_down = event.unicode
+                                #print(self.keys)
                                 pygame.draw.rect(
                                     self.screen, c.WHITE, self.move_down_text.rect)
                                 self.move_down_text.change_text_surface(
-                                    self.move_down)
+                                    pygame.key.name(self.keys["down"]))
                                 key_change = False
 
                     elif self.move_left_text.rect.collidepoint(event.pos):
@@ -197,14 +192,13 @@ class UNOGame:
                             event = pygame.event.wait()
                             if event.type == pygame.KEYDOWN:
                                 key = event.key
-                                print(key)
+                                #print(key)
                                 self.keys["left"] = key
-                                print(self.keys)
-                                self.move_left = event.unicode
+                                #print(self.keys)
                                 pygame.draw.rect(
                                     self.screen, c.WHITE, self.move_left_text.rect)
                                 self.move_left_text.change_text_surface(
-                                    self.move_left)
+                                    pygame.key.name(self.keys["left"]))
                                 key_change = False
 
                     elif self.move_right_text.rect.collidepoint(event.pos):
@@ -213,14 +207,13 @@ class UNOGame:
                             event = pygame.event.wait()
                             if event.type == pygame.KEYDOWN:
                                 key = event.key
-                                print(key)
+                                #print(key)
                                 self.keys["right"] = key
-                                print(self.keys)
-                                self.move_right = event.unicode
+                                #print(self.keys)
                                 pygame.draw.rect(
                                     self.screen, c.WHITE, self.move_right_text.rect)
                                 self.move_right_text.change_text_surface(
-                                    self.move_right)
+                                    pygame.key.name(self.keys["right"]))
                                 key_change = False
 
                     elif self.move_click_text.rect.collidepoint(event.pos):
@@ -229,14 +222,13 @@ class UNOGame:
                             event = pygame.event.wait()
                             if event.type == pygame.KEYDOWN:
                                 key = event.key
-                                print(key)
+                                #print(key)
                                 self.keys["click"] = key
-                                print(self.keys)
-                                self.move_click = event.unicode
+                                #print(self.keys)
                                 pygame.draw.rect(
                                     self.screen, c.WHITE, self.move_click_text.rect)
                                 self.move_click_text.change_text_surface(
-                                    self.move_click)
+                                    pygame.key.name(self.keys["click"]))
                                 key_change = False
 
                     elif close_button.get_rect().collidepoint(event.pos):
@@ -262,6 +254,8 @@ class TitleMenu(UNOGame):
         self.width = self.settings['screen'][0] * (1 / 10)
         self.height = self.settings['screen'][1] * (4 / 13)
         self.button_li = self.object_init()
+        
+        self.selected = 0
 
     def object_init(self):
         i = 0
@@ -284,34 +278,32 @@ class TitleMenu(UNOGame):
 
     # keysetting 하이라이트 따로 변수 만들어서 저장.
     def handle_event(self):
-        selected = 0
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
             if event.type == pygame.KEYDOWN:
                 if event.key == self.keys["left"]:
                     # sound.play()
-                    if selected <= 0:
-                        selected = 0
+                    if self.selected <= 0:
+                        self.selected = 0
                     else:
-                        selected = selected - 1
-
+                        self.selected = self.selected - 1
+                        
                 elif event.key == self.keys["right"]:
-                    if selected >= 5:
-                        selected = 5
+                    if self.selected >= 5:
+                        self.selected = 5
                     else:
-                        selected += 1
+                        self.selected = self.selected + 1
                 elif event.key == self.keys["click"]:
-                    if selected == 0:
+                    if self.selected == 0:
                         LobbyScreen().menu()
-                    elif selected == 1:
+                    elif self.selected == 1:
                         SelectRole().menu()
-                    elif selected == 2:
+                    elif self.selected == 2:
                         StoryMode().menu()
-                    elif selected == 3:
+                    elif self.selected == 3:
                         AchievementScreen().menu()
-
-                    elif selected == 4:
+                    elif self.selected == 4:
                         SettingScreen().menu()
                     else:
                         terminate()
@@ -331,6 +323,14 @@ class TitleMenu(UNOGame):
                     SettingScreen().menu()
                 elif self.button_li[5].get_rect().collidepoint(event.pos):
                     terminate()
+        
+        # 버튼 크기 조정
+        for i, button in enumerate(self.button_li):
+            if i == self.selected:
+                button.highlight()  # 선택된 메뉴 크기 조정
+            else:
+                button.show()  # 나머지 메뉴 그리기
+
 
     def menu(self):
         self.sound()
@@ -481,6 +481,7 @@ class SettingScreen(UNOGame):
         super().__init__()
         self.screen = pygame.display.set_mode(
             (self.settings['screen']), flags=self.settings['fullscreen'])
+        self.settings = s.Settings().get_setting()
         self.setting = s.Settings()
 
         self.button_li, self.slider_li, self.rect = self.object_init()
@@ -488,6 +489,10 @@ class SettingScreen(UNOGame):
         self.screen_setting_text = rf.TextRect(
             self.screen, "화면 크기", 20, c.BLACK)
         self.volume = 0.0
+        
+        self.selected = 0
+        self.current_slider = 0
+        
 
     def object_init(self):
         i = 3
@@ -522,9 +527,14 @@ class SettingScreen(UNOGame):
                 3 / 10), self.settings['screen'][1] * (j / 20)), (0, 100))
             sliders_li.append(slider)
             j += 1.5
-
-        rect = pygame.Rect(
-            self.settings['screen'][0] * (8 / 11), self.settings['screen'][1] * (7 / 11), 50, 50)
+            
+        if self.settings['setting_color'] == True:
+            rect = pygame.Rect(
+                self.settings['screen'][0] * (8 / 11)+50, self.settings['screen'][1] * (7 / 11), 50, 50)
+        elif self.settings['setting_color'] == False:
+            rect = pygame.Rect(
+                self.settings['screen'][0] * (8 / 11), self.settings['screen'][1] * (7 / 11), 50, 50)
+            
 
         return button_li, sliders_li, rect
 
@@ -550,7 +560,9 @@ class SettingScreen(UNOGame):
             i += 1.5
 
         pygame.draw.rect(self.screen, c.BLACK, self.rect)
-
+        
+        pygame.display.update()
+        
     def sound(self):
         pass
 
@@ -579,7 +591,7 @@ class SettingScreen(UNOGame):
                 terminate()
 
             for slider in self.slider_li:
-                slider.operate(event)
+                slider.mouse_operate(event)
                 if event.type == pygame.MOUSEBUTTONUP:
                     self.volume = self.calculate_volume()
                     self.set_volume()
@@ -669,144 +681,11 @@ class SettingScreen(UNOGame):
                     elif self.rect.x == int(self.settings['screen'][0] * (8 / 11)) + 50:
                         self.rect.x -= 50
                         self.settings['setting_color'] = False
+                        
+        for i, button in enumerate(self.button_li):
+            if i == self.selected:
+                button.highlight()  # 선택된 메뉴 크기 조정
 
-    def key_select_screen(self):
-        key_select = True
-        self.bg_img_load("./image/setting_image/settingbackground.jpg")
-        close_button = rf.Button(self.screen, self.settings['screen'][0] * (5 / 6), self.settings['screen'][1] * (3 / 11),
-                                 c.SETTING_CLOSE_BUTTON, 20, 20)
-        save_button = rf.Button(self.screen, self.settings['screen'][0] * (8 / 11), self.settings['screen'][1] * (6 / 8),
-                                c.SETTING_SAVE_BUTTON, 100, 50)
-
-        pygame.draw.rect(self.screen, c.WHITE, (
-            self.settings['screen'][0] *
-            (1 / 9), self.settings['screen'][1] * (2 / 8),
-            self.settings['screen'][0] * (7 / 9),
-            self.settings['screen'][1] * (6 / 10)))
-
-        while key_select:
-
-            self.up_text.show(
-                (self.settings['screen'][0] * (2 / 5), self.settings['screen'][1] * (6 / 18)))
-            self.down_text.show(
-                (self.settings['screen'][0] * (2 / 5), self.settings['screen'][1] * (8 / 18)))
-            self.left_text.show(
-                (self.settings['screen'][0] * (2 / 5), self.settings['screen'][1] * (10 / 18)))
-            self.right_text.show(
-                (self.settings['screen'][0] * (2 / 5), self.settings['screen'][1] * (12 / 18)))
-            self.click_text.show(
-                (self.settings['screen'][0] * (2 / 5), self.settings['screen'][1] * (14 / 18)))
-
-            self.key_setting_text.show(
-                (self.settings['screen'][0] * (1 / 4), self.settings['screen'][1] * (1 / 6)))
-            self.move_up_text.show(
-                (self.settings['screen'][0] * (3 / 5), self.settings['screen'][1] * (6 / 18)))
-            self.move_down_text.show(
-                (self.settings['screen'][0] * (3 / 5), self.settings['screen'][1] * (8 / 18)))
-            self.move_left_text.show(
-                (self.settings['screen'][0] * (3 / 5), self.settings['screen'][1] * (10 / 18)))
-            self.move_right_text.show(
-                (self.settings['screen'][0] * (3 / 5), self.settings['screen'][1] * (12 / 18)))
-            self.move_click_text.show(
-                (self.settings['screen'][0] * (3 / 5), self.settings['screen'][1] * (14 / 18)))
-
-            close_button.show()
-            save_button.show()
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    terminate()
-
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    if self.move_up_text.rect.collidepoint(event.pos):
-                        key_change = True
-                        while key_change:
-                            event = pygame.event.wait()
-                            if event.type == pygame.KEYDOWN:
-                                key = event.key
-                                print(key)
-                                self.keys["up"] = key
-                                print(self.keys)
-                                self.move_up = event.unicode
-                                pygame.draw.rect(
-                                    self.screen, c.WHITE, self.move_up_text.rect)
-                                self.move_up_text.change_text_surface(
-                                    self.move_up)
-                                key_change = False
-
-                    elif self.move_down_text.rect.collidepoint(event.pos):
-                        key_change = True
-                        while key_change:
-                            event = pygame.event.wait()
-                            if event.type == pygame.KEYDOWN:
-                                key = event.key
-                                print(key)
-                                self.keys["down"] = key
-                                print(self.keys)
-                                self.move_down = event.unicode
-                                pygame.draw.rect(
-                                    self.screen, c.WHITE, self.move_down_text.rect)
-                                self.move_down_text.change_text_surface(
-                                    self.move_down)
-                                key_change = False
-
-                    elif self.move_left_text.rect.collidepoint(event.pos):
-                        key_change = True
-                        while key_change:
-                            event = pygame.event.wait()
-                            if event.type == pygame.KEYDOWN:
-                                key = event.key
-                                print(key)
-                                self.keys["left"] = key
-                                print(self.keys)
-                                self.move_left = event.unicode
-                                pygame.draw.rect(
-                                    self.screen, c.WHITE, self.move_left_text.rect)
-                                self.move_left_text.change_text_surface(
-                                    self.move_left)
-                                key_change = False
-
-                    elif self.move_right_text.rect.collidepoint(event.pos):
-                        key_change = True
-                        while key_change:
-                            event = pygame.event.wait()
-                            if event.type == pygame.KEYDOWN:
-                                key = event.key
-                                print(key)
-                                self.keys["right"] = key
-                                print(self.keys)
-                                self.move_right = event.unicode
-                                pygame.draw.rect(
-                                    self.screen, c.WHITE, self.move_right_text.rect)
-                                self.move_right_text.change_text_surface(
-                                    self.move_right)
-                                key_change = False
-
-                    elif self.move_click_text.rect.collidepoint(event.pos):
-                        key_change = True
-                        while key_change:
-                            event = pygame.event.wait()
-                            if event.type == pygame.KEYDOWN:
-                                key = event.key
-                                print(key)
-                                self.keys["click"] = key
-                                print(self.keys)
-                                self.move_click = event.unicode
-                                pygame.draw.rect(
-                                    self.screen, c.WHITE, self.move_click_text.rect)
-                                self.move_click_text.change_text_surface(
-                                    self.move_click)
-                                key_change = False
-
-                    elif close_button.get_rect().collidepoint(event.pos):
-                        # key_select = False
-                        setting = SettingScreen()
-                        setting.menu()
-
-                    elif save_button.get_rect().collidepoint(event.pos):
-                        self.setting.change_setting(self.settings)
-
-            pygame.display.update()
     def menu(self):
         selected = 1
 
@@ -827,6 +706,8 @@ class StoryMode(UNOGame):
         self.height = self.settings['screen'][1] * (1 / 5)
         self.storywin = [self.settings['achievement']['storya_win'],self.settings['achievement']['storyb_win'],self.settings['achievement']['storyc_win'],self.settings['achievement']['storyd_win']]
         self.button_li, self.text = self.object_init()
+        
+        self.selected = 0
 
 
     def object_init(self):
@@ -864,6 +745,12 @@ class StoryMode(UNOGame):
             button.show()
         self.text.show(
             (self.settings['screen'][0] // 5, self.settings['screen'][1] // 10))
+        
+        for i, button in enumerate(self.button_li):
+            if i == self.selected:
+                button.highlight()  # 선택된 메뉴 크기 조정
+            else:
+                button.show()
 
     def sound(self):
         pygame.mixer.music.stop()
@@ -890,7 +777,32 @@ class StoryMode(UNOGame):
                             else:
                                 ask_popup = YesNoStory(3, 5, gf.GameD)
                                 ask_popup.menu()
-
+                                
+            if event.type == pygame.KEYDOWN:
+                if event.key == self.keys["left"]:
+                    if self.selected <= 0:
+                        self.selected = 0
+                    else:
+                        self.selected = self.selected - 1
+                elif event.key == self.keys["right"]:
+                    if self.selected >= 3:
+                        self.selected = 3
+                    else:
+                        self.selected = self.selected + 1
+                elif event.key == self.keys["click"]:
+                    if self.button_li[self.selected].lock == False:
+                        if self.selected == 0:
+                            ask_popup = YesNoStory(2, 2, gf.GameA)
+                            ask_popup.menu()
+                        elif self.selected == 1:
+                            ask_popup = YesNoStory(4, 3, gf.GameB)
+                            ask_popup.menu()
+                        elif self.selected == 2:
+                            ask_popup = YesNoStory(3, 4, gf.GameC)
+                            ask_popup.menu()
+                        elif self.selected == 3:
+                            ask_popup = YesNoStory(3, 5, gf.GameD)
+                            ask_popup.menu()
     def menu(self):
         self.sound()
 
@@ -989,12 +901,20 @@ class YesNoStory(YesNo):
         self.info_list = []
         for i in range(1, len(self.info)):
             self.info_list.append(rf.TextRect(self.screen, self.info[i], 20, c.BLACK))
+            
+        self.selected = 0
 
     def object_show(self):
         super().object_show()
         for i in range(len(self.info_list)):
             self.info_list[i].show((self.settings['screen'][0] / 2, self.settings['screen'][1] / 3 + 40 * i))
         
+        for i, button in enumerate(self.button_li):
+            if i == self.selected:
+                button.highlight()  # 선택된 메뉴 크기 조정
+            else:
+                button.show()  # 나머지 메뉴 그리기
+
     def handle_event(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -1006,6 +926,28 @@ class YesNoStory(YesNo):
                     self.yes_no = False
                 elif self.button_li[1].get_rect().collidepoint(event.pos):
                     self.yes_no = False
+                    
+            if event.type == pygame.KEYDOWN:
+                if event.key == self.keys["up"]:
+                    # sound.play()
+                    if self.selected <= 0:
+                        self.selected = 0
+                    else:
+                        self.selected = self.selected - 1
+                        
+                elif event.key == self.keys["down"]:
+                    if self.selected >= 1:
+                        self.selected = 1
+                    else:
+                        self.selected = self.selected + 1
+                elif event.key == self.keys["click"]:
+                    if self.selected == 0:
+                        uno = self.class_name()
+                        uno.startgame()
+                        self.yes_no = False
+                    elif self.selected == 1:
+                        self.yes_no = False
+                
 
     def menu(self):
         while self.yes_no:
@@ -1013,6 +955,8 @@ class YesNoStory(YesNo):
             self.handle_event()
 
             pygame.display.update()
+
+
 
 class SelectRole(UnoGame):
     def __init__(self):
@@ -1240,79 +1184,175 @@ class GetInput(UnoGame):
             self.handle_event()
             pygame.display.update()
 
-# 수정중
-
-
 class AchievementScreen(UNOGame):
     def __init__(self):
         super().__init__()
         self.screen = pygame.display.set_mode(
             (self.settings['screen']), flags=self.settings['fullscreen'])
+        self.setting = s.Settings()
+        
+        self.achv_text = rf.TextRect(self.screen, "업적", 35, c.WHITE)
 
-        self.x = self.settings['screen'][0] * (1 / 16)
-        self.y = self.settings['screen'][1] * (1 / 8)
-        self.width = self.settings['screen'][0] * (7 / 8)
-        self.height = self.settings['screen'][1] * (1 / 8)
+        self.x = self.settings['screen'][0] * (1 / 8)
+        self.y = self.settings['screen'][1] * (1 / 5)
+        self.width = self.settings['screen'][0] * (6 / 8)
+        self.height = self.settings['screen'][1] * (1 / 6)
         self.achievement_li, self.close_button = self.object_init()
+        
+        self.achv_completed_img = pygame.transform.scale(pygame.image.load(c.ACHV_COMPLETED), 
+                                (self.settings['screen'][0]*(1/9),self.settings['screen'][1]*(1/9)))
+        self.achv_completed_rect = self.achv_completed_img.get_rect()   
 
     def object_init(self):
-        close_button = rf.Button(self.screen, self.settings['screen'][0] * (9 / 10), self.settings['screen'][1] * (1 / 10),
-                                 c.SETTING_CLOSE_BUTTON, 20, 20)
-
+        close_button = rf.Button(self.screen, self.settings['screen'][0] * (7 / 8), self.settings['screen'][1] * (1 / 7),
+                                c.SETTING_CLOSE_BUTTON, 20, 20)
+        
+        i = 1
         achievement_li = []
         for achievement in c.ACHV_LIST:
-            achievement_image = pygame.image.load(achievement)
-            achievement_rect = achievement_image.get_rect()
-            achievement_rect.topleft = (self.x, self.y)
-            achievement_li.append(achievement_rect)
-
-            self.y += self.height + self.settings['screen'][1] * (1 / 16)
-
+            achievement = rf.Button(self.screen, self.x, self.y *i, 
+                                    achievement, self.width, self.height)
+            achievement_li.append(achievement)
+            i += 1
+            
         return achievement_li, close_button
 
-        # 리스트에 객체 넣기 - render로 이미지 불러오기 - show로 화면에 띄우기
-        # single_win = pygame.image.load(SINGLE_WIN)
-        # america_win = pygame.image.load(AMERICA_WIN)
-        # macau_win = pygame.image.load(MACAU_WIN)
-        # singapore_win = pygame.image.load(SINGAPORE_WIN)
-        # korea_win = pygame.image.load(KOREA_WIN)
-        # speed_master = pygame.image.load(SPEED_MASTER)
-        # no_skill_card = pygame.image.load(NO_SKILL_CARD)
-        # turtle_win = pygame.image.load(TURTLE_WIN)
-        # first_play = pygame.image.load(FIRST_PLAY)
-        # card_collector = pygame.image.load(CARD_COLLECTOR)
-        # skill_master = pygame.image.load(SKILL_MASTER)
-
-
     def object_show(self):
+        self.achv_text.show(
+            (self.settings['screen'][0] * (1 / 5), self.settings['screen'][1] * (1 / 7)))
         self.close_button.show()
 
-        for achievement_rect in self.achievement_li:
-            achievement_image = pygame.image.load(achievement_rect)
-            self.screen.blit(achievement_image, achievement_rect)
-
+        for achievement in self.achievement_li:
+            achievement.show()
+            
+        font =  pygame.font.SysFont(c.MALGUNGOTHIC, 20)  
+        if self.settings['achievement']['single_win'] == True:
+            self.achv_completed_rect.center = self.achievement_li[0].midright
+            self.screen.blit(self.achv_completed_img, self.achv_completed_rect)
+            
+            single_win_date_rect = rf.TextRect(self.screen, "self.settings['achievement_date']['single_win']", 20, c.WHITE)
+            single_win_date_rect.x = self.achievement_li[0].midright
+            single_win_date_rect.y = self.achv_completed_rect.y + achievement.rect.height
+            self.screen.blit(single_win_date_rect, (single_win_date_rect.midright, single_win_date_rect.y))
+        
+        if self.settings['achievement']['storya_win'] == True:
+            self.achv_completed_rect.center = self.achievement_li[1].midright
+            self.screen.blit(self.achv_completed_img, self.achv_completed_rect)
+            
+            storya_win_date_rect = rf.TextRect(self.screen, "self.settings['achievement_date']['storya_win']", 20, c.WHITE)
+            storya_win_date_rect.x = self.achievement_li[1].midright
+            storya_win_date_rect.y = self.achv_completed_rect.y + achievement.rect.height
+            self.screen.blit(storya_win_date_rect, (storya_win_date_rect.midright, storya_win_date_rect.y))
+            
+        if self.settings['achievement']['storyb_win'] == True:
+            self.achv_completed_rect.center = self.achievement_li[2].midright
+            self.screen.blit(self.achv_completed_img, self.achv_completed_rect)
+            
+            storyb_win_date_rect = rf.TextRect(self.screen, "self.settings['achievement_date']['storyb_win']", 20, c.WHITE)
+            storyb_win_date_rect.x = self.achievement_li[2].midright
+            storyb_win_date_rect.y = self.achv_completed_rect.y + achievement.rect.height
+            self.screen.blit(storyb_win_date_rect, (storyb_win_date_rect.midright, storyb_win_date_rect.y))
+            
+        if self.settings['achievement']['storyc_win'] == True:
+            self.achv_completed_rect.center = self.achievement_li[3].midright
+            self.screen.blit(self.achv_completed_img, self.achv_completed_rect)
+            
+            storyc_win_date_rect = rf.TextRect(self.screen, "self.settings['achievement_date']['storyc_win']", 20, c.WHITE)
+            storyc_win_date_rect.x = self.achievement_li[2].midright
+            storyc_win_date_rect.y = self.achv_completed_rect.y + achievement.rect.height
+            self.screen.blit(storyc_win_date_rect, (storyc_win_date_rect.midright, storyc_win_date_rect.y))
+            
+        if self.settings['achievement']['storyd_win'] == True:
+            self.achv_completed_rect.center = self.achievement_li[4].midright
+            self.screen.blit(self.achv_completed_img, self.achv_completed_rect)
+            
+            storyd_win_date_rect = rf.TextRect(self.screen, "self.settings['achievement_date']['storyd_win']", 20, c.WHITE)
+            storyd_win_date_rect.x = self.achievement_li[4].midright
+            storyd_win_date_rect.y = self.achv_completed_rect.y + achievement.rect.height
+            self.screen.blit(storyd_win_date_rect, (storyd_win_date_rect.midright, storyd_win_date_rect.y))
+            
+        if self.settings['achievement']['speed_master'] == True:
+            self.achv_completed_rect.center = self.achievement_li[5].midright
+            self.screen.blit(self.achv_completed_img, self.achv_completed_rect)
+            
+            speed_master_date_rect = rf.TextRect(self.screen, "self.settings['achievement_date']['speed_master']", 20, c.WHITE)
+            speed_master_date_rect.x = self.achievement_li[5].midright
+            speed_master_date_rect.y = self.achv_completed_rect.y + achievement.rect.height
+            self.screen.blit(speed_master_date_rect, (speed_master_date_rect.midright, speed_master_date_rect.y))
+            
+        if self.settings['achievement']['no_skill_card'] == True:
+            self.achv_completed_rect.center = self.achievement_li[6].midright
+            self.screen.blit(self.achv_completed_img, self.achv_completed_rect)
+            
+            no_skill_card_date_rect = rf.TextRect(self.screen, "self.settings['achievement_date']['no_skill_card']", 20, c.WHITE)
+            no_skill_card_date_rect.x = self.achievement_li[6].midright
+            no_skill_card_date_rect.y = self.achv_completed_rect.y + achievement.rect.height
+            self.screen.blit(no_skill_card_date_rect, (no_skill_card_date_rect.midright, no_skill_card_date_rect.y))
+            
+        if self.settings['achievement']['turtle_win'] == True:
+            self.achv_completed_rect.center = self.achievement_li[7].midright
+            self.screen.blit(self.achv_completed_img, self.achv_completed_rect)
+            
+            turtle_win_date_rect = rf.TextRect(self.screen, "self.settings['achievement_date']['turtle_win']", 20, c.WHITE)
+            turtle_win_date_rect.x = self.achievement_li[7].midright
+            turtle_win_date_rect.y = self.achv_completed_rect.y + achievement.rect.height
+            self.screen.blit(turtle_win_date_rect, (turtle_win_date_rect.midright, turtle_win_date_rect.y))
+            
+        if self.settings['achievement']['first_play'] == True:
+            self.achv_completed_rect.center = self.achievement_li[8].midright
+            self.screen.blit(self.achv_completed_img, self.achv_completed_rect)
+            
+            first_play_date_rect = rf.TextRect(self.screen, "self.settings['achievement_date']['first_play']", 20, c.WHITE)
+            first_play_date_rect.x = self.achievement_li[8].midright
+            first_play_date_rect.y = self.achv_completed_rect.y + achievement.rect.height
+            self.screen.blit(first_play_date_rect, (first_play_date_rect.midright, first_play_date_rect.y))
+            
+        if self.settings['achievement']['card_collector'] == True:
+            self.achv_completed_rect.center = self.achievement_li[9].midright
+            self.screen.blit(self.achv_completed_img, self.achv_completed_rect)
+            
+            card_collector_date_rect = rf.TextRect(self.screen, "self.settings['achievement_date']['card_collector']", 20, c.WHITE)
+            card_collector_date_rect.x = self.achievement_li[9].midright
+            card_collector_date_rect.y = self.achv_completed_rect.y + achievement.rect.height
+            self.screen.blit(card_collector_date_rect, (card_collector_date_rect.midright, card_collector_date_rect.y))
+            
+        if self.settings['achievement']['skill_master'] == True:
+            self.achv_completed_rect.center = self.achievement_li[10].midright
+            self.screen.blit(self.achv_completed_img, self.achv_completed_rect)
+            
+            skill_master_date_rect = rf.TextRect(self.screen, "self.settings['achievement_date']['skill_master']", 20, c.WHITE)
+            skill_master_date_rect.x = self.achievement_li[10].midright
+            skill_master_date_rect.y = self.achv_completed_rect.y + achievement.rect.height
+            self.screen.blit(skill_master_date_rect, (skill_master_date_rect.midright, skill_master_date_rect.y))
+            
     def sound(self):
         pass
 
     def handle_event(self):
-        achievement_menu = True
 
         scroll_speed = 5
         scroll_pos = 0
 
-        while achievement_menu:
-            for event in pygame.event.get():
-                if event.type == QUIT:
+        for event in pygame.event.get():
+            if event.type == QUIT:
                     achievement_menu = False
-                elif event.type == MOUSEBUTTONDOWN:
-                    if event.button == 4:
-                        scroll_pos -= scroll_speed
-                    elif event.button == 5:
-                        scroll_pos += scroll_speed
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 4:
+                    scroll_pos += scroll_speed
+                elif event.button == 5:
+                    scroll_pos -= scroll_speed
+            
+            elif event.type == pygame.MOUSEBUTTONUP:
+                if self.close_button.get_rect().collidepoint(event.pos):
+                    title = TitleMenu()
+                    title.menu()
+                    
+        for achievement in self.achievement_li:
+            achievement.y += scroll_pos            
 
     def menu(self):
         while True:
-            self.bg_img_load("./image/setting_image/settingbackground.jpg")
+            self.bg_img_load(c.SETTING_BACKGROUND)
             self.object_show()
             self.handle_event()
 

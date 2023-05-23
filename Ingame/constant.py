@@ -17,6 +17,11 @@ RED = (200, 0, 0)
 GREEN = (0, 80, 0)
 BLUE = (0, 84, 255)
 
+VERMILION = (227, 66, 52)
+BLUISH_GREEN = (13, 152, 186)
+C_BLUE = (0, 0, 255)
+
+
 # 배경화면
 TITLE_BACKGROUND = "./image/title_image/title_background.bmp"
 GAME_BACKGROUND = "./image/playing_image/playing_background.png"
@@ -124,6 +129,15 @@ CARD_COLLECTOR_ALARM = "./image/achv_image/cardcollector_alarm.png"
 SKILL_MASTER_ALARM = "./image/achv_image/skillmaster_alarm.png"
 ACHV_ALARM_LIST = [SINGLE_WIN_ALARM, AMERICA_WIN_ALARM, MACAU_WIN_ALARM, SINGAPORE_WIN_ALARM, KOREA_WIN_ALARM,
                 SPEED_MASTER_ALARM, NO_SKILL_WIN_ALARM, TURTLE_WIN_ALARM, FIRST_PLAY_ALARM, CARD_COLLECTOR_ALARM, SKILL_MASTER_ALARM]
+
+ACHV_COMPLETED = "./image/achv_image/achv_completed.png"
+
+# 기술카드 사용 시 표시 이미지
+PASS = "./image/playing_image/pass.png"
+REVERSE = "./image/playing_image/reverse.png"
+PLUS_TWO = "./image/playing_image/plus_two.png"
+PLUS_FOUR = "./image/playing_image/plus_four.png"
+CHANGE = "./image/playing_image/change.png"
 
 
 # 카드

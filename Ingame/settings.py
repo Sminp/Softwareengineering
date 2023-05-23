@@ -35,12 +35,12 @@ class Settings:
                           "right": pygame.K_RIGHT,
                           "up": pygame.K_UP,
                           "down": pygame.K_DOWN,
-                          "click": pygame.K_KP_ENTER
+                          "click": pygame.K_RETURN
         },
             'sound': {
-                          "total": 1,
-                          "background": 1,
-                          "effect": 1
+                          "total": 0.5,
+                          "background": 0.5,
+                          "effect": 0.5
         }, 'setting_color': False,
 
             'achievement': {'single_win': False, 'storya_win': False, 'storyb_win': False,
@@ -52,7 +52,9 @@ class Settings:
                                  'no_skill_card': None, 'turtle_win': None,
                                  'first_play': None, 'card_collector': None, 'skill_master': None},
 
-            'win_count': 0  # 승리 횟수
+            'win_count': {'single': 0, 'storya': 0, 'storyb': 0, 'storyc': 0, 'storyd': 0,
+                         'speed': 0, 'no_skill': 0, 'turtle': 0, 'first': 0, 'collector': 0,
+                         'skill': 0},
 
         }
 
