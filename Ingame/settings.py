@@ -1,9 +1,11 @@
 """게임 기본 설정 저장하는 공간. 버튼 클래스나 setting 클래스가 들어가면 좋지
 시작화면 및 설정화면"""
-from constant import *
+import constant as c
 import sys
 import pygame
 import os
+import pickle
+
 
 def resource_path(relative_path):
     try:
@@ -14,101 +16,89 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 
-# Rect를 빼고 모두다 좌표로 설정.
-# 버튼 클래스 안에 하이라이트 그림 넣으면 안되려나?
-# 버튼 클래스
-class Button:
-    def __init__(self, screen, x, y, img, width, height):
-        self.screen = screen
-        # self.rect = pygame.Rect(x,y, 30, 30)
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-        self.position = (x, y)
+class Settings:
+    def __init__(self):
+        # self._screen_width = SCREEN_WIDTH
+        # self._screen_height = SCREEN_HEIGHT
+        # self.bg_color = WHITE
+        # self.font = MALGUNGOTHIC
+        # self.player_num = 2
+        # self.difficulty = 1
 
-        self.img = pygame.transform.scale(pygame.image.load(resource_path(img)), [width, height])
-        self.rect = self.img.get_rect()
-        self.rect.center = (self.x + self.width/2),(self.y + self.height/2)
-        self.cliked_num = 0
+        self.setting = self.init_setting()
 
-    def show_button(self):
-        self.screen.blit(self.img, (self.x, self.y))
-        
-    def cliked(self):
-        self.screen.blit(self.img, (self.x, self.y - 5))
-        self.cliked_num += 1
+    def init_setting(self):
+        # 초기값을 setting.pickle에 저장
+        init_value = {'screen': [800, 600], 'fullscreen': 0, 'font': c.MALGUNGOTHIC,
+                      'keys': {
+                          "left": pygame.K_LEFT,
+                          "right": pygame.K_RIGHT,
+                          "up": pygame.K_UP,
+                          "down": pygame.K_DOWN,
+                          "click": pygame.K_RETURN
+        },
+            'sound': {
+                          "total": 0.5,
+                          "background": 0.5,
+                          "effect": 0.5
+        }, 'setting_color': False,
 
-    def check_cliked_num(self):
+            'achievement': {'single_win': False, 'storya_win': False, 'storyb_win': False,
+                            'storyc_win': False, 'storyd_win': False, 'speed_master': False,
+                            'no_skill_card': False, 'turtle_win': False,
+                            'first_play': False, 'card_collector': False, 'skill_master': False},
+            'achievement_date': {'single_win': None, 'storya_win': None, 'storyb_win': None,
+                                 'storyc_win': None, 'storyd_win': None, 'speed_master': None,
+                                 'no_skill_card': None, 'turtle_win': None,
+                                 'first_play': None, 'card_collector': None, 'skill_master': None},
+
+            'win_count': {'single': 0, 'storya': 0, 'storyb': 0, 'storyc': 0, 'storyd': 0,
+                          'speed': 0, 'no_skill': 0, 'turtle': 0, 'first': 0, 'collector': 0,
+                          'skill': 0},
+
+        }
+
+        self.set_setting(init_value)
+
+    def set_setting(self, setting: dict):
+        with open("setting.pickle", "wb") as f:
+            pickle.dump(setting, f)  # 위에서 생성한 dict를 setting.pickle로 저장
+
+    def get_setting(self) -> dict:
+        with open("setting.pickle", "rb") as fi:
+            setting = pickle.load(fi)
+
+        return setting
+
+    def change_setting(self, change_value: dict):
+        self.setting = change_value
+        self.set_setting(self.setting)
+
+    # 변화 후 값들
+
+    def window_change(self, size):
+        if size == 16:
+            self.screen_width = 1280
+            self.screen_height = 720
+
+    def sound_volume(self, filename):
         pass
 
-    def get_rect(self):
-        return self.rect
+    def reset(self):
+        pass
 
-# Slider 클래스 배경음, 효과음 조절
-class Slider:
+    @property
+    def screen_width(self):
+        return self._screen_width
 
-    def __init__(self, screen, length, pos, slider_range, main_color=BLACK, button_color=RED):
+    @property
+    def screen_height(self):
+        return self._screen_height
 
-        self.drag = False  # 버튼을 드래그하기 위한 초기 변수
-        self.offset_x = 0
+    @screen_width.setter
+    def screen_width(self, value):
+        self._screen_width = value
 
-        self.screen = screen
-        self.length = length  # 슬라이더 크기
-        self.x, self.y = pos  # 슬라이더 위치
-        self.min, self.max = slider_range  # 슬라이더 값의 범위
-        self.color1 = main_color  # 선 색
-        self.color2 = button_color  # 버튼색
-
-        self.button = pygame.rect.Rect(int(self.x + 18 / 40 * self.length), int(self.y - 1 / 40 * self.length),
-                                       int(self.length * 1 / 20), int(self.length * 1 / 20))
-
-        self.value = (self.max + self.min) / 2  # 값의 초기값
-        self.button_rect = self.button
-
-    def set_value(self, length, pos):
-        self.length = length
-        self.x, self.y = pos
-        self.button.x = int(self.x + 18 / 40 * self.length)
-        self.button.y = int(self.y - 1 / 40 * self.length)
-        self.button.width = int(self.length * 1 / 20)
-        self.button.height = int(self.length * 1 / 20)
-
-    def draw(self):  # 선, 버튼을 스크린에 그림
-        pygame.draw.line(self.screen, self.color1, (self.x, self.y), (self.x + self.length, self.y), 5)
-        pygame.draw.rect(self.screen, self.color2, self.button_rect)
-
-    def operate(self, Event):  # pygame 메인 루프에서 event를 받아 드래그 하기 위한 함수
-        if Event.type == pygame.MOUSEBUTTONDOWN:
-            if Event.button == 1:
-                if self.button_rect.collidepoint(Event.pos):
-                    self.drag = True
-
-                    mouse_x, mouse_y = Event.pos
-                    self.offset_x = self.button_rect.x - mouse_x
-
-        elif Event.type == pygame.MOUSEBUTTONUP:
-            if Event.button == 1:
-                self.drag = False
-
-        elif Event.type == pygame.MOUSEMOTION:
-            if self.drag:
-                mouse_x, mouse_y = Event.pos
-                self.button_rect.x = mouse_x + self.offset_x
-                if self.button_rect.x <= self.x:  # 드래그 제한
-                    self.button_rect.x = self.x
-
-                elif self.button_rect.x >= (self.x + self.length) - 1 / 10 * self.length:
-                    self.button_rect.x = int((self.x + self.length) - 1 / 10 * self.length)
-
-        self.value = self.max + (self.min - self.max) * (
-                1 - (self.button_rect.x - self.x) / (9 / 10 * self.length))  # value 수정
-
-    # value을 text로 출력 
-    def draw_value(self, name, pos, color=BLACK, size=20):
-        FONT = pygame.font.SysFont("malgungothic", size)
-        text1 = FONT.render("{} : {}".format(name, int(self.value)), True, color)
-        # text_rect = text1.get_rect()
-        # text_rect.center = pos
-
-        self.screen.blit(text1, pos)
+    @screen_height.setter
+    def screen_height(self, value):
+        self._screen_height = value

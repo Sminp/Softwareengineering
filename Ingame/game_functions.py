@@ -2,658 +2,354 @@ import sys
 import random
 import pygame
 import math
-import loadcard
+from loadcard import Card, Popup
 import computer
 from pygame.locals import *
-from constant import *
-from UNO import Button, text_format, terminate
+import constant as c
+import player as pl
+import settings as s
+import computer as com
+import loadcard as lc
+import rect_functions as rf
+import timer
 import time
+import math
+from datetime import datetime
+import UNO
+
+
+def terminate():
+    pygame.quit()
+    sys.exit()
+
+
+def text_format(message, text_font, text_size, text_color):
+    new_font = pygame.font.SysFont(text_font, text_size)
+    new_text = new_font.render(
+        message, True, text_color)
+    return new_text
 
 
 class Game():
-    def __init__(self, uno_game, player_num=2, difficulty=1, player_name="ME"):  # 초기값 임시로 설정 - 지우기
-        self.uno_game = uno_game
+    def __init__(self, player_num=2, difficulty=1, user_name="ME"):  # 초기값 임시로 설정 - 지우기
         self.player_num = player_num
         self.difficulty = difficulty
-        self.screen_width = self.uno_game.screen_width
-        self.screen_height = self.uno_game.screen_height
-        self.screen = self.uno_game.screen
-        self.background_img_load = uno_game.background_img_load("./image/playing_image/playing_background.png")
-        
-        self.color = {1: 'red', 2: 'yellow', 3: 'green', 4: 'blue', 5: 'wild'}
-        self.skill = {11: '_pass', 12: '_reverse', 13: '_plus_two', 14: '_basic', 15: '_plus_four', 16: '_change'}
-        self.card_deck = []
-        self.player = [[] for _ in range(0, self.player_num)]
-        self.waste_group = pygame.sprite.RenderPlain()
-        self.waste_card = []
+        self.settings = s.Settings().get_setting()
+        self.setting = s.Settings()
+        self.keys = self.settings['keys']
+        self.screen = pygame.display.set_mode(
+            (self.settings['screen']), flags=self.settings['fullscreen'])
+        self.size = self.settings['screen']
+        self.bg_img = pygame.transform.scale(pygame.image.load(s.resource_path(
+            c.GAME_BACKGROUND)), (self.settings['screen']))
+        self.size = (self.settings['screen'])
         self.rotate = 0
-        self.uno = 0
         self.playing_game = True
         self.game_turn = 0
-        self.uno_button = Button(self.screen, self.screen_width * (3 / 4), self.screen_height * (1 / 3),
-                                 "./image/playing_image/uno_button.png", self.screen_height * (1 / 20), self.screen_height * (1 / 20))
         self.time_limit = 10  # -> 시간 제한 설정
-        # self.first_show = True
-        # self.two_first_show = True
         self.time = 0
         self.active = False
-        self.player_name = player_name
+        self.user_name = user_name
         self.first = True
-        pygame.display.update()
+        self.now_turn = None
+        self.animate_card = None
+        self.animation_group = None
 
-        self.lastcard0 = None
-        self.lastcard1 = None
-        self.lastcard2 = None
-        self.lastcard3 = None
-        self.lastcard4 = None
-        self.lastcard5 = None
+        self.card_limit = [self.size[1] * (7 / 9), self.size[1] * (7 / 9) + self.size[1] / 10, self.size[1] * (
+            7 / 9) + self.size[1] * 2 / 10, self.size[1] * (7 / 9) + self.size[1] * 3 / 10]
+
+        self.uno_button = self.button_init()
+
+        pygame.init()
+        self.timer = timer.Timer()
+
+        self.player = []
+        self.card_deck = []
+        self.waste = pl.Waste()
+        self.player_names = []
+
+        self.achv_alarm_li = []
+        for achv_alarm in c.ACHV_ALARM_LIST:
+            achv_alarm = rf.Button(self.screen, self.size[0] * (4 / 5), self.size[1] * (6 / 7),
+                                   achv_alarm, self.size[0] * (1 / 5),
+                                   self.size[1] * (1 / 7))
+            self.achv_alarm_li.append(achv_alarm)
+
+        self.selected = 0
+        self.selected_up = 0
+
+    def button_init(self):
+        self.uno = 0
+        button = rf.Button(self.screen, self.size[0] * (3 / 4), self.size[1] * (1 / 3),
+                           c.UNO_BUTTON, self.size[1] * (1 / 20),
+                           self.size[1] * (1 / 20))
+        button_highlight = rf.Button(self.screen, self.size[0] * (3 / 4), self.size[1] * (1 / 3),
+                                     c.UNO_BUTTON_HIGHLIGHT, self.size[1] * (
+            1 / 20),
+            self.size[1] * (1 / 20))
+        return button, button_highlight
 
     # 카드 생성
+
     def set_deck(self) -> list:
         card_deck = []
-        if self.difficulty != 5:
-            for color_idx in range(1, 5):
-                card = self.color[color_idx]
-                now_card = card + '_0'
-                card_deck.append(now_card)
-                for card_number in range(1, 10):
-                    now_card = card + "_" + str(card_number)
-                    iterate = 0
-                    while iterate != 2:
-                        card_deck.append(now_card)
-                        iterate += 1
-            for color_idx in range(1, 5):
-                card = self.color[color_idx]
-                for card_number in range(11, 14):
-                    now_card = card + self.skill[card_number]
-                    iterate = 0
-                    while iterate != 2:
-                        card_deck.append(now_card)
-                        iterate += 1
-            # 짧게 바꿔도 됨
-            card_deck.append("red_yellow")
-            card_deck.append("red_yellow")
-            card_deck.append("blue_green")
-            card_deck.append("blue_green")
-            card = 'wild'
-            for card_number in range(14, 17):
-                now_card = card + self.skill[card_number]
+        for color_idx in range(1, 5):
+            card = c.CARD_TYPE[color_idx]
+            now_card = card + '_0'
+            card_deck.append(now_card)
+            for card_number in range(1, 10):
+                now_card = card + "_" + str(card_number)
                 iterate = 0
-                while iterate != 4:
+                while iterate != 2:
                     card_deck.append(now_card)
                     iterate += 1
-        else:  # 스토리 D구역 카드 - 기술 카드 제외
-            for color_idx in range(1, 5):
-                card = self.color[color_idx]
-                now_card = card + '_0'
+        for color_idx in range(1, 5):
+            card = c.CARD_TYPE[color_idx]
+            for card_number in range(11, 14):
+                now_card = card + c.CARD_SKILL[card_number]
+                iterate = 0
+                while iterate != 2:
+                    card_deck.append(now_card)
+                    iterate += 1
+        # 짧게 바꿔도 됨
+        card_deck.append("red_yellow")
+        card_deck.append("red_yellow")
+        card_deck.append("blue_green")
+        card_deck.append("blue_green")
+        card = 'wild'
+        for card_number in range(14, 17):
+            now_card = card + c.CARD_SKILL[card_number]
+            iterate = 0
+            while iterate != 4:
                 card_deck.append(now_card)
-                for card_number in range(1, 10):
-                    now_card = card + "_" + str(card_number)
-                    iterate = 0
-                    while iterate != 2:
-                        card_deck.append(now_card)
-                        iterate += 1
+                iterate += 1
         return card_deck
 
-    def difficulty_two_deck(self):
-        num_card = self.card_deck[:76]
-        skill_card = self.card_deck[76:]
-        random.shuffle(num_card)
-        random.shuffle(skill_card)
-        for player in range(1, self.player_num):
-            card = []
-            for number in range(0, 7):
-                if random.random() < 76 / 164:
-                    temp = num_card.pop()
-                else:
-                    temp = skill_card.pop()
-                card.append(temp)
-            self.player[player] = card
-        card_deck = num_card + skill_card
-        del num_card, skill_card
-        return card_deck
+    # 객체 생성
+    def player_init(self):
+        for num in range(self.player_num):
+            if num == 0:
+                user = pl.User()
+                self.player.append(user)
+            else:
+                computer = pl.Computer(num)
+                self.player.append(computer)
 
-    # 게임 시작 화면 - 덱 구성, 플레이어에게 카드 지급, 플레이어 숫자마다 카드 위치 다 다름 -> 5명까지 설정해야함
+    # 처음 카드 나눠준다 by 리스트
+    def hand_out_deck(self):
+        random.shuffle(self.card_deck)
+        for num in range(0, self.player_num):
+            for _ in range(0, 7):
+                temp = self.card_deck.pop()
+                self.player[num].append(temp)
+
+    def set_name(self):  # 이름이랑 위치 리스트로 저장하는거 어때?! - 이거 json파일로 하면 훨씬 편해.
+        player_names = []
+        text = rf.TextRect(self.screen, self.user_name, 30, c.WHITE)
+        player_names.append(
+            [text, (self.size[0] * (3 / 5), self.size[1] * (2 / 3))])
+        for i in range(1, self.player_num):
+            text = rf.TextRect(self.screen, "COM" + str(i), 20, c.BLACK)
+            player_names.append(
+                [text, (self.size[0] * (1 / 10), self.size[1] * ((5 * i - 4) / 25))])
+        return player_names
+
+    # 플레이어 이름 표시
+    def show_name(self):
+        for text, pos in self.player_names:
+            text.change_color(c.BLACK)
+            text.show(pos)
+
+        pygame.display.update()
+
     # 함수를 나눠야 할 것 같아 test 만드는데 이 함수 돌릴 때 시간이 3초 넘게 걸려
     def set_window(self):
         self.card_deck = self.set_deck()
-        if self.difficulty == 1:
-            random.shuffle(self.card_deck)
-            for player in range(0, self.player_num):
-                card = []
-                for number in range(0, 7):
-                    temp = self.card_deck.pop()
-                    card.append(temp)
-                self.player[player] = card
-        elif self.difficulty == 2:
-            self.card_deck = self.difficulty_two_deck()
-            random.shuffle(self.card_deck)
-            card = []
-            for number in range(7):
-                temp = self.card_deck.pop()
-                card.append(temp)
-            self.player[0] = card
-        elif self.difficulty == 3:
-            i = len(self.card_deck) // self.player_num
-            random.shuffle(self.card_deck)
-            card_temp = self.card_deck.pop()  # 첫번째 카드 미리 뽑아두기
-            for player in range(0, self.player_num):
-                card = []
-                for number in range(0, i):  # 모든 카드 같은 수 만큼 플레이어에게 분배
-                    if self.card_deck:
-                        temp = self.card_deck.pop()
-                    card.append(temp)
-                self.player[player] = card
-            self.card_deck.append(card_temp)
-        elif self.difficulty == 4:
-            random.shuffle(self.card_deck)
-            self.player_num = 2
-            for player in range(0, self.player_num):
-                card = []
-                for number in range(0, 7):
-                    temp = self.card_deck.pop()
-                    card.append(temp)
-                self.player[player] = card
-        elif self.difficulty == 5:
-            random.shuffle(self.card_deck)
-            self.player_num = 3
-            for player in range(0, self.player_num):
-                card = []
-                for number in range(0, 7):
-                    temp = self.card_deck.pop()
-                    card.append(temp)
-                self.player[player] = card
+        self.player_init()
+        self.hand_out_deck()
+        self.waste.set_card()
 
-        deck = loadcard.Card('back', (self.screen_width * (2 / 5), self.screen_height * (1 / 3)),
-                             (self.screen_width / 10, self.screen_height / 6))
-        self.deck_group = pygame.sprite.RenderPlain(deck)
-
-        # 이거 왜 있어? init? 혹시 몰라서야? -> 엥 이거 왜 있지? 지워볼까?
-        player_deck = self.player[0]
-        init_card = []
-        for item in player_deck:
-            cards = loadcard.Card(item, (self.screen_width * (2 / 5), self.screen_height * (1 / 3)),
-                                  (self.screen_width / 10, self.screen_height / 6))
-            init_card.append(cards)
-
-        for i in range(len(self.player)):
-            player_deck = self.player[i]
-            if i == 0:
-                user_card = []
-                for item in player_deck:
-                    cards = loadcard.Card(item, (self.screen_width * (2 / 5), self.screen_height * (1 / 3)),
-                                          (self.screen_width / 10, self.screen_height / 6))
-                    user_card.append(cards)
-            elif i == 1:
-                com1_card = []
-                for _ in player_deck:
-                    cards = loadcard.Card('back', (self.screen_width * (2 / 5), self.screen_height * (1 / 3)),
-                                          (self.screen_width / 30, self.screen_height / 18))
-                    com1_card.append(cards)
-            elif i == 2:
-                com2_card = []
-                for _ in player_deck:
-                    cards = loadcard.Card('back', (self.screen_width * (2 / 5), self.screen_height * (1 / 3)),
-                                          (self.screen_width / 30, self.screen_height / 18))
-                    com2_card.append(cards)
-            elif i == 3:
-                com3_card = []
-                for _ in player_deck:
-                    cards = loadcard.Card('back', (self.screen_width * (2 / 5), self.screen_height * (1 / 3)),
-                                          (self.screen_width / 30, self.screen_height / 18))
-                    com3_card.append(cards)
-            elif i == 4:
-                com4_card = []
-                for _ in player_deck:
-                    cards = loadcard.Card('back', (self.screen_width * (2 / 5), self.screen_height * (1 / 3)),
-                                          (self.screen_width / 30, self.screen_height / 18))
-                    com4_card.append(cards)
-            else:
-                com5_card = []
-                for _ in player_deck:
-                    cards = loadcard.Card('back', (self.screen_width * (2 / 5), self.screen_height * (1 / 3)),
-                                          (self.screen_width / 30, self.screen_height / 18))
-                    com5_card.append(cards)
-
+        for i in range(self.player_num):
+            self.player[i].set_card()
         setting = True
-        setting_user = 1
-        setting_com1 = 1
-        setting_com2 = 1
-        setting_com3 = 1
-        setting_com4 = 1
-        setting_com5 = 1
 
-        # 이게 뭐지?
-
-        if self.player_num == 5:
-            setting_com5 = 0
-        elif self.player_num == 4:
-            setting_com5 = 0
-            setting_com4 = 0
-        elif self.player_num == 3:
-            setting_com5 = 0
-            setting_com4 = 0
-            setting_com3 = 0
-        elif self.player_num == 2:
-            setting_com5 = 0
-            setting_com4 = 0
-            setting_com3 = 0
-            setting_com2 = 0
+        settings = [1 for _ in range(self.player_num)]
 
         while setting:
-            # tmr = self.clock.tick(60) / 1000
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    terminate()
+                    pygame.quit()
+                    sys.exit()
 
-            i = 0
-            temp_list = []
+            for num in range(self.player_num):
+                settings[num] = self.player[num].set()
 
-            if self.difficulty == 3:
-                j = 0
-                k = 0
-                for item in user_card:
-                    if 7 <= i < 14:
-                        item.update((self.screen_width * (1 / 3) + 80 * j,
-                                     self.screen_height * (7 / 9) + self.screen_height / 10))
-                        temp_list.append(item)
-                        j += 1
-                        i += 1
-                    elif i >= 14:
-                        item.update((self.screen_width * (1 / 3) + 80 * k,
-                                     self.screen_height * (7 / 9) + self.screen_height * 2 / 10))
-                        temp_list.append(item)
-                        k += 1
-                        i += 1
-                    else:
-                        item.update((self.screen_width * (1 / 3) + 80 * i, self.screen_height * (7 / 9)))
-                        temp_list.append(item)
-                        i += 1
-                self.user_group = pygame.sprite.RenderPlain(*temp_list)
-                if temp_list:
-                    self.lastcard0 = temp_list[-1].getposition()
-                if self.lastcard0 == (
-                        self.screen_width * (1 / 3) + 80 * (len(temp_list) % 7 - 1),
-                        self.screen_height * (7 / 9) + self.screen_height * 2 / 10):
-                    setting_user = 0
-            else:
-                for item in user_card:
-                    item.update((self.screen_width * (1 / 3) + 80 * i, self.screen_height * (7 / 9)))
-                    temp_list.append(item)
-                    i += 1
-                self.user_group = pygame.sprite.RenderPlain(*temp_list)
-                if temp_list:
-                    self.lastcard0 = temp_list[-1].getposition()
-                if self.lastcard0 == (
-                        self.screen_width * (1 / 3) + 80 * (len(temp_list) - 1), self.screen_height * (7 / 9)):
-                    setting_user = 0
-
-            i = 0
-            temp_list = []
-            setting = True
-            if self.difficulty == 3:
-                j = 0
-                for item in com1_card:
-                    if i >= 12:
-                        item.update((self.screen_width * (1 / 30) + 10 * j,
-                                     self.screen_height * (1 / 10) + self.screen_height * (1 / 30)))
-                        j += 1
-                        i += 1
-                        temp_list.append(item)
-                    else:
-                        item.update((self.screen_width * (1 / 30) + 10 * i, self.screen_height * (1 / 10)))
-                        temp_list.append(item)
-                        i += 1
-                self.com1_group = pygame.sprite.RenderPlain(*temp_list)
-                if temp_list:
-                    self.lastcard1 = temp_list[-1].getposition()
-                if self.lastcard1 == (
-                        self.screen_width * (1 / 30) + 10 * (len(temp_list) % 12 - 1),
-                        self.screen_height * (1 / 10) + self.screen_height * (1 / 30)):
-                    setting_com1 = 0
-            else:
-                for item in com1_card:
-                    item.update((self.screen_width * (1 / 30) + 10 * i, self.screen_height * (1 / 10)))
-                    temp_list.append(item)
-                    i += 1
-                self.com1_group = pygame.sprite.RenderPlain(*temp_list)
-                if temp_list:
-                    self.lastcard1 = temp_list[-1].getposition()
-                if self.lastcard1 == (
-                        self.screen_width * (1 / 30) + 10 * (len(temp_list) - 1), self.screen_height * (1 / 10)):
-                    setting_com1 = 0
-
-            if self.player_num >= 3:
-                i = 0
-                temp_list = []
-                setting = True
-                if self.difficulty == 3:
-                    j = 0
-                    for item in com2_card:
-                        if i >= 12:
-                            item.update((self.screen_width * (1 / 30) + 10 * j,
-                                         self.screen_height * (3 / 10) + self.screen_height * (1 / 30)))
-                            temp_list.append(item)
-                            j += 1
-                            i += 1
-                        else:
-                            item.update((self.screen_width * (1 / 30) + 10 * i, self.screen_height * (3 / 10)))
-                            temp_list.append(item)
-                            i += 1
-                    self.com2_group = pygame.sprite.RenderPlain(*temp_list)
-                    if temp_list:
-                        self.lastcard2 = temp_list[-1].getposition()
-                    if self.lastcard2 == (
-                            self.screen_width * (1 / 30) + 10 * (len(temp_list) % 12 - 1),
-                            self.screen_height * (3 / 10) + self.screen_height * (1 / 30)):
-                        setting_com2 = 0
-
-                else:
-                    for item in com2_card:
-                        item.update((self.screen_width * (1 / 30) + 10 * i, self.screen_height * (3 / 10)))
-                        temp_list.append(item)
-                        i += 1
-                    self.com2_group = pygame.sprite.RenderPlain(*temp_list)
-                    if temp_list:
-                        self.lastcard2 = temp_list[-1].getposition()
-                    if self.lastcard2 == (
-                            self.screen_width * (1 / 30) + 10 * (len(temp_list) - 1), self.screen_height * (3 / 10)):
-                        setting_com2 = 0
-
-            if self.player_num >= 4:
-                i = 0
-                temp_list = []
-                setting = True
-                if self.difficulty == 3:
-                    j = 0
-                    for item in com3_card:
-                        if i >= 12:
-                            item.update((self.screen_width * (1 / 30) + 10 * j,
-                                         self.screen_height * (1 / 2) + self.screen_height * (1 / 30)))
-                            temp_list.append(item)
-                            j += 1
-                            i += 1
-                        else:
-                            item.update((self.screen_width * (1 / 30) + 10 * i, self.screen_height * (1 / 2)))
-                            temp_list.append(item)
-                            i += 1
-                    self.com3_group = pygame.sprite.RenderPlain(*temp_list)
-                    if temp_list:
-                        self.lastcard3 = temp_list[-1].getposition()
-                    if self.lastcard3 == ((self.screen_width * (1 / 30) + 10 * (len(temp_list) % 12 - 1),
-                                           self.screen_height * (1 / 2) + self.screen_height * (1 / 30))):
-                        setting_com3 = 0
-
-                else:
-                    for item in com3_card:
-                        item.update((self.screen_width * (1 / 30) + 10 * i, self.screen_height * (1 / 2)))
-                        temp_list.append(item)
-                        i += 1
-                    self.com3_group = pygame.sprite.RenderPlain(*temp_list)
-                    if temp_list:
-                        self.lastcard3 = temp_list[-1].getposition()
-                    if self.lastcard3 == (
-                            (self.screen_width * (1 / 30) + 10 * (len(temp_list) - 1), self.screen_height * (1 / 2))):
-                        setting_com3 = 0
-
-            if self.player_num >= 5:
-                i = 0
-                temp_list = []
-                setting = True
-                if self.difficulty == 3:
-                    j = 0
-                    for item in com4_card:
-                        if i >= 12:
-                            item.update((self.screen_width * (1 / 30) + 10 * j,
-                                         self.screen_height * (7 / 10) + self.screen_height * (1 / 30)))
-                            temp_list.append(item)
-                            j += 1
-                            i += 1
-                        else:
-                            item.update((self.screen_width * (1 / 30) + 10 * i, self.screen_height * (7 / 10)))
-                            temp_list.append(item)
-                            i += 1
-                    self.com4_group = pygame.sprite.RenderPlain(*temp_list)
-                    if temp_list:
-                        self.lastcard4 = temp_list[-1].getposition()
-                    if self.lastcard4 == ((self.screen_width * (1 / 30) + 10 * (len(temp_list) % 12 - 1),
-                                           self.screen_height * (7 / 10) + self.screen_height * (1 / 30))):
-                        setting_com4 = 0
-                else:
-                    for item in com4_card:
-                        item.update((self.screen_width * (1 / 30) + 10 * i, self.screen_height * (7 / 10)))
-                        temp_list.append(item)
-                        i += 1
-                    self.com4_group = pygame.sprite.RenderPlain(*temp_list)
-                    if temp_list:
-                        self.lastcard4 = temp_list[-1].getposition()
-                    if self.lastcard4 == (
-                            (self.screen_width * (1 / 30) + 10 * (len(temp_list) - 1), self.screen_height * (7 / 10))):
-                        setting_com4 = 0
-
-            if self.player_num == 6:
-                i = 0
-                temp_list = []
-                setting = True
-                if self.difficulty == 3:
-                    j = 0
-                    for item in com5_card:
-                        if i >= 12:
-                            item.update((self.screen_width * (1 / 30) + 10 * j,
-                                         self.screen_height * (9 / 10) + self.screen_height * (1 / 30)))
-                            temp_list.append(item)
-                            i += 1
-                            j += 1
-                        else:
-                            item.update((self.screen_width * (1 / 30) + 10 * i, self.screen_height * (9 / 10)))
-                            temp_list.append(item)
-                            i += 1
-                    self.com5_group = pygame.sprite.RenderPlain(*temp_list)
-                    if temp_list:
-                        self.lastcard5 = temp_list[-1].getposition()
-                    if self.lastcard5 == ((self.screen_width * (1 / 30) + 10 * (len(temp_list) % 12 - 1),
-                                           self.screen_height * (9 / 10) + self.screen_height * (1 / 30))):
-                        setting_com5 = 0
-
-                else:
-                    for item in com5_card:
-                        item.update((self.screen_width * (1 / 30) + 10 * i, self.screen_height * (9 / 10)))
-                        temp_list.append(item)
-                        i += 1
-                    self.com5_group = pygame.sprite.RenderPlain(*temp_list)
-                    if temp_list:
-                        self.lastcard5 = temp_list[-1].getposition()
-                    if self.lastcard5 == (
-                            (self.screen_width * (1 / 30) + 10 * (len(temp_list) - 1), self.screen_height * (9 / 10))):
-                        setting_com5 = 0
-
-            if setting_user == 0 and setting_com1 == 0 and setting_com2 == 0 and setting_com3 == 0 and setting_com4 == 0 and setting_com5 == 0:
-                setting = False
-
-            # #pygame.mixer.pre_init(44100, -16, 1, 512)
-            pygame.init()
+            # pygame.mixer.pre_init(44100, -16, 1, 512)
             # card = pygame.mixer.Sound('./sound/card.wav')
             # for i in range(0,7):
             #     card.play()
+            if sum(settings) == 0:
+                setting = False
+                return 0
             self.print_window()
             pygame.display.update()
 
-    # 플레이어 이름 표시
-    def next_turn(self, now_turn: int) -> int:
-        if now_turn == 0:
-            user_text = text_format(self.player_name, BERLIN, 30, WHITE)
-            user_text_rect = user_text.get_rect(center=(self.screen_width * (3 / 5), self.screen_height * (2 / 3)))
-            self.screen.blit(user_text, user_text_rect)
-
-        elif now_turn == 1:
-            com1_text = text_format("COM1", BERLIN, 20, BLACK)
-            self.screen.blit(com1_text, (self.screen_width * (1 / 45), self.screen_height * (1 / 25)))
-
-        elif now_turn == 2:
-            com2_text = text_format("COM2", BERLIN, 20, BLACK)
-            self.screen.blit(com2_text, (self.screen_width * (1 / 45), self.screen_height * (6 / 25)))
-
-        elif now_turn == 3:
-            com3_text = text_format("COM3", BERLIN, 20, BLACK)
-            self.screen.blit(com3_text, (self.screen_width * (1 / 45), self.screen_height * (11 / 25)))
-
-        elif now_turn == 4:
-            com4_text = text_format("COM4", BERLIN, 20, BLACK)
-            self.screen.blit(com4_text, (self.screen_width * (1 / 45), self.screen_height * (16 / 25)))
-        else:
-            com5_text = text_format("COM5", BERLIN, 20, BLACK)
-            self.screen.blit(com5_text, (self.screen_width * (1 / 45), self.screen_height * (21 / 25)))
-        temp = self.get_next_player(now_turn)
-        return temp
-
-    def get_next_turn(self):
-        if self.first:
-            self.game_turn += 1
-            self.change_color()
-            pygame.time.wait(1000)
-            self.first = False
-
     # 플레이어 턴 인덱스 넘어가지 않도록 함
     def get_next_player(self, now_turn):
+        self.timer.reset_tmr()
         self.first = True
         if self.rotate == 0 and now_turn + 1 == self.player_num:
-            return 0
+            turn = 0
         elif self.rotate == 1 and now_turn - 1 < 0:
-            return self.player_num - 1
+            turn = self.player_num - 1
         else:
             if self.rotate == 0:
-                return now_turn + 1
+                turn = now_turn + 1
             elif self.rotate == 1:
-                return now_turn - 1
-        return 0
+                turn = now_turn - 1
+        print("turn : ", turn)
+        return turn
 
     # 지금 현재 턴인 플레이어 표시
-    def select_player(self, now_turn):
-        if now_turn == 0:
-            user_text = text_format(self.player_name, BERLIN, 30, YELLOW)
-            user_text_rect = user_text.get_rect(center=(self.screen_width * (3 / 5), self.screen_height * (2 / 3)))
-            self.screen.blit(user_text, user_text_rect)
-        elif now_turn == 1:
-            com1_text = text_format("COM1", BERLIN, 20, YELLOW)
-            self.screen.blit(com1_text, (self.screen_width * (1 / 45), self.screen_height * (1 / 25)))
-        elif now_turn == 2:
-            com2_text = text_format("COM2", BERLIN, 20, YELLOW)
-            self.screen.blit(com2_text, (self.screen_width * (1 / 45), self.screen_height * (6 / 25)))
-        elif now_turn == 3:
-            com3_text = text_format("COM3", BERLIN, 20, YELLOW)
-            self.screen.blit(com3_text, (self.screen_width * (1 / 45), self.screen_height * (11 / 25)))
-        elif now_turn == 4:
-            com4_text = text_format("COM4", BERLIN, 20, YELLOW)
-            self.screen.blit(com4_text, (self.screen_width * (1 / 45), self.screen_height * (16 / 25)))
-        else:
-            com5_text = text_format("COM5", BERLIN, 20, YELLOW)
-            self.screen.blit(com5_text, (self.screen_width * (1 / 45), self.screen_height * (21 / 25)))
+    def show_now_turn(self, now_turn):
+
+        for i, text in enumerate(self.player_names):
+            if i == now_turn:
+                text[0].change_color(c.YELLOW)
+                text[0].show(text[1])
+            else:
+                text[0].change_color(c.BLACK)
+                text[0].show(text[1])
+
         pygame.display.update()
 
-    # 플레이어 이름 표시 초기화
-    # def print_window(self, active=1):
-    def print_window(self):
+    def print_computer_box(self) -> list:
         computer_rect = []
         for i in range(5):
-            rect = pygame.Rect(0, 100 * i + (i + 1) * ((self.screen_height - 500) / 6), self.screen_width / 5,
-                               self.screen_height / 6)
+            rect = pygame.Rect(0, 100 * i + (i + 1) * ((self.size[1] - 500) / 6), self.size[0] / 5,
+                               self.size[1] / 6)
             computer_rect.append(rect)
-        self.screen.blit(self.background_img_load, (0, 0))
-        for rect in computer_rect:
-            pygame.draw.rect(self.screen, WHITE, rect)
+        return computer_rect
 
-        self.deck_group.draw(self.screen)
-        self.user_group.draw(self.screen)
-        self.com1_group.draw(self.screen)
-        self.uno_button.show_button()
-        if self.player_num >= 3:
-            self.com2_group.draw(self.screen)
-            com2_text = text_format("COM2", BERLIN, 20, BLACK)
-            self.screen.blit(com2_text, (self.screen_width * (1 / 45), self.screen_height * (6 / 25)))
-        if self.player_num >= 4:
-            self.com3_group.draw(self.screen)
-            com3_text = text_format("COM3", BERLIN, 20, BLACK)
-            self.screen.blit(com3_text, (self.screen_width * (1 / 45), self.screen_height * (11 / 25)))
-        if self.player_num >= 5:
-            self.com4_group.draw(self.screen)
-            com4_text = text_format("COM4", BERLIN, 20, BLACK)
-            self.screen.blit(com4_text, (self.screen_width * (1 / 45), self.screen_height * (16 / 25)))
-        if self.player_num == 6:
-            self.com5_group.draw(self.screen)
-            com5_text = text_format("COM5", BERLIN, 20, BLACK)
-            self.screen.blit(com5_text, (self.screen_width * (1 / 45), self.screen_height * (21 / 25)))
+    # 플레이어 이름 표시 초기화
+    def print_window(self):
+        self.screen.blit(self.bg_img, (0, 0))
+        self.draw_color_rect()
+        self.timer.show_tmr(self.now_turn)
+        for rect in self.print_computer_box():
+            pygame.draw.rect(self.screen, c.WHITE, rect)
+        if self.animation_group:
+            self.animation_group.draw(self.screen)
+        self.waste.draw_group.draw(self.screen)
+        for i in range(self.player_num):
+            self.player[i].draw_group.draw(self.screen)
+        if self.animation_group:
+            self.animation_group.draw(self.screen)
+            self.animation_group = None
+        self.uno_button[self.uno].show()
+        self.show_now_turn(self.now_turn)
 
-        # 여기도 인원수 추가 
-        user_text = text_format(self.player_name, BERLIN, 30, WHITE)
-        user_text_rect = user_text.get_rect(center=(self.screen_width * (3 / 5), self.screen_height * (2 / 3)))
-        self.screen.blit(user_text, user_text_rect)
-        com1_text = text_format("COM1", BERLIN, 20, BLACK)
-        self.screen.blit(com1_text, (self.screen_width * (1 / 45), self.screen_height * (1 / 25)))
-        self.waste_group.draw(self.screen)
-        if len(self.waste_card) == 0:
-            pygame.draw.rect(self.screen, BLACK, (
-                self.screen_width * (3 / 4), self.screen_height * (1 / 3) - self.screen_height * (1 / 20),
-                self.screen_height * (1 / 20), self.screen_height * (1 / 20)))
-        else:
-            w_name = self.waste_card[-1]
-            w_name = w_name.split('_')
-            if w_name[0] == 'wild':
-                pygame.draw.rect(self.screen, BLACK, (
-                    self.screen_width * (3 / 4), self.screen_height * (1 / 3) - self.screen_height * (1 / 20),
-                    self.screen_height * (1 / 20), self.screen_height * (1 / 20)))
-            elif w_name[0] == "red":
-                if len(w_name) > 1:
-                    if w_name[1] == 'yellow':
-                        pygame.draw.rect(self.screen, RED, (
-                            self.screen_width * (3 / 4), self.screen_height * (1 / 3) - self.screen_height * (1 / 20),
-                            self.screen_height * (1 / 40), self.screen_height * (1 / 20)))
-                        pygame.draw.rect(self.screen, YELLOW, (
-                            self.screen_width * (3 / 4) + self.screen_height * (1 / 40),
-                            self.screen_height * (1 / 3) - self.screen_height * (1 / 20), self.screen_height * (1 / 40),
-                            self.screen_height * (1 / 20)))
+    def draw_color_rect(self):
+        rect_pos = (self.size[0] * (3 / 4), self.size[1]
+                    * (1 / 3) - self.size[1] * (1 / 20))
+        rect_size = (self.size[1] * (1 / 20), self.size[1] * (1 / 20))
+        half_rect_pos = (self.size[0] * (3 / 4) + self.size[1] *
+                         (1 / 40), self.size[1] * (1 / 3) - self.size[1] * (1 / 20))
+        half_rect_size = (self.size[1] * (1 / 40), self.size[1] * (1 / 20))
+
+        if self.settings['setting_color'] == False:
+            if len(self.waste.card) == 0:
+                pygame.draw.rect(self.screen, c.BLACK, (rect_pos, rect_size))
+            else:
+                w_name = self.waste.card[-1]
+                w_name = w_name.split('_')
+                if w_name[0] == 'wild':
+                    pygame.draw.rect(self.screen, c.BLACK,
+                                     (rect_pos, rect_size))
+                elif w_name[0] == "red":
+                    if len(w_name) > 1:
+                        if w_name[1] == 'yellow':
+                            pygame.draw.rect(self.screen, c.RED,
+                                             (rect_pos, half_rect_size))
+                            pygame.draw.rect(self.screen, c.YELLOW,
+                                             (half_rect_pos, half_rect_size))
+                        else:
+                            pygame.draw.rect(self.screen, c.RED,
+                                             (rect_pos, rect_size))
                     else:
-                        pygame.draw.rect(self.screen, RED, (
-                            self.screen_width * (3 / 4), self.screen_height * (1 / 3) - self.screen_height * (1 / 20),
-                            self.screen_height * (1 / 20), self.screen_height * (1 / 20)))
-                else:
-                    pygame.draw.rect(self.screen, RED, (
-                        self.screen_width * (3 / 4), self.screen_height * (1 / 3) - self.screen_height * (1 / 20),
-                        self.screen_height * (1 / 20), self.screen_height * (1 / 20)))
-            elif w_name[0] == "yellow":
-                pygame.draw.rect(self.screen, YELLOW, (
-                    self.screen_width * (3 / 4), self.screen_height * (1 / 3) - self.screen_height * (1 / 20),
-                    self.screen_height * (1 / 20), self.screen_height * (1 / 20)))
-            elif w_name[0] == "blue":
-                if len(w_name) > 1:
-                    if w_name[1] == 'green':
-                        pygame.draw.rect(self.screen, BLUE, (
-                            self.screen_width * (3 / 4), self.screen_height * (1 / 3) - self.screen_height * (1 / 20),
-                            self.screen_height * (1 / 40), self.screen_height * (1 / 20)))
-                        pygame.draw.rect(self.screen, GREEN, (
-                            self.screen_width * (3 / 4) + self.screen_height * (1 / 40),
-                            self.screen_height * (1 / 3) - self.screen_height * (1 / 20), self.screen_height * (1 / 40),
-                            self.screen_height * (1 / 20)))
+                        pygame.draw.rect(self.screen, c.RED,
+                                         (rect_pos, rect_size))
+                elif w_name[0] == "yellow":
+                    pygame.draw.rect(self.screen, c.YELLOW,
+                                     (rect_pos, rect_size))
+                elif w_name[0] == "blue":
+                    if len(w_name) > 1:
+                        if w_name[1] == 'green':
+                            pygame.draw.rect(self.screen, c.BLUE,
+                                             (rect_pos, half_rect_size))
+                            pygame.draw.rect(self.screen, c.GREEN,
+                                             (half_rect_pos, half_rect_size))
+                        else:
+                            pygame.draw.rect(self.screen, c.BLUE,
+                                             (rect_pos, rect_size))
                     else:
-                        pygame.draw.rect(self.screen, BLUE, (
-                            self.screen_width * (3 / 4), self.screen_height * (1 / 3) - self.screen_height * (1 / 20),
-                            self.screen_height * (1 / 20), self.screen_height * (1 / 20)))
-                else:
-                    pygame.draw.rect(self.screen, BLUE, (
-                        self.screen_width * (3 / 4), self.screen_height * (1 / 3) - self.screen_height * (1 / 20),
-                        self.screen_height * (1 / 20), self.screen_height * (1 / 20)))
-            elif w_name[0] == "green":
-                pygame.draw.rect(self.screen, GREEN, (
-                    self.screen_width * (3 / 4), self.screen_height * (1 / 3) - self.screen_height * (1 / 20),
-                    self.screen_height * (1 / 20), self.screen_height * (1 / 20)))
+                        pygame.draw.rect(self.screen, c.BLUE,
+                                         (rect_pos, rect_size))
+                elif w_name[0] == "green":
+                    pygame.draw.rect(self.screen, c.GREEN,
+                                     (rect_pos, rect_size))
+
+        elif self.settings['setting_color'] == True:
+            if len(self.waste.card) == 0:
+                pygame.draw.rect(self.screen, c.BLACK, (rect_pos, rect_size))
+            else:
+                w_name = self.waste.card[-1]
+                w_name = w_name.split('_')
+                if w_name[0] == 'wild':
+                    pygame.draw.rect(self.screen, c.BLACK,
+                                     (rect_pos, rect_size))
+                elif w_name[0] == "red":
+                    if len(w_name) > 1:
+                        if w_name[1] == 'yellow':
+                            pygame.draw.rect(self.screen, c.VERMILION,
+                                             (rect_pos, half_rect_size))
+                            pygame.draw.rect(self.screen, c.YELLOW,
+                                             (half_rect_pos, half_rect_size))
+                        else:
+                            pygame.draw.rect(self.screen, c.VERMILION,
+                                             (rect_pos, rect_size))
+                    else:
+                        pygame.draw.rect(
+                            self.screen, c.VERMILION, (rect_pos, rect_size))
+                elif w_name[0] == "yellow":
+                    pygame.draw.rect(self.screen, c.YELLOW,
+                                     (rect_pos, rect_size))
+                elif w_name[0] == "blue":
+                    if len(w_name) > 1:
+                        if w_name[1] == 'green':
+                            pygame.draw.rect(self.screen, c.C_BLUE,
+                                             (rect_pos, half_rect_size))
+                            pygame.draw.rect(self.screen, c.BLUISH_GREEN,
+                                             (half_rect_pos, half_rect_size))
+                        else:
+                            pygame.draw.rect(self.screen, c.C_BLUE,
+                                             (rect_pos, rect_size))
+                    else:
+                        pygame.draw.rect(self.screen, c.C_BLUE,
+                                         (rect_pos, rect_size))
+                elif w_name[0] == "green":
+                    pygame.draw.rect(
+                        self.screen, c.BLUISH_GREEN, (rect_pos, rect_size))
 
     # 낼 수 있는지 확인
+
     def check_card(self, sprite):
-        if len(self.waste_card) == 0:
+        if len(self.waste.card) == 0:
             return True
         else:
             name = sprite.get_name()
             name = name.split('_')
-            w_name = self.waste_card[-1]
+            w_name = self.waste.card[-1]
             w_name = w_name.split('_')
             if self.difficulty == 5:
                 if w_name[1] != '0' and name[1] != '0':
@@ -684,314 +380,23 @@ class Game():
                         return True
                     if w_name[2] == name[2]:
                         return True
-
         return False
 
     def pick_color_card(self):
         if self.now_turn == 0:
-            self.pick_color()
-        elif self.now_turn == 1:
-            pygame.time.wait(500)
-            self.most_num_color(self.player[1])
-        elif self.now_turn == 2:
-            pygame.time.wait(500)
-            self.most_num_color(self.player[2])
-        elif self.now_turn == 3:
-            pygame.time.wait(500)
-            self.most_num_color(self.player[3])
-        elif self.now_turn == 4:
-            pygame.time.wait(500)
-            self.most_num_color(self.player[4])
-        elif self.now_turn == 5:
-            pygame.time.wait(500)
-            self.most_num_color(self.player[5])
-
-    # card_skill 중 card change 함수
-    def card_change(self, now_turn, pick_turn):
-        
-        # 현재 턴의 플레이어 덱 임시 저장
-        temp_player = self.player[now_turn][:]
-
-        # 현재 턴의 플레이어 리스트 초기화
-        self.player[now_turn].clear()
-
-        # 현재 턴의 플레이어 덱 초기화 
-        match now_turn:
-            case 0:
-                self.lastcard0 = (self.screen_width/3 - self.screen_width/10 , self.screen_height * (7 / 9))
-                now_turn_lastcard = self.lastcard0
-                for sprite in self.user_group:
-                    self.user_group.remove(sprite)
-            case 1:
-                self.lastcard1 = (self.screen_width * (1 / 30) - 10 , self.screen_height * (1 / 10))
-                now_turn_lastcard = self.lastcard1
-                for sprite in self.com1_group:
-                    self.com1_group.remove(sprite)
-            case 2:
-                self.lastcard2 = (self.screen_width * (1 / 30) - 10, self.screen_height * (3 / 10))
-                now_turn_lastcard = self.lastcard2
-                for sprite in self.com2_group:
-                    self.com2_group.remove(sprite)
-            case 3:
-                self.lastcard3 = (self.screen_width * (1 / 30) - 10,self.screen_height * (1 / 2))
-                now_turn_lastcard = self.lastcard3
-                for sprite in self.com3_group:
-                    self.com3_group.remove(sprite)
-            case 4:
-                self.lastcard4 = (self.screen_width * (1 / 30) - 10,self.screen_height * (7 / 10))
-                now_turn_lastcard = self.lastcard4
-                for sprite in self.com4_group:
-                    self.com4_group.remove(sprite)
-            case _:
-                self.lastcard5 = (self.screen_width * (1 / 30) - 10,self.screen_height * (9 / 10))
-                now_turn_lastcard = self.lastcard5
-                for sprite in self.com5_group:
-                    self.com5_group.remove(sprite)
-
-        # 현재 턴의 플레이어 덱에 목표 플레이어 덱 넣기
-        if now_turn == 0:
-            for item in self.player[pick_turn]:
-                card = loadcard.Card(item, (400, 300), (self.screen_width / 10, self.screen_height / 6))
-                current_pos = now_turn_lastcard
-                if current_pos[0] >= self.screen_width*(28/30):
-                    y = current_pos[1] + self.screen_height / 7
-                    x = self.screen_width/3
-                else:
-                    y = current_pos[1]
-                    x = current_pos[0] + self.screen_width/ 10
-                card.setposition(x, y)
-                now_turn_lastcard = (x,y)
-                self.lastcard0 = (x, y)
-                self.user_group.add(card)
+            temp = self.pick_color()
         else:
-            for _ in range(len(self.player[pick_turn])):
-                card = loadcard.Card('back', (400, 300), (self.screen_width / 30, self.screen_height / 18))
-                current_pos = now_turn_lastcard
-                if current_pos[0] >= self.screen_width/30 + 110: # 110을 화면 비율에 맞게 바꿔야함 10 (카드 겹치는 길이) X 11 (최대 12장)
-                    y = current_pos[1] + self.screen_height/18
-                    x = self.screen_width/ 30
-                else:
-                    y = current_pos[1]
-                    x = current_pos[0] + 10
-                card.setposition(x, y)
-            
-                match now_turn:
-                    case 1:
-                        now_turn_lastcard = (x,y)
-                        self.lastcard1 = (x, y)
-                        self.com1_group.add(card)
-                    case 2:
-                        now_turn_lastcard = (x,y)
-                        self.lastcard2 = (x, y)
-                        self.com2_group.add(card)
-                    case 3:
-                        now_turn_lastcard = (x,y)
-                        self.lastcard3 = (x, y)
-                        self.com3_group.add(card)
-                    case 4:
-                        now_turn_lastcard = (x,y)
-                        self.lastcard4 = (x, y)
-                        self.com4_group.add(card)
-                    case _:
-                        now_turn_lastcard = (x,y)
-                        self.lastcard5 = (x, y)
-                        self.com5_group.add(card)
-
-        # 현재 턴인 플레이어 덱 리스트 목표 플레이어 덱 리스트로 변경
-        self.player[now_turn] = self.player[pick_turn][:]
-
-        # 목표 플레이어 덱 초기화 
-        self.player[pick_turn].clear()
-        match pick_turn:
-            case 0:
-                self.lastcard0 = (self.screen_width/3 - self.screen_width/10 , self.screen_height * (7 / 9))
-                pick_turn_lastcard = self.lastcard0
-                for sprite in self.user_group:
-                    self.user_group.remove(sprite)
-            case 1:
-                self.lastcard1 = (self.screen_width * (1 / 30) - 10 , self.screen_height * (1 / 10))
-                pick_turn_lastcard = self.lastcard1
-                for sprite in self.com1_group:
-                    self.com1_group.remove(sprite)
-            case 2:
-                self.lastcard2 = (self.screen_width * (1 / 30) - 10, self.screen_height * (3 / 10))
-                pick_turn_lastcard = self.lastcard2
-                for sprite in self.com2_group:
-                    self.com2_group.remove(sprite)
-            case 3:
-                self.lastcard3 = (self.screen_width * (1 / 30) - 10,self.screen_height * (1 / 2))
-                pick_turn_lastcard = self.lastcard3
-                for sprite in self.com3_group:
-                    self.com3_group.remove(sprite)
-            case 4:
-                self.lastcard4 = (self.screen_width * (1 / 30) - 10,self.screen_height * (7 / 10))
-                pick_turn_lastcard = self.lastcard4
-                for sprite in self.com4_group:
-                    self.com4_group.remove(sprite)
-            case _:
-                self.lastcard5 = (self.screen_width * (1 / 30) - 10,self.screen_height * (9 / 10))
-                pick_turn_lastcard = self.lastcard5
-                for sprite in self.com5_group:
-                    self.com5_group.remove(sprite)
-
-        # 목표 플레이어 덱에 현재 턴인 플레이어 덱 넣기 
-        if pick_turn == 0:
-            for item in temp_player:
-                card = loadcard.Card(item, (400, 300), (self.screen_width / 10, self.screen_height / 6))
-                current_pos = pick_turn_lastcard
-                if current_pos[0] >= self.screen_width*(28/30):
-                    y = current_pos[1] + self.screen_height/6
-                    x = self.screen_width/3
-                else:
-                    y = current_pos[1]
-                    x = current_pos[0] + self.screen_width/ 10
-                card.setposition(x, y)
-                pick_turn_lastcard = (x,y)
-                self.lastcard0 = (x, y)
-                self.user_group.add(card)
-        else:
-            for _ in range(len(temp_player)):
-                card = loadcard.Card('back', (400, 300), (self.screen_width / 30, self.screen_height / 18))
-                current_pos = pick_turn_lastcard
-                if current_pos[0] >= self.screen_width/30 + 110: # 110을 화면 비율에 맞게 바꿔야함 10 (카드 겹치는 길이) X 11 (최대 12장)
-                    y = current_pos[1] + self.screen_height/18
-                    x = self.screen_width/30
-                else:
-                    y = current_pos[1]
-                    x = current_pos[0] + 10
-                card.setposition(x, y)
-            
-                match pick_turn:
-                    case 1:
-                        pick_turn_lastcard = (x,y)
-                        self.lastcard1 = (x, y)
-                        self.com1_group.add(card)
-                    case 2:
-                        pick_turn_lastcard = (x,y)
-                        self.lastcard2 = (x, y)
-                        self.com2_group.add(card)
-                    case 3:
-                        pick_turn_lastcard = (x,y)
-                        self.lastcard3 = (x, y)
-                        self.com3_group.add(card)
-                    case 4:
-                        pick_turn_lastcard = (x,y)
-                        self.lastcard4 = (x, y)
-                        self.com4_group.add(card)
-                    case _:
-                        pick_turn_lastcard = (x,y)
-                        self.lastcard5 = (x, y)
-                        self.com5_group.add(card)
-    
-        # 목표 플레이어 덱 리스트 현재 플레이어 덱 리스트로 변경            
-        self.player[pick_turn] = temp_player[:]
+            pygame.time.wait(500)
+            temp = self.player[self.now_turn].most_num_color()
+        self.waste.updating(temp)
         self.print_window()
 
-    # 기능 카드 수행
-    # if name[0] 해서 기능 추가
-    def card_skill(self, sprite):
-        name = sprite.get_name()
-        name = name.split('_')
-        if name[1] == 'pass':
-            pygame.time.wait(500)
-            self.now_turn = self.next_turn(self.now_turn)
-        elif name[1] == 'reverse':
-            if self.player_num == 2:
-                pygame.time.wait(500)
-                self.now_turn = self.next_turn(self.now_turn)
-            else:
-                if self.rotate == 0:
-                    self.rotate = 1
-                else:
-                    self.rotate = 0
-        elif name[1] == 'change':  # change 구현   - 지금 상태 바뀌기는 하는데 화면에 카드 표시가 안뜸
-            if self.now_turn == 0:
-                index = self.pick_player()
-                self.card_change(self.now_turn, index)
-            else:
-                index = self.least_num()
-                self.card_change(self.now_turn, index)
-            self.print_window()
-
-        elif name[1] == 'plus':
-            if name[2] == 'two':
-                pygame.time.wait(500)
-                if len(self.card_deck) < 2:
-                    pass
-                else:
-                    self.give_card(2)
-                # self.now_turn = self.next_turn(self.now_turn)
-            elif name[2] == 'four':
-                # pygame.mixer.pre_init(44100, -16, 1, 512)
-                pygame.init()
-                # select = pygame.mixer.Sound('./sound/select.wav')
-                # select.play()
-                if len(self.card_deck) < 4:
-                    pass
-                else:
-                    self.give_card(4)
-                self.pick_color_card()
-        elif name[0] == 'wild':
-            # pygame.mixer.pre_init(44100, -16, 1, 512)
-            pygame.init()
-            # select = pygame.mixer.Sound('./sound/select.wav')
-            # select.play()
-            self.pick_color_card()
-        # else:
-        #     if self.now_turn != 0:
-        #         return False
-        # self.show_uno()
-        # return True
-
-    # 가장 적은 숫자 카드 나타내는 함수
-    def least_num(self) -> int:
-        least_player_idx = 0
-        least_player_num = len(self.player[0])
-        for num in range(1, self.player_num):
-            if least_player_num > len(self.player[num]):
-                least_player_idx = num
-                least_player_num = len(self.player[num])
-        return least_player_idx
-
-    # 지금 덱 중에서 가장 숫자가 많은 색깔 구함 -> 컴퓨터가 wild 카드 사용할 때 사용 , 여기 수정해야함 그 숫자없는 카드가 없긴해 
-    def most_num_color(self, card_deck):
-        r = 0
-        y = 0
-        g = 0
-        b = 0
-        for item in card_deck:
-            card = item.split('_')
-            if card[0] == 'red':
-                r += 1
-            if card[0] == 'yellow':
-                y += 1
-            if card[0] == 'green':
-                g += 1
-            if card[0] == 'blue':
-                b += 1
-        a = [r, y, g, b]
-        index = a.index(max(a))
-        if index == 0:
-            temp_name = 'red'
-        if index == 1:
-            temp_name = 'yellow'
-        if index == 2:
-            temp_name = 'green'
-        if index == 3:
-            temp_name = 'blue'
-        temp = loadcard.Card(temp_name, (self.screen_width * (3 / 5), self.screen_height * (1 / 3)),
-                             (self.screen_width / 10, self.screen_height / 6))
-        self.waste_card.append(temp_name)
-        self.waste_group.add(temp)
-        self.print_window()
-
-    # 변경할 색 선택
     def pick_color(self):
         # 뒤에 이미지 -> 빼거나 대체
-        red = loadcard.Popup('red', (306, 320))
-        yellow = loadcard.Popup('yellow', (368, 320))
-        green = loadcard.Popup('green', (432, 320))
-        blue = loadcard.Popup('blue', (494, 320))
+        red = lc.Popup('red', (306, 320))
+        yellow = lc.Popup('yellow', (368, 320))
+        green = lc.Popup('green', (432, 320))
+        blue = lc.Popup('blue', (494, 320))
         colors = [red, yellow, green, blue]
         color_group = pygame.sprite.RenderPlain(*colors)
 
@@ -1002,634 +407,599 @@ class Game():
             pygame.display.update()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    terminate()
+                    pygame.quit()
+                    sys.exit()
                 if event.type == MOUSEBUTTONUP:
                     mouse_pos = pygame.mouse.get_pos()
                     for sprite in color_group:
                         if sprite.get_rect().collidepoint(mouse_pos):
                             temp_name = sprite.get_name()
-                            temp = loadcard.Card(temp_name, (self.screen_width * (3 / 5), self.screen_height * (1 / 3)),
-                                                 (self.screen_width / 10, self.screen_height / 6))
-                            self.waste_card.append(temp_name)
-                            self.waste_group.add(temp)
                             self.print_window()
                             loop = False
-        return 0
+        return temp_name
 
-    # change 카드를 컴퓨터 플레이어가 선택할 때 제일 카드가 적은 플레이어 선택
-    def check_card_num(self, player_deck_list):
-        shortest_list = min(player_deck_list, key=len)
-        return player_deck_list.index(shortest_list)
+    # card_skill 중 card change 함수
 
-    # change 카드 사용할 때 바꿀 플레이어 선택
+    def card_change(self, now_turn, pick_turn):
+        # 현재 턴의 플레이어 덱 임시 저장
+        temp_player = self.player[now_turn].card
+        # 현재 턴의 플레이어 리스트 초기화
+        self.player[now_turn].clear()
+        for item in self.player[pick_turn].card:
+            self.player[now_turn].add_card(item)
+        # 목표 플레이어 덱 초기화
+        self.player[pick_turn].clear()
+        for item in temp_player:
+            self.player[pick_turn].add_card(item)
+        self.print_window()
+
+    # 수정중
+    # 기능 카드 수행
+    # if name[0] 해서 기능 추가
+    def card_skill(self, name):
+        name = name.split('_')
+        pass_button = rf.Button(self.screen, self.settings['screen'][0] * (
+            1 / 3), self.settings['screen'][1] * (1 / 3), c.PASS, 150, 150)
+        reverse_button = rf.Button(self.screen, self.settings['screen'][0] * (
+            1 / 3), self.settings['screen'][1] * (1 / 3), c.REVERSE, 150, 150)
+        change_button = rf.Button(self.screen, self.settings['screen'][0] * (
+            1 / 3), self.settings['screen'][1] * (1 / 3), c.CHANGE, 150, 150)
+
+        if name[1] == 'pass':
+            pass_button.show()
+            pygame.time.wait(500)
+            self.now_turn = self.get_next_player(self.now_turn)
+            self.first = False
+        elif name[1] == 'reverse':
+            if self.player_num == 2:
+                reverse_button.show()
+                pygame.time.wait(500)
+                self.now_turn = self.get_next_player(self.now_turn)
+                self.first = False
+            else:
+                if self.rotate == 0:
+                    self.rotate = 1
+                else:
+                    self.rotate = 0
+        elif name[1] == 'change':
+            if self.now_turn == 0:
+                index = self.pick_player()
+                change_button.show()
+                pygame.time.wait(500)
+                self.card_change(self.now_turn, index)
+            else:
+                index = self.least_num(self.now_turn)
+                self.card_change(self.now_turn, index)
+            self.print_window()
+
+        elif name[1] == 'plus':
+            if name[2] == 'two':
+                pygame.time.wait(500)
+                if len(self.card_deck) < 2:
+                    pass
+                else:
+                    self.give_card(2)
+                # if self.player_num == 2:
+                #     self.now_turn = self.get_next_player(self.now_turn)
+                #     self.first = False
+            elif name[2] == 'four':
+                # pygame.mixer.pre_init(44100, -16, 1, 512)
+                # select = pygame.mixer.Sound('./sound/select.wav')
+                # select.play()
+                if len(self.card_deck) < 4:
+                    pass
+                else:
+                    self.give_card(4)
+                self.pick_color_card()
+        elif name[0] == 'wild':
+            # pygame.mixer.pre_init(44100, -16, 1, 512)
+            # select = pygame.mixer.Sound('./sound/select.wav')
+            # select.play()
+            self.pick_color_card()
+
+    def user_skill_count(self):
+        self.count = 0
+        if self.card_skill == True:
+            if self.now_turn == 0:
+                self.count += 1
+
+        if self.count >= 10:
+            self.settings['win_count']['skill'] += 1
+            start_time = time.time()
+            if self.settings['win_count']['skill'] == 1 and not self.settings['achievement']['skill_master']:
+                while time.time() - start_time < 5:
+                    self.achv_alarm_li[10].show()
+                self.settings['achievement']['skill_master'] = True
+                self.settings['achievement']['skill_master'] = datetime.now().strftime(
+                    '%Y-%m-%d')
+                self.setting.change_setting(self.settings)
+
     def pick_player(self):
 
         pick_player_button = []
-        for i in range(1,self.player_num):
-            image_name = "./image/playing_image/deckchange_player"+str(i)+".jpg"
-            temp_button = Button(self.screen, self.screen_width*(1/2), self.screen_height/6 * i, image_name, self.screen_width*(1/8), self.screen_height*(1/9))
+        for i in range(1, self.player_num):
+            image_name = "./image/playing_image/deckchange_player" + \
+                         str(i) + ".jpg"
+            temp_button = rf.Button(self.screen, self.settings['screen'][0] * (1 / 2),
+                                    self.settings['screen'][1] /
+                                    6 * i, image_name,
+                                    self.settings['screen'][0] * (1 / 8), self.settings['screen'][1] * (1 / 9))
             pick_player_button.append(temp_button)
         index = 0
 
         loop = True
         while loop:
             for i in range(self.player_num - 1):
-                pick_player_button[i].show_button()
+                pick_player_button[i].show()
             pygame.display.update()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    terminate()
-                if event.type == MOUSEBUTTONUP:
-                    mouse_pos = pygame.mouse.get_pos()
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.MOUSEBUTTONUP:
                     for i in range(self.player_num - 1):
-                        if pick_player_button[i].get_rect().collidepoint(mouse_pos):
-                            index = i
-                            self.print_window()
-                            loop = False
-        
+                        if pick_player_button[i].get_rect().collidepoint(event.pos):
+                            # 수정중
+                            return i + 1
+                            # loop = False
+
         return index + 1
-    
+
+    # 가장 적은 숫자 카드 나타내는 함수
+    def least_num(self, my_index) -> int:
+        least_player_idx = 0
+        least_player_num = len(self.player[0].card)
+        for num in range(1, self.player_num):
+            if least_player_num > len(self.player[num].card):
+                if num != my_index:
+                    least_player_idx = num
+                    least_player_num = len(self.player[num].card)
+        return least_player_idx
+
     # 다음 차례 플레이어에게 카드 뽑게 함 -> draw 카드
     def give_card(self, card_num):
-        if len(self.waste_card) == 1:  # 처음 카드가 +2,+4일때 처음 플레이어가 카드 받음
+        if len(self.waste.card) == 1:  # 처음 카드가 +2,+4일때 처음 플레이어가 카드 받음
             dest_player = self.now_turn
         else:
             dest_player = self.get_next_player(self.now_turn)
         for i in range(0, card_num):
             self.get_from_deck(dest_player)
 
-    # 게임 끝난 화면, 스페이스 버튼 누르면 다시 시작 
+    # t.text_format 함수 없애야 함
     def restart(self):
         # pygame.mixer.pre_init(44100, -16, 1, 512)
-        pygame.init()
         # win = pygame.mixer.Sound('./sound/win.wav')
         # lose = pygame.mixer.Sound('./sound/lose.wav')
-        pygame.draw.rect(self.screen, (255, 51, 0), pygame.Rect(200, 200, 400, 200))
-        pygame.draw.rect(self.screen, (255, 180, 0), pygame.Rect(210, 210, 380, 180))
+        pygame.draw.rect(self.screen, c.BLUE,
+                         pygame.Rect(200, 200, 400, 200))
+        pygame.draw.rect(self.screen, (255, 180, 0),
+                         pygame.Rect(210, 210, 380, 180))
+        restart = True
+        if restart:
+            self.settings['win_count']['first'] += 1
+            if self.settings['win_count']['first'] == 1 and not self.settings['achievement']['first_play']:
+                self.achv_alarm_li[7].show()
+                pygame.display.update()
+                pygame.time.wait(1500)
+                self.settings['achievement']['first_play'] = True
+                self.settings['achievement']['first_play'] = datetime.now().strftime(
+                    '%Y-%m-%d')
+                self.setting.change_setting(self.settings)
 
-        if len(self.user_group) == 0:
-            # win.play()
-            close_text = text_format("YOU WIN!", BERLIN, 80, (255, 51, 0))
-            press_text = text_format("Press SPACE to REPLAY", BERLIN, 35, (255, 51, 0))
-            self.screen.blit(close_text, (230, 220))
+            for i in range(self.player_num):
+                if len(self.player[i].group) == 0:
+                    if i == 0:
+                        close_text = text_format(
+                            "YOU WIN!", c.BERLIN, 80, c.BLUE)
+                        press_text = text_format(
+                            "Press SPACE to MENU", c.BERLIN, 35, c.BLUE)
+                        self.screen.blit(close_text, (230, 220))
+                        pygame.display.update()
+                        self.settings['win_count']['single'] += 1
+                        if self.settings['win_count']['single'] == 1 and not self.settings['achievement']['single_win']:
+                            self.achv_alarm_li[0].show()
+                            pygame.display.update()
+                            pygame.time.wait(1500)
+                            self.settings['achievement']['single_win'] = True
+                            self.settings['achievement_date']['single_win'] = datetime.now().strftime(
+                                '%Y-%m-%d')
+                            self.setting.change_setting(self.settings)
+
+                        elif self.game_turn <= 10:
+                            self.settings['win_count']['speed'] += 1
+                            if self.settings['win_count']['speed'] == 1 and self.settings['achievement']['speed_win'] == False:
+                                self.achv_alarm_li[5].show()
+                                pygame.display.update()
+                                pygame.time.wait(1500)
+                                self.settings['achievement']['speed_win'] = True
+                                self.settings['achievement_date']['speed_win'] = datetime.now().strftime(
+                                    '%Y-%m-%d')
+                                self.setting.change_setting(self.settings)
+
+                        elif self.count == 0:
+                            self.settings['win_count']['no_skill'] += 1
+                            if self.settings['win_count']['no_skill'] == 1 and not self.settings['achievement']['no_skill_card']:
+                                self.achv_alarm_li[6].show()
+                                pygame.display.update()
+                                pygame.time.wait(1500)
+                                self.settings['achievement']['no_skill_card'] = True
+                                self.settings['achievement_date']['no_skill_card'] = datetime.now().strftime(
+                                    '%Y-%m-%d')
+                                self.setting.change_setting(self.settings)
+
+                        elif self.turtle_win == True:
+                            self.settings['win_count']['turtle'] += 1
+                            if self.settings['win_count']['turtle_win'] == 1 and not self.settings['achievement']['turtle_win']:
+                                self.achv_alarm_li[7].show()
+                                pygame.display.update()
+                                pygame.time.wait(1500)
+                                self.settings['achievement']['turtle_win'] = True
+                                self.settings['achievement_date']['turtle_win'] = datetime.now().strftime(
+                                    '%Y-%m-%d')
+                                self.setting.change_setting(self.settings)
+                        self.screen.blit(self.bg_img, (0, 0))
+                        pygame.draw.rect(self.screen, c.BLUE,
+                                         pygame.Rect(200, 200, 400, 200))
+                        pygame.draw.rect(self.screen, (255, 180, 0),
+                                         pygame.Rect(210, 210, 380, 180))
+                        close_text = text_format(
+                            "YOU WIN!", c.BERLIN, 80, c.BLUE)
+                        press_text = text_format(
+                            "Press SPACE to MENU", c.BERLIN, 35, c.BLUE)
+                        self.screen.blit(close_text, (230, 220))
+                        self.screen.blit(press_text, (228, 330))
+                        pygame.display.update()
+                    else:
+                        close_text = text_format(
+                            "YOU LOSE!, com{} win!".format(i), c.BERLIN, 40, c.BLUE)
+                        press_text = text_format(
+                            "Press SPACE to go MENU", c.BERLIN, 35, c.BLUE)
+                        self.screen.blit(close_text, (230, 220))
+                        self.screen.blit(press_text, (228, 330))
+                        pygame.display.update()
+            while True:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        terminate()
+
+                    if event.type == KEYDOWN:
+                        if event.key == K_SPACE:
+                            restart = False
+                            self.playing_game = False
+                            self.setting.change_setting(self.settings)
+                            UNO.TitleMenu().menu()
+                            # 객체를 생성해서 호출하는게 좋지않을까? - 객체를 미리 생성하고 어떤 곳은 dictionary로 가더라 이것도 좋아
+                            # 그리고 객체를 생성하면 업적이 망가지지 않을까?
+                            return
+            return 0
+
+    # 리팩토링 match로 해도 될 것 같아
+    def check_player(self):
+
+        for i in range(self.player_num):
+            if len(self.player[i].card) == 0:
+                self.playing_game = False
+                self.restart()
+
+    def selected_turn(self):
+        return random.randint(0, self.player_num - 1)
+
+    def difficulty_play(self):
+        ai = com.AI(self.now_turn + 1,
+                    self.player[self.now_turn].card, self.waste.card)
+        if self.difficulty in (1, 2, 3, 4):
+            return ai.basic_play()
         else:
-            # lose.play()
-            close_text = text_format("YOU LOSE!", BERLIN, 80, (255, 51, 0))
-            press_text = text_format("Press SPACE to REPLAY", BERLIN, 35, (255, 51, 0))
-            self.screen.blit(close_text, (212, 220))
+            return ai.special_play()
 
-        self.screen.blit(press_text, (228, 330))
-        pygame.display.update()
-        while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    terminate()
+    def computer_play(self):
+        temp = self.difficulty_play()
+        pygame.time.wait(1000)
 
-                if event.type == KEYDOWN:
-                    if event.key == K_SPACE:
-                        self.uno_game.main_menu()
-                        return
-        return 0
+        if temp == 0 or temp is None:
+            self.get_from_deck(self.now_turn)
+            # self.print_window()
+            # pygame.display.update()
+            return 'Back'
+            # self.now_turn = self.get_next_player(self.now_turn)
+        else:
+            # pygame.mixer.pre_init(44100, -16, 1, 512)
+            # card = pygame.mixer.Sound('./sound/deal_card.wav')
 
-    def no_temp(self, now_turn: int):
-        self.get_from_deck(now_turn)
-        self.print_window()
-        self.now_turn = self.next_turn(self.now_turn)
-        pygame.display.update()
+            # 수정중
+            self.player[self.now_turn].remove(temp)
+            self.player[self.now_turn].set_lastcard()
 
-    def timer(self) -> bool:
-        total_time = 10
-        start_ticks = pygame.time.get_ticks()
-        elapsed_time = (pygame.time.get_ticks() - start_ticks) / 1000
-        timer_msg = text_format(elapsed_time, MALGUNGOTHIC, 10, WHITE)
-        self.screen.blit(timer_msg, (self.screen_width * (1 / 4), self.screen_height * (1 / 7)))
-        if total_time <= elapsed_time:
-            return False
+            # card.play()
+            self.waste.updating(temp)
+            self.set_animation('back', (self.size[0] * (1 / 30) + 10 * (self.player[self.now_turn].last_idx - 1),
+                                        self.size[1] * ((2 * self.player[self.now_turn].index - 1) / 10)))
+            # 안해도 될 것 같아 시간 걸려 - 확인하고 삭제해줘
+            # self.print_window()
+            # pygame.display.update()
+            self.card_skill(temp)
+            if len(self.player[self.now_turn].group) == 1:
+                # 안해도 될 것 같아 시간 걸려 - 확인하고 삭제해줘
+                # pygame.display.update()
+                self.check_uno_button()
+            else:
+                pass
+                # 안해도 될 것 같아 시간 걸려 - 확인하고 삭제해줘
+                # self.print_window()
+                # self.now_turn = self.get_next_player(self.now_turn)
+            return temp
+            # 안해도 될 것 같아 시간 걸려 - 확인하고 삭제해줘
+            # pygame.display.update()
+
+    def get_next_turn(self, turn=True):
+        pass
 
     # 게임 시작 (다시 시작 )
     def startgame(self):
+        self.screen.blit(self.bg_img, (0, 0))
         self.card_deck.clear()
-        self.player = [[0] for _ in range(0, self.player_num)]
-        self.waste_group = pygame.sprite.RenderPlain()
+        self.player = []
+        self.player_names = self.set_name()
         self.rotate = 0
+        self.now_turn = self.selected_turn()
         self.set_window()
+        self.timer.reset_tmr()
         self.playgame()
+        return 0
 
+    # 수정중
     # 게임 구현
+
     def playgame(self):
-        self.now_turn = 0
-        self.waste_card = []
-        tmr = 0
-        selected = 0
-        selected_up = 0
 
         while self.playing_game:
-            if len(self.user_group) == 0:
-                self.restart()
-                return
-            elif self.player_num == 6:
-                if len(self.player[1]) == 0 or len(self.player[2]) == 0 or len(self.player[3]) == 0 or len(
-                        self.player[4]) == 0 or len(self.player[5]) == 0:
-                    self.restart()
-                    return
-            elif self.player_num == 5:
-                if len(self.player[1]) == 0 or len(self.player[2]) == 0 or len(self.player[3]) == 0 or len(
-                        self.player[4]) == 0:
-                    self.restart()
-                    return
-            elif self.player_num == 4:
-                if len(self.player[1]) == 0 or len(self.player[2]) == 0 or len(self.player[3]) == 0:
-                    self.restart()
-                    return
-            elif self.player_num == 3:
-                if len(self.player[1]) == 0 or len(self.player[2]) == 0:
-                    self.restart()
-                    return
-            elif self.player_num == 2:
-                if len(self.player[1]) == 0:
-                    self.restart()
-                    return
+            self.check_player()
+            tmr_bool = self.timer.tick_tmr()
+
             if len(self.card_deck) == 0:
                 self.set_deck()
 
-            # self.show_uno()
-            self.select_player(self.now_turn)
-            if self.now_turn == 0 and len(self.waste_card) == 0:
-                temp = loadcard.Card(self.card_deck.pop(), (self.screen_width * (3 / 5), self.screen_height * (1 / 3)),
-                                     (self.screen_width / 10, self.screen_height / 6))
-                self.put_waste_group(temp)
+            if len(self.waste.card) == 0:
+                temp = self.card_deck.pop()
+                self.waste.updating(temp)
                 self.card_skill(temp)
                 self.print_window()
                 pygame.display.update()
 
-                # 일단 +2,+4 가 처음 카드로 나오면 첫 플레이어가 먹게 해둠
+            if self.now_turn != 0:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        sys.exit()
+                temp = self.computer_play()
+            else:
+                temp = self.user_play()
 
-            self.get_next_turn()
+            if temp and type(temp) == str:
+                self.animation(*temp)
+            if temp or tmr_bool is False:
+                self.get_next_turn(self.first)
+                self.now_turn = self.get_next_player(self.now_turn)
 
-            if self.now_turn == 1:
-                self.select_player(self.now_turn)
-                pygame.time.wait(1000)
-                pygame.time.wait(1000)
-                ai = computer.AI(2, self.player[1], self.waste_card)
-                if self.difficulty == 1 or self.difficulty == 3 or self.difficulty == 4:
-                    temp = ai.basic_play()
-                elif self.difficulty == 2:
-                    next = self.get_next_player(self.now_turn)
-                    if next == 0:
-                        next_ = self.user_group
-                    else:
-                        next_ = self.player[next]
-                    temp = ai.advanced_play(next_)
-                elif self.difficulty == 5:
-                    temp = ai.special_play()
-                if temp == 0 or temp is None:
-                    self.no_temp(1)
-                else:
-                    # pygame.mixer.pre_init(44100, -16, 1, 512)
-                    pygame.init()
-                    # card = pygame.mixer.Sound('./sound/deal_card.wav')
-                    for sprite in self.com1_group:
-                        if sprite.getposition() == self.lastcard1:
-                            self.com1_group.remove(sprite)
-                    self.player[1].remove(temp)
-                    self.set_lastcard(self.lastcard1, (0, 0))
-                    # card.play()
-                    self.waste_card.append(temp)
-                    t_card = loadcard.Card(temp, (self.screen_width * (3 / 5), self.screen_height * (1 / 3)),
-                                           (self.screen_width / 10, self.screen_height / 6))
-                    self.waste_group.add(t_card)
-                    self.print_window()
-                    pygame.display.update()
-                    # 이거 왜 있는거지? 이거 있어서 4장 먹는게 아니라 8장 먹어져
-                    # if self.difficulty == 2 and self.card_skill(t_card): 
-                    #     self.print_window()
-                    #     pygame.display.update()
-                    #     continue
-                    self.card_skill(t_card)
-                    if len(self.com1_group) == 1:
-                        pygame.display.update()
-                        self.check_uno_button()
-                    else:
-                        self.print_window()
-                        self.now_turn = self.next_turn(self.now_turn)
-                    pygame.display.update()
+            if len(self.player[0].group) >= 20:
+                self.settings['win_count']['collector'] += 1
+                start_time = time.time()
+                if self.settings['win_count']['collector'] == 1 and not self.settings['achievement']['card_collector']:
+                    while time.time() - start_time < 5:
+                        self.achv_alarm_li[9].show()
+                    self.settings['achievement']['card_collector'] = True
+                    self.settings['achievement']['card_collector'] = datetime.now().strftime(
+                        '%Y-%m-%d')
+                    self.setting.change_setting(self.settings)
 
-            elif self.now_turn == 2:
-                self.select_player(self.now_turn)
-                pygame.time.wait(1000)
-                pygame.time.wait(1000)
-                ai = computer.AI(3, self.player[2], self.waste_card)
-                if self.difficulty == 1 or self.difficulty == 3 or self.difficulty == 4:
-                    temp = ai.basic_play()
-                elif self.difficulty == 2:
-                    next = self.get_next_player(self.now_turn)
-                    if next == 0:
-                        next_ = self.user_group
-                    else:
-                        next_ = self.player[next]
-                    temp = ai.advanced_play(next_)
-                elif self.difficulty == 5:
-                    temp = ai.special_play()
-                if temp == 0 or temp is None:
-                    self.no_temp(2)
-                else:
-                    # pygame.mixer.pre_init(44100, -16, 1, 512)
-                    pygame.init()
-                    # card = pygame.mixer.Sound('./sound/deal_card.wav')
-                    for sprite in self.com2_group:
-                        if sprite.getposition() == self.lastcard2:
-                            self.com2_group.remove(sprite)
-                    self.player[2].remove(temp)
-                    self.set_lastcard(self.lastcard2, (0, 0))
-                    # card.play()
-                    self.waste_card.append(temp)
-                    t_card = loadcard.Card(temp, (self.screen_width * (3 / 5), self.screen_height * (1 / 3)),
-                                           (self.screen_width / 10, self.screen_height / 6))
-                    self.waste_group.add(t_card)
-                    self.print_window()
-                    pygame.display.update()
-                    if self.difficulty == 2 and self.card_skill(t_card):
-                        self.print_window()
-                        pygame.display.update()
-                        continue
-                    self.card_skill(t_card)
-                    self.print_window()
-                    self.now_turn = self.next_turn(self.now_turn)
-                    pygame.display.update()
-            elif self.now_turn == 3:
-                self.select_player(self.now_turn)
-                pygame.time.wait(1000)
-                pygame.time.wait(1000)
-                ai = computer.AI(4, self.player[3], self.waste_card)
-                if self.difficulty == 1 or self.difficulty == 3 or self.difficulty == 4:
-                    temp = ai.basic_play()
-                elif self.difficulty == 2:
-                    next = self.get_next_player(self.now_turn)
-                    if next == 0:
-                        next_ = self.user_group
-                    else:
-                        next_ = self.player[next]
-                    temp = ai.advanced_play(next_)
-                elif self.difficulty == 5:
-                    temp = ai.special_play()
-                if temp == 0 or temp is None:
-                    self.no_temp(3)
-                else:
-                    # pygame.mixer.pre_init(44100, -16, 1, 512)
-                    pygame.init()
-                    # card = pygame.mixer.Sound('./sound/deal_card.wav')
-                    for sprite in self.com3_group:
-                        if sprite.getposition() == self.lastcard3:
-                            self.com3_group.remove(sprite)
-                    self.player[3].remove(temp)
-                    self.set_lastcard(self.lastcard3, (0, 0))
-                    # card.play()
-                    self.waste_card.append(temp)
-                    t_card = loadcard.Card(temp, (self.screen_width * (3 / 5), self.screen_height * (1 / 3)),
-                                           (self.screen_width / 10, self.screen_height / 6))
-                    self.waste_group.add(t_card)
-                    self.print_window()
-                    pygame.display.update()
-                    if self.difficulty == 2 and self.card_skill(t_card):
-                        self.print_window()
-                        pygame.display.update()
-                        continue
-                    self.card_skill(t_card)
-                    self.print_window()
-                    self.now_turn = self.next_turn(self.now_turn)
-                    pygame.display.update()
-
-            elif self.now_turn == 4:
-                self.select_player(self.now_turn)
-                pygame.time.wait(1000)
-                pygame.time.wait(1000)
-                ai = computer.AI(5, self.player[4], self.waste_card)
-                if self.difficulty == 1 or self.difficulty == 3 or self.difficulty == 4:
-                    temp = ai.basic_play()
-                elif self.difficulty == 2:
-                    next = self.get_next_player(self.now_turn)
-                    if next == 0:
-                        next_ = self.user_group
-                    else:
-                        next_ = self.player[next]
-                    temp = ai.advanced_play(next_)
-                elif self.difficulty == 5:
-                    temp = ai.special_play()
-                if temp == 0 or temp is None:
-                    self.no_temp(4)
-                else:
-                    # pygame.mixer.pre_init(44100, -16, 1, 512)
-                    pygame.init()
-                    # card = pygame.mixer.Sound('./sound/deal_card.wav')
-                    for sprite in self.com4_group:
-                        if sprite.getposition() == self.lastcard4:
-                            self.com4_group.remove(sprite)
-                    self.player[4].remove(temp)
-                    self.set_lastcard(self.lastcard4, (0, 0))
-                    # card.play()
-                    self.waste_card.append(temp)
-                    t_card = loadcard.Card(temp, (self.screen_width * (3 / 5), self.screen_height * (1 / 3)),
-                                           (self.screen_width / 10, self.screen_height / 6))
-                    self.waste_group.add(t_card)
-                    self.print_window()
-                    pygame.display.update()
-                    if self.difficulty == 2 and self.card_skill(t_card):
-                        self.print_window()
-                        pygame.display.update()
-                        continue
-                    self.card_skill(t_card)
-                    self.print_window()
-                    self.now_turn = self.next_turn(self.now_turn)
-                    pygame.display.update()
-
-            elif self.now_turn == 5:
-                self.select_player(self.now_turn)
-                pygame.time.wait(1000)
-                pygame.time.wait(1000)
-                ai = computer.AI(6, self.player[5], self.waste_card)
-                if self.difficulty == 1 or self.difficulty == 3 or self.difficulty == 4:
-                    temp = ai.basic_play()
-                elif self.difficulty == 2:
-                    next = self.get_next_player(self.now_turn)
-                    if next == 0:
-                        next_ = self.user_group
-                    else:
-                        next_ = self.player[next]
-                    temp = ai.advanced_play(next_)
-                elif self.difficulty == 5:
-                    temp = ai.special_play()
-                if temp == 0 or temp is None:
-                    self.no_temp(5)
-                else:
-                    # pygame.mixer.pre_init(44100, -16, 1, 512)
-                    pygame.init()
-                    # card = pygame.mixer.Sound('./sound/deal_card.wav')
-                    for sprite in self.com5_group:
-                        if sprite.getposition() == self.lastcard5:
-                            self.com5_group.remove(sprite)
-                    self.player[5].remove(temp)
-                    self.set_lastcard(self.lastcard5, (0, 0))
-                    # card.play()
-                    self.waste_card.append(temp)
-                    t_card = loadcard.Card(temp, (self.screen_width * (3 / 5), self.screen_height * (1 / 3)),
-                                           (self.screen_width / 10, self.screen_height / 6))
-                    self.waste_group.add(t_card)
-                    self.print_window()
-                    pygame.display.update()
-                    if self.difficulty == 2 and self.card_skill(t_card):
-                        self.print_window()
-                        pygame.display.update()
-                        continue
-                    self.card_skill(t_card)
-                    self.print_window()
-                    self.now_turn = self.next_turn(self.now_turn)
-                    pygame.display.update()
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    terminate()
-
-                if event.type == KEYDOWN:
-                    # if event.key == K_ESCAPE:
-                    #     return
-                    if event.key == K_ESCAPE:
-                        self.pause()
-                        self.print_window()
-                    if event.key == K_LEFT:
-                        if selected <= 0:
-                            selected = 0
-                        else:
-                            selected = selected - 1
-                    elif event.key == K_RIGHT:
-                        if selected >= len(self.player[0]) - 1:
-                            selected = len(self.player[0]) - 1
-                        else:
-                            selected = selected + 1
-                    elif event.key == K_UP:
-                        if selected_up == 0:
-                            selected_up = 1
-                        else:
-                            selected_up = 1
-                    elif event.key == K_DOWN:
-                        if selected_up == 1:
-                            selected_up = 0
-                        else:
-                            selected_up = 0
-
-                    if event.key == K_RETURN:
-                        if selected_up == 1:
-                            self.get_from_deck(self.now_turn)
-                            self.now_turn = self.next_turn(self.now_turn)
-                            break
-                        else:
-                            for sprite in self.user_group:
-                                if sprite.get_name() == self.player[0][selected] and self.check_card(sprite):
-                                    pygame.init()
-                                    self.user_group.remove(sprite)
-                                    self.player[0].remove(sprite.get_name())
-                                    for temp in self.user_group:
-                                        temp.move(sprite.getposition())
-                                    sprite.setposition(self.screen_width * (3 / 5), self.screen_height * (1 / 3))
-                                    self.put_waste_group(sprite)
-                                    self.card_skill(sprite)
-                                    if len(self.user_group) == 1:  # 카드 내고 한장 남음
-                                        pygame.display.update()
-                                        self.check_uno_button()
-                                    else:
-                                        self.now_turn = self.next_turn(self.now_turn)
-                                    if selected > len(self.player[0]) - 1:
-                                        selected = len(self.player[0]) - 1
-                                    break
-                if event.type == MOUSEBUTTONUP:
-                    mouse_pos = pygame.mouse.get_pos()
-                    self.select_sound = pygame.mixer.Sound('./sound/card_sound.mp3')
-                    self.select_sound.play()
-                    if self.now_turn == 0:
-                        self.select_player(self.now_turn)
-                        for sprite in self.user_group:
-                            if sprite.get_rect().collidepoint(mouse_pos) and self.check_card(sprite):
-                                # pygame.mixer.pre_init(44100, -16, 1, 512)
-                                pygame.init()
-                                # card = pygame.mixer.Sound('./sound/deal_card.wav')
-                                self.user_group.remove(sprite)
-                                self.player[0].remove(sprite.get_name())
-                                for temp in self.user_group:
-                                    temp.move(sprite.getposition())
-                                # 다시 보기
-                                sprite.setposition(self.screen_width * (3 / 5), self.screen_height * (1 / 3))
-                                # card.play()
-                                self.put_waste_group(sprite)
-                                self.card_skill(sprite)
-                                if len(self.user_group) == 1:  # 카드 내고 한장 남음
-                                    pygame.display.update()
-                                    self.check_uno_button()
-                                    # self.uno_click[0] = True
-                                else:
-                                    self.now_turn = self.next_turn(self.now_turn)
-                                break
-                        for sprite in self.deck_group:
-                            if sprite.get_rect().collidepoint(mouse_pos):
-                                self.get_from_deck(self.now_turn)
-                                # self.show_uno()
-                                self.now_turn = self.next_turn(self.now_turn)
-                                break
-
+            self.print_window()
             pygame.display.update()
 
+    def user_play(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+            if event.type == KEYDOWN:
+                # if event.key == K_ESCAPE:
+                #     return
+                if event.key == K_ESCAPE:
+                    self.pause()
+                    self.print_window()
+                if event.key == self.keys["left"]:
+                    if self.selected <= 0:
+                        self.selected = 0
+                    else:
+                        self.selected = self.selected - 1
+                elif event.key == self.keys["right"]:
+                    if self.selected >= len(self.player[0].card) - 1:
+                        self.selected = len(self.player[0].card) - 1
+                    else:
+                        self.selected = self.selected + 1
+                elif event.key == self.keys["up"]:
+                    if self.selected_up == 0:
+                        self.selected_up = 1
+                    else:
+                        self.selected_up = 1
+                elif event.key == self.keys["down"]:
+                    if self.selected_up == 1:
+                        self.selected_up = 0
+                    else:
+                        self.selected_up = 0
+
+                if event.key == self.keys["click"]:
+                    if self.selected_up == 1:
+                        self.get_from_deck(self.now_turn)
+                        return 'Back'
+                        # self.now_turn = self.get_next_player(self.now_turn)
+                        # break
+                    else:
+                        for sprite in self.player[0].group:
+                            if sprite.get_name() == self.player[0].card[self.selected] and self.check_card(sprite):
+                                self.player[0].remove(sprite)
+                                for temp in self.player[0].group:
+                                    temp.move(sprite.getposition())
+                                sprite.setposition(
+                                    self.size[0] * (3 / 5), self.size[1] * (1 / 3))
+                                self.waste.updating(sprite.get_name())
+                                self.card_skill(sprite.get_name())
+                                if len(self.player[0].group) == 1:  # 카드 내고 한장 남음
+                                    pygame.display.update()
+                                    self.check_uno_button()
+                                # else:
+                                # self.now_turn = self.get_next_player(self.now_turn)
+                                if self.selected > len(self.player[0].card) - 1:
+                                    self.selected = len(
+                                        self.player[0].card) - 1
+                                break
+            for sprite in self.player[0].draw_group:
+                card_pos = sprite.getposition()
+                if sprite.get_rect().collidepoint(pygame.mouse.get_pos()):
+                    index = self.player[0].draw_group.sprites().index(sprite)
+                    card = self.player[0].draw_group.sprites()[index]
+                    if index >= 21:
+                        if card.position[1] == self.card_limit[3]:
+                            self.player[0].draw_group.sprites()[index].setposition(
+                                card.position[0], card.position[1] - 20)
+                    elif index >= 14:
+                        if card.position[1] == self.card_limit[2]:
+                            self.player[0].draw_group.sprites()[index].setposition(
+                                card.position[0], card.position[1] - 20)
+                    elif index >= 7:
+                        if card.position[1] == self.card_limit[1]:
+                            self.player[0].draw_group.sprites()[index].setposition(
+                                card.position[0], card.position[1] - 20)
+                    else:
+                        if card.position[1] == self.card_limit[0]:
+                            self.player[0].draw_group.sprites()[index].setposition(
+                                card.position[0], card.position[1] - 20)
+
+                    # if card.position[1] == self.card_limit[0]:
+                    #     self.player[0].draw_group.sprites()[index].setposition(card.position[0], card.position[1] - 20)
+                else:
+                    index = self.player[0].draw_group.sprites().index(sprite)
+                    card = self.player[0].draw_group.sprites()[index]
+                    if index >= 21:
+                        self.player[0].draw_group.sprites()[index].setposition(
+                            card.position[0], self.card_limit[3])
+                    elif index >= 14:
+                        self.player[0].draw_group.sprites()[index].setposition(
+                            card.position[0], self.card_limit[2])
+                    elif index >= 7:
+                        self.player[0].draw_group.sprites()[index].setposition(
+                            card.position[0], self.card_limit[1])
+                    else:
+                        self.player[0].draw_group.sprites()[index].setposition(
+                            card.position[0], self.card_limit[0])
+
+            if event.type == MOUSEBUTTONUP:
+                select_sound = pygame.mixer.Sound('./sound/card_sound.mp3')
+                select_sound.play()
+                if self.now_turn == 0:
+                    # self.show_now_turn(self.now_turn)
+                    for sprite in self.player[0].group:
+                        index = self.player[0].group.index(sprite)
+                        # index = self.player[0].draw_group.sprites().index(sprite)
+                        card = self.player[0].draw_group.sprites()[index]
+                        if index >= 21:
+                            self.player[0].draw_group.sprites()[index].setposition(
+                                card.position[0], self.card_limit[3])
+                        elif index >= 14:
+                            self.player[0].draw_group.sprites()[index].setposition(
+                                card.position[0], self.card_limit[2])
+                        elif index >= 7:
+                            self.player[0].draw_group.sprites()[index].setposition(
+                                card.position[0], self.card_limit[1])
+                        else:
+                            self.player[0].draw_group.sprites()[index].setposition(
+                                card.position[0], self.card_limit[0])
+                        if sprite.get_rect().collidepoint(event.pos) and self.check_card(sprite):
+                            self.set_animation(
+                                sprite.get_name(), sprite.getposition())
+                            # pygame.mixer.pre_init(44100, -16, 1, 512)
+                            # card = pygame.mixer.Sound('./sound/deal_card.wav')
+                            self.player[0].remove(sprite)
+                            # card.play()
+                            self.waste.updating(sprite.get_name())
+                            # 수정중
+                            self.card_skill(sprite.get_name())
+                            if len(self.player[0].group) == 1:  # 카드 내고 한장 남음
+                                pygame.display.update()
+                                self.check_uno_button()
+                            # else:
+                            # return 0      얘를 없애 볼게
+                            # self.now_turn = self.get_next_player(self.now_turn)
+                            return sprite.get_name()
+                            # return 1
+                    for sprite in self.waste.group:
+                        if sprite.get_rect().collidepoint(event.pos):
+                            self.get_from_deck(self.now_turn)
+                            # self.show_uno()
+                            # self.now_turn = self.get_next_player(self.now_turn)
+                            # 수정중
+                            return 'Back'
+                            # break
+
+    # 수정중
     # 카드 뽑음
+
     def get_from_deck(self, now_turn):
         # pygame.mixer.pre_init(44100, -16, 1, 512)
-        pygame.init()
         # deck = pygame.mixer.Sound('./sound/from_deck.wav')
         if self.card_deck:
-            item = self.card_deck.pop(0)
-        else:
-            random.shuffle(self.waste_card)
-            self.card_deck = self.waste_card[:-1]
             item = self.card_deck.pop()
-        # deck.play()
-        if now_turn == 0:
-            temp = loadcard.Card(item, (self.screen_width * (2 / 5), self.screen_height * (1 / 3)),
-                                 (self.screen_width / 10, self.screen_height / 6))
-            current_pos = self.lastcard0
-            if current_pos[0] >= self.screen_width*(28/30):
-                y = current_pos[1] + self.screen_height/10
-                x = self.screen_width*(1/3)
-            else:
-                y = current_pos[1]
-                x = current_pos[0] + self.screen_width / 10
-            temp.setposition(x, y)
-            self.lastcard0 = (x, y)
-            self.user_group.add(temp)
-            self.player[0].append(item)
-        elif now_turn == 1:
-            temp = loadcard.Card('back', (350, 300), (self.screen_width / 30, self.screen_height / 18))
-            current_pos = self.lastcard1
-            if current_pos[0] >= self.screen_width * (1 / 6):
-                y = current_pos[1] + self.screen_height / 30
-                x = self.screen_width * (1 / 30)
-            else:
-                y = current_pos[1]
-                x = current_pos[0] + 10
-            temp.setposition(x, y)
-            self.lastcard1 = (x, y)
-            self.com1_group.add(temp)
-            self.player[1].append(item)
-        elif now_turn == 2:
-            temp = loadcard.Card('back', (350, 300), (self.screen_width / 30, self.screen_height / 18))
-            current_pos = self.lastcard2
-            if current_pos[0] >= self.screen_width * (1 / 6):
-                y = current_pos[1] + self.screen_height / 30
-                x = self.screen_width * (1 / 30)
-            else:
-                y = current_pos[1]
-                x = current_pos[0] + 10
-            temp.setposition(x, y)
-            self.lastcard2 = (x, y)
-            self.com2_group.add(temp)
-            self.player[2].append(item)
-        elif now_turn == 3:
-            temp = loadcard.Card('back', (350, 300), (self.screen_width / 30, self.screen_height / 18))
-            current_pos = self.lastcard3
-            if current_pos[0] >= self.screen_width * (1 / 6):
-                y = current_pos[1] + self.screen_height / 30
-                x = self.screen_width * (1 / 30)
-            else:
-                y = current_pos[1]
-                x = current_pos[0] + 10
-            temp.setposition(x, y)
-            self.lastcard3 = (x, y)
-            self.com3_group.add(temp)
-            self.player[3].append(item)
-        elif now_turn == 4:
-            temp = loadcard.Card('back', (350, 300), (self.screen_width / 30, self.screen_height / 18))
-            current_pos = self.lastcard4
-            if current_pos[0] >= self.screen_width * (1 / 6):
-                y = current_pos[1] + self.screen_height / 30
-                x = self.screen_width * (1 / 30)
-            else:
-                y = current_pos[1]
-                x = current_pos[0] + 10
-            temp.setposition(x, y)
-            self.lastcard4 = (x, y)
-            self.com4_group.add(temp)
-            self.player[4].append(item)
+        else:
+            random.shuffle(self.waste.card)
+            self.card_deck = self.waste.card[:-1]
+            item = self.card_deck.pop()
+        self.player[now_turn].add_card(item)
+        self.set_animation('back', (self.size[0] * (2 / 5),
+                                    self.size[1] * (1 / 3)))
+        # self.print_window()
 
-        elif now_turn == 5:
-            temp = loadcard.Card('back', (350, 300), (self.screen_width / 30, self.screen_height / 18))
-            current_pos = self.lastcard5
-            if current_pos[0] >= self.screen_width * (1 / 6):
-                y = current_pos[1] + self.screen_height / 30
-                x = self.screen_width * (1 / 30)
-            else:
-                y = current_pos[1]
-                x = current_pos[0] + 10
-            temp.setposition(x, y)
-            self.lastcard5 = (x, y)
-            self.com5_group.add(temp)
-            self.player[5].append(item)
-        self.print_window()
+    def set_animation(self, name, pos):
+        self.animate_card = lc.Card(name, pos, (self.settings['screen']
+                                                [0] / 10, self.settings['screen'][1] / 6))
 
-    def set_lastcard(self, lastcard, compare_pos):
-        x = lastcard[0]
-        y = lastcard[1]
+    def run_animation(self):
+        if self.animation:
+            ori = self.animate_card.getposition()
+            self.animate_card.update(
+                (self.size[0] * (3 / 5), self.size[1] * (1 / 3)), 20)
+            self.animation_group = pygame.sprite.RenderPlain(self.animate_card)
+            s = self.animate_card.getposition()
+            pos = (self.size[0] * (3 / 5), self.size[1] * (1 / 3))
+            if self.animate_card.getposition() == (self.size[0] * (3 / 5), self.size[1] * (1 / 3)):
+                return 0
+        return 1
 
-        i_x = compare_pos[0]
-        i_y = compare_pos[1]
+    def get_animation(self):
+        if self.animation:
+            self.animate_card.update(
+                self.player[self.now_turn].last.getposition(), 20)
+            self.animation_group = pygame.sprite.RenderPlain(self.animate_card)
+            if self.animate_card.getposition() == self.player[self.now_turn].last.getposition():
+                return 0
+        return 1
 
-        if self.now_turn == 0:
-            if x >= i_x + self.screen_width / 10 and y == i_y:
-                x -= self.screen_width / 10
+    def animation(self, *temp):
+        self.playing_game = False
+        setting = 1
 
-            elif y > i_y:
-                if x <= self.screen_width / 3:
-                    x = self.screen_width * (28 / 30)
-                    y = y - self.screen_height / 10 
-                else:
-                    x -= self.screen_width / 10
-            self.lastcard0 = (x, y)
-        elif self.now_turn == 1:
-            if x == self.screen_width * (1 / 6) and y > self.screen_height * (1 / 10):
-                y -= self.screen_height * (1 / 30)
-                x = self.screen_width * (1 / 6)
+        while setting:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+            if temp[0] == 'B':
+                setting = self.get_animation()
             else:
-                x -= 10
-            self.lastcard1 = (x, y)
-        elif self.now_turn == 2:
-            if x == self.screen_width * (1 / 6) and y > self.screen_height * (3 / 10):
-                y -= self.screen_height * (1 / 30)
-                x = self.screen_width * (1 / 6)
-            else:
-                x -= 10
-            self.lastcard2 = (x, y)
-        elif self.now_turn == 3:
-            if x == self.screen_width * (1 / 6) and y > self.screen_height * (1 / 2):
-                y -= self.screen_height * (1 / 30)
-                x = self.screen_width * (1 / 6)
-            else:
-                x -= 10
-            self.lastcard3 = (x, y)
-        elif self.now_turn == 4:
-            if x == self.screen_width * (1 / 6) and y > self.screen_height * (7 / 10):
-                y -= self.screen_height * (1 / 30)
-                x = self.screen_width * (1 / 6)
-            else:
-                x -= 10
-            self.lastcard4 = (x, y)
-        elif self.now_turn == 5:
-            if x == self.screen_width * (1 / 6) and y > self.screen_height * (9 / 10):
-                y -= self.screen_height * (1 / 30)
-                x = self.screen_width * (1 / 6)
-            else:
-                x -= 10
-            self.lastcard5 = (x, y)
+                setting = self.run_animation()
+            self.print_window()
+            pygame.display.update()
 
-    def put_waste_group(self, sprite):
-        self.waste_group.add(sprite)
-        self.waste_card.append(sprite.get_name())
-        if len(self.waste_card) != 1:
-            self.set_lastcard(self.lastcard0, sprite.getposition())
-        self.print_window()
+        self.playing_game = True
 
     def pause(self):
 
@@ -1641,86 +1011,931 @@ class Game():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                 if event.type == pygame.MOUSEBUTTONDOWN:  # 마우스 클릭시 다시 시작
-                    mouse_pos = pygame.mouse.get_pos()
                     self.playing_game = True
                     paused = False
-                    if setting_button.get_rect().collidepoint(mouse_pos):
-                        pass
-                    elif exit_button.get_rect().collidepoint(mouse_pos):
-                        terminate()
+                    if achievement_button.get_rect().collidepoint(event.pos):
+                        AchievementScreen().menu()
+                    elif setting_button.get_rect().collidepoint(event.pos):
+                        SettingScreen().menu()
+                    elif exit_button.get_rect().collidepoint(event.pos):
+                        pygame.quit()
+                        sys.exit()
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         self.playing_game = True
                         paused = False
 
-            pygame.draw.rect(self.screen, WHITE, (self.screen_width / 2 - 200, self.screen_height / 3 - 100, 400, 400))
-            pygame.draw.rect(self.screen, BLACK, (self.screen_width / 2 - 200, self.screen_height / 3 - 100, 400, 400), 5)
-            close_text = text_format("PAUSE", MALGUNGOTHIC, 60, BLACK)
-            close_text_rect = close_text.get_rect(center=(self.screen_width/2,self.screen_height/3))
-            setting_button = Button(self.screen, self.screen_width*(4/10), self.screen_height*(3/7), "image/playing_image/pause_setting.jpg", 150, 80)
-            exit_button = Button(self.screen, self.screen_width*(4/10), self.screen_height*(3/7)+100, "image/playing_image/pause_end.jpg", 150, 80)
-            setting_button.show_button()
-            exit_button.show_button()
-            self.screen.blit(close_text, close_text_rect)
+            # 수정중
+            pygame.draw.rect(self.screen, c.WHITE, (self.size[0] /
+                                                    2 - 200, self.size[1] / 3 - 100, 400, 400))
+            pygame.draw.rect(self.screen, c.BLACK, (self.size[0] / 2 - 200, self.size[1] / 3 - 100, 400, 400),
+                             5)
+            # t.text_format 수정 필요
+            close_text = rf.TextRect(self.screen, "PAUSE", 60, c.BLACK)
+            close_text.show((self.size[0] / 2, self.size[1] / 3))
+            achievement_button = rf.Button(self.screen, self.size[0] * (4 / 9), self.size[1] * (1 / 2) - 70,
+                                           "./image/playing_image/pause_achv.jpg", 100, 50)
+            setting_button = rf.Button(self.screen, self.size[0] * (4 / 9), self.size[1] * (1 / 2),
+                                       "./image/playing_image/pause_setting.jpg", 100, 50)
+            exit_button = rf.Button(self.screen, self.size[0] * (4 / 9), self.size[1] * (1 / 2) + 70,
+                                    "./image/playing_image/pause_end.jpg", 100, 50)
+            achievement_button.show()
+            setting_button.show()
+            exit_button.show()
 
             pygame.display.update()
 
-    def change_color(self):
-        if self.difficulty == 4 and self.game_turn % 5 == 0 and self.game_turn != 0:
-            colors = ["red", "yellow", "green", "blue"]
-            random_name = colors[random.randint(0, 3)]
-            random_card = loadcard.Card(random_name, (self.screen_width * (3 / 5), self.screen_height * (1 / 3)),(self.screen_width/10,self.screen_height/6))
-            self.waste_card.append(random_name)
-            self.waste_group.add(random_card)
-            self.print_window()
-
     def check_uno_button(self):
+        self.turtle_win = False
+
+        self.print_window()
+        print("한장 남음!")
         uno = True
         start_time = time.time()
         while uno:  # 여기
             for event in pygame.event.get():
+                mouse_pos = pygame.mouse.get_pos()
+                if self.uno_button[0].get_rect().collidepoint(mouse_pos):
+                    self.uno_button[1].show()
+                    pygame.display.update()
+                else:
+                    self.uno_button[0].show()
+                    pygame.display.update()
                 if event.type == pygame.QUIT:
                     pygame.quit()
                 if event.type == MOUSEBUTTONUP or event.type == KEYDOWN:
-                    mouse_pos = pygame.mouse.get_pos()
-                    # tnwjdgodigo
-                    if self.uno_button.get_rect().collidepoint(mouse_pos) or event.type == K_SPACE:
+                    if self.uno_button[0].get_rect().collidepoint(event.pos) or event.type == K_SPACE:
+                        print("버튼 누름!")
                         end_time = time.time()
                         com_time = random.randint(1, 3)
                         if (end_time - start_time) > com_time:
                             if self.now_turn == 0:  # 유저 턴일 때
-                                uno_text = text_format("uno", BERLIN, 30, (0, 0, 0))
-                                self.screen.blit(uno_text, (45, 100))
+                                print("느리게 누름!")
+                                # uno_text = t.text_format(
+                                #     "uno", c.BERLIN, 30, (0, 0, 0))
+                                # self.screen.blit(uno_text, (45, 100))
                                 self.get_from_deck(self.now_turn)
-                                self.now_turn = self.next_turn(self.now_turn)
+                                # self.now_turn = self.get_next_player(
+                                #     self.now_turn)
+                                self.first = False
                                 uno = False
+                                self.uno = 0
+                                return 0
                             else:  # 컴퓨터 턴일때 유저가 느리게 누름
-                                self.now_turn = self.next_turn(self.now_turn)
+                                print("유저가 느리게 누름")
+                                # self.now_turn = self.get_next_player(
+                                #     self.now_turn)
+                                self.first = False
                                 uno = False
+                                self.uno = 0
+                                return 0
                         else:
                             if self.now_turn == 0:  # 유저 턴일 때
-                                self.now_turn = self.next_turn(self.now_turn)
+                                print("빠르게 누름!")
+                                # self.now_turn = self.get_next_player(
+                                #     self.now_turn)
+                                self.first = False
                                 uno = False
+                                self.uno = 0
+                                return 0
                             else:  # 컴퓨터 턴일 때 유저가 빠르게 누름
+                                print("유저가 빠르게 누름!")
                                 self.get_from_deck(self.now_turn)
-                                self.now_turn = self.next_turn(self.now_turn)
+                                # self.now_turn = self.get_next_player(
+                                #     self.now_turn)
+                                self.first = False
                                 uno = False
+                                self.uno = 0
+                                return 0
             if (time.time() - start_time) > 3:
                 if self.now_turn == 0:  # 그냥 버튼 안누르고 있을 때 5초 지나면 한 장 먹음
+                    print("컴퓨터가 누름")
                     self.get_from_deck(self.now_turn)
-                    self.now_turn = self.next_turn(self.now_turn)
+                    # self.now_turn = self.get_next_player(self.now_turn)
+                    self.first = False
                     uno = False
+                    self.uno = 0
+                    return 0
                 else:  # 이건 컴퓨터가 1장 남았을 때 유저가 버튼을 안 누르고 있는 경우
+                    self.turtle_win = True
                     if self.player_num == 2:  # 유저랑 컴퓨터 1명만 있는 경우 컴퓨터가 uno버튼 누른걸로 판단
-                        self.now_turn = self.next_turn(self.now_turn)
+                        print("컴퓨터가 누름")
+                        # self.now_turn = self.get_next_player(self.now_turn)
+                        self.first = False
                         uno = False
+                        self.uno = 0
+                        return 0
                     else:  # 다른 컴퓨터랑 경쟁
-                        com_time = random.randint(0, 1)  # 그냥 0,1로 했어요..
+                        com_time = random.randint(0, 1)  # 그냥 0,1로 했어요.
                         if com_time == 1:  # 빠르게 누른 경우
-                            self.now_turn = self.next_turn(self.now_turn)
+                            print("컴퓨터가 누름")
+                            # self.now_turn = self.get_next_player(self.now_turn)
                             uno = False
+                            self.uno = 0
+                            return 0
                         else:  # 느리게 누른 경우 - 카드 뽑음
+                            print("컴퓨터가 못 누름")
                             self.get_from_deck(self.now_turn)
-                            self.now_turn = self.next_turn(self.now_turn)
+                            # self.now_turn = self.get_next_player(self.now_turn)
                             uno = False
+                            self.uno = 0
+                            return 0
+
+
+class GameA(Game):
+    def __init__(self, player_num=2, difficulty=2, user_name="ME"):
+        super().__init__()
+        self.player_num = player_num
+        self.difficulty = difficulty
+        self.user_name = user_name
+
+    def difficulty_two_deck(self):
+        num_card = self.card_deck[:76]
+        skill_card = self.card_deck[76:]
+        random.shuffle(num_card)
+        random.shuffle(skill_card)
+        for player in range(1, self.player_num):
+            card = []
+            for _ in range(0, 7):
+                if random.random() < 76 / 164:
+                    temp = num_card.pop()
+                else:
+                    temp = skill_card.pop()
+                card.append(temp)
+            self.player[player].card = card
+        card_deck = num_card + skill_card
+        del num_card, skill_card
+        return card_deck
+
+    def hand_out_deck(self):
+        self.card_deck = self.difficulty_two_deck()
+        random.shuffle(self.card_deck)
+        for _ in range(7):
+            temp = self.card_deck.pop()
+            self.player[0].append(temp)
+
+    def restart(self):
+        if len(self.player[0].group) == 0:
+            self.settings['win_count']['storya'] += 1
+            if self.settings['win_count']['storya'] == 1 and not self.settings['achievement']['storya_win']:
+                self.achv_alarm_li[1].show()
+                pygame.display.update()
+                pygame.time.wait(1500)
+                self.settings['achievement']['storya_win'] = True
+                self.settings['achievement_date']['storya_win'] = datetime.now().strftime(
+                    '%Y-%m-%d')
+                self.setting.change_setting(self.settings)
+        return super().restart()
+
+
+class GameWithA(GameA):
+    def __init__(self, user_name, player_list):
+        super().__init__(player_num=len(player_list), user_name=user_name)
+        self.player_num = len(player_list)
+        self.player_list = player_list
+
+    def difficulty_two_deck(self):
+        num_card = self.card_deck[:76]
+        skill_card = self.card_deck[76:]
+        random.shuffle(num_card)
+        random.shuffle(skill_card)
+        for index, name in enumerate(self.player_list):
+            if name.split(' ')[0] == 'comA':
+                card = []
+                for _ in range(0, 7):
+                    if random.random() < 76 / 164:
+                        temp = num_card.pop()
+                    else:
+                        temp = skill_card.pop()
+                    card.append(temp)
+                self.player[index].card = card
+        card_deck = num_card + skill_card
+        del num_card, skill_card
+        return card_deck
+
+    def set_name(self):
+        player_names = []
+        text = rf.TextRect(self.screen, self.user_name, 30, c.WHITE)
+        player_names.append(
+            [text, (self.size[0] * (3 / 5), self.size[1] * (2 / 3))])
+        for index, name in enumerate(self.player_list):
+            if index != 0:
+                if name.split(' ')[0] == 'comA':
+                    text = rf.TextRect(
+                        self.screen, "COM_A" + str(index), 20, c.BLACK)
+                    player_names.append(
+                        [text, (self.size[0] * (1 / 10), self.size[1] * ((5 * index - 4) / 25))])
+                else:
+                    text = rf.TextRect(self.screen, "COM" +
+                                       str(index), 20, c.BLACK)
+                    player_names.append(
+                        [text, (self.size[0] * (1 / 10), self.size[1] * ((5 * index - 4) / 25))])
+        return player_names
+
+    def hand_out_deck(self):
+        self.card_deck = self.difficulty_two_deck()
+        random.shuffle(self.card_deck)
+        for _ in range(7):
+            temp = self.card_deck.pop()
+            self.player[0].append(temp)
+        for index, name in enumerate(self.player_list):
+            if index != 0 and name.split(' ')[0] != 'comA':
+                for _ in range(7):
+                    temp = self.card_deck.pop()
+                    self.player[index].append(temp)
+
+
+class GameB(Game):
+    def __init__(self, player_num=4, difficulty=3, user_name="ME"):
+        super().__init__()
+        self.player_num = 4
+        self.difficulty = 3
+
+    def hand_out_deck(self):
+        i = len(self.card_deck) // self.player_num
+        random.shuffle(self.card_deck)
+        card_temp = self.card_deck.pop()  # 첫번째 카드 미리 뽑아두기
+        for num in range(0, self.player_num):
+            for number in range(0, i):  # 모든 카드 같은 수 만큼 플레이어에게 분배
+                if self.card_deck:
+                    temp = self.card_deck.pop()
+                    self.player[num].append(temp)
+        self.card_deck.append(card_temp)
+
+    def set_window(self):
+        self.card_deck = self.set_deck()
+        self.player_init()
+        self.hand_out_deck()
+        self.waste.set_card()
+
+        for i in range(self.player_num):
+            self.player[i].set_card()
+
+        setting = True
+
+        settings = [1 for _ in range(self.player_num)]
+
+        while setting:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+
+            settings[0] = self.player[0].set_d()
+
+            for num in range(1, self.player_num):
+                if settings[num]:
+                    settings[num] = self.player[num].set_d()
+
+            # pygame.mixer.pre_init(44100, -16, 1, 512)
+            # card = pygame.mixer.Sound('./sound/card.wav')
+            # for i in range(0,7):
+            #     card.play()
+            if sum(settings) == 0:
+                setting = False
+                return 0
+
+            self.print_window()
+            pygame.display.update()
+
+    def restart(self):
+        if len(self.player[0].group) == 0:
+            self.settings['win_count']['storyb'] += 1
+            if self.settings['win_count']['storyb'] == 1 and not self.settings['achievement']['storyb_win']:
+                self.achv_alarm_li[2].show()
+                pygame.display.update()
+                pygame.time.wait(1500)
+                self.settings['achievement']['storyb_win'] = True
+                self.settings['achievement_date']['storyb_win'] = datetime.now().strftime(
+                    '%Y-%m-%d')
+                self.setting.change_setting(self.settings)
+        return super().restart()
+
+
+class GameC(Game):
+    def __init__(self, player_num=3, difficulty=4, user_name="ME"):
+        super().__init__()
+        self.player_num = 3
+        self.difficulty = 4
+
+    def hand_out_deck(self):
+        random.shuffle(self.card_deck)
+        self.player_num = 3
+        for num in range(0, self.player_num):
+            card = []
+            for _ in range(0, 7):
+                temp = self.card_deck.pop()
+                self.player[num].append(temp)
+
+    def get_next_turn(self, turn=True):
+        if turn:
+            self.change_current_color()
+            self.game_turn += 1
+            pygame.time.wait(1000)
+            print("turn", self.game_turn)
+
+    def change_current_color(self):
+        if self.game_turn % 5 == 0 and self.game_turn != 0:
+            colors = ["red", "yellow", "green", "blue"]
+            random_name = colors[random.randint(0, 3)]
+            self.waste.updating(random_name)
+            self.print_window()
+
+    def restart(self):
+        if len(self.player[0].group) == 0:
+            self.settings['win_count']['storyc'] += 1
+            if self.settings['win_count']['storyc'] == 1 and not self.settings['achievement']['storyc_win']:
+                self.achv_alarm_li[3].show()
+                pygame.display.update()
+                pygame.time.wait(1500)
+                self.settings['achievement']['storyc_win'] = True
+                self.settings['achievement_date']['storyc_win'] = datetime.now().strftime(
+                    '%Y-%m-%d')
+                self.setting.change_setting(self.settings)
+        return super().restart()
+
+
+class GameD(Game):
+    def __init__(self, player_num=3, difficulty=5, user_name="ME"):
+        super().__init__()
+        self.player_num = 3
+        self.difficulty = 5
+
+    def set_deck(self):
+        card_deck = []
+        for color_idx in range(1, 5):
+            card = c.CARD_TYPE[color_idx]
+            now_card = card + '_0'
+            card_deck.append(now_card)
+            for card_number in range(1, 10):
+                now_card = card + "_" + str(card_number)
+                iterate = 0
+                while iterate != 2:
+                    card_deck.append(now_card)
+                    iterate += 1
+        return card_deck
+
+    def hand_out_deck(self):
+        random.shuffle(self.card_deck)
+        self.player_num = 3
+        for num in range(0, self.player_num):
+            for _ in range(0, 7):
+                temp = self.card_deck.pop()
+                self.player[num].append(temp)
+
+    def check_card(self, sprite):
+        if len(self.waste.card) == 0:
+            return True
+        else:
+            name = sprite.get_name()
+            name = name.split('_')
+            w_name = self.waste.card[-1]
+            w_name = w_name.split('_')
+            if w_name[1] != '0' and name[1] != '0':
+                if (int(w_name[1]) % int(name[1])) == 0 or (int(name[1]) % int(w_name[1])) == 0:
+                    return True
+            else:
+                return True
+
+    def restart(self):
+        if len(self.player[0].group) == 0:
+            self.settings['win_count']['storyd'] += 1
+            if self.settings['win_count']['storyd'] == 1 and not self.settings['achievement']['storyd_win']:
+                self.achv_alarm_li[4].show()
+                pygame.display.update()
+                pygame.time.wait(1500)
+                self.settings['achievement']['storyd_win'] = True
+                self.settings['achievement_date']['storyd_win'] = datetime.now().strftime(
+                    '%Y-%m-%d')
+                self.setting.change_setting(self.settings)
+        return super().restart()
+
+
+class SettingScreen():
+    def __init__(self):
+        self.setting = s.Settings()
+        self.settings = self.setting.get_setting()
+        self.screen = pygame.display.set_mode(
+            (self.settings['screen']), flags=self.settings['fullscreen'])
+
+        self.button_li, self.slider_li, self.rect = self.object_init()
+        self.setting_text = rf.TextRect(self.screen, "SETTING", 35, c.WHITE)
+        self.screen_setting_text = rf.TextRect(
+            self.screen, "화면 크기", 20, c.BLACK)
+        self.volume = 0.0
+        self.setting_run = True
+        print(self.settings)
+
+    def object_init(self):
+        i = 3
+        button_li = []
+        for button in c.SIZE_BUTTONS:
+            button = rf.Button(self.screen, self.settings['screen'][0] * (i / 10), self.settings['screen'][1] * (1 / 2),
+                               button, 100, 50)
+            button_li.append(button)
+            i += 2
+
+        # self.settings['screen'][0] 이렇게 접근하는 거 너무 길지 않나?
+        close_button = rf.Button(self.screen, self.settings['screen'][0] * (
+            5 / 6), self.settings['screen'][1] * (3 / 11), c.SETTING_CLOSE_BUTTON, 20, 20)
+        key_button = rf.Button(self.screen, self.settings['screen'][0] * (
+            1 / 8), self.settings['screen'][1] * (7 / 11), c.SETTING_KEY_BUTTON, 100, 50)
+        init_button = rf.Button(self.screen, self.settings['screen'][0] * (
+            1 / 8), self.settings['screen'][1] * (6 / 8), c.SETTING_INIT_BUTTON, 100, 50)
+        save_button = rf.Button(self.screen, self.settings['screen'][0] * (
+            8 / 11), self.settings['screen'][1] * (6 / 8), c.SETTING_SAVE_BUTTON, 100, 50)
+        settingcolor_button = rf.Button(self.screen, self.settings['screen'][0] * (
+            8 / 11), self.settings['screen'][1] * (7 / 11), c.SETTING_RECT, 100, 50)
+        buttons = [close_button, key_button, init_button,
+                   save_button, settingcolor_button]
+
+        for button in buttons:
+            button_li.append(button)
+
+        j = 6
+        sliders_li = []
+        for text in c.SLIDER_TEXT:
+            slider = rf.Slider(self.screen, text, self.settings['screen'][0] / 2, (self.settings['screen'][0] * (
+                3 / 10), self.settings['screen'][1] * (j / 20)), (0, 100))
+            sliders_li.append(slider)
+            j += 1.5
+
+        if self.settings['setting_color'] == True:
+            rect = pygame.Rect(
+                self.settings['screen'][0] * (8 / 11)+50, self.settings['screen'][1] * (7 / 11), 50, 50)
+        elif self.settings['setting_color'] == False:
+            rect = pygame.Rect(
+                self.settings['screen'][0] * (8 / 11), self.settings['screen'][1] * (7 / 11), 50, 50)
+
+        return button_li, sliders_li, rect
+
+    def object_show(self):
+        pygame.draw.rect(self.screen, c.WHITE, (
+            self.settings['screen'][0] * (1 / 9), self.settings['screen'][1] * (
+                2 / 8), self.settings['screen'][0] * (7 / 9),
+            self.settings['screen'][1] * (6 / 10)))
+
+        self.setting_text.show(
+            (self.settings['screen'][0] * (1 / 5), self.settings['screen'][1] * (1 / 6)))
+        self.screen_setting_text.show(
+            (self.settings['screen'][0] * (1 / 5), self.settings['screen'][1] * (6 / 11)))
+
+        for button in self.button_li:
+            button.show()
+
+        i = 6
+        for slider in self.slider_li:
+            slider.show()
+            slider.show_value(
+                (self.settings['screen'][0] * (1 / 5), self.settings['screen'][1] * (i / 20)))
+            i += 1.5
+
+        pygame.draw.rect(self.screen, c.BLACK, self.rect)
+
+    def sound(self):
+        pass
+
+    def calculate_volume(self):
+        # 슬라이더 값을 기반으로 음량을 계산
+        total_value = 0
+        for slider in self.slider_li:
+            total_value += slider.value
+        average_value = total_value / len(self.slider_li)
+        if average_value == 0:
+            volume = 0  # 음량을 0으로 설정
+        else:
+            volume_percentage = average_value / 100  # 음량의 비율 계산
+            volume = volume_percentage * 1  # 최대 음량 설정
+
+        return volume
+
+    def set_volume(self):
+        volume = self.calculate_volume()
+        pygame.mixer.music.set_volume(volume)
+
+    def handle_event(self):
+        current_time = time.time()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+            for slider in self.slider_li:
+                slider.operate(event)
+                if event.type == pygame.MOUSEBUTTONUP:
+                    self.volume = self.calculate_volume()
+                    self.set_volume()
+
+            # 키보드 버튼
+            if event.type == pygame.KEYDOWN:
+                if event.key == self.keys["left"]:
+                    # sound.play()
+                    if selected <= 1:
+                        selected = 1
+                    else:
+                        selected = selected - 1
+                elif event.key == self.keys["right"]:
+                    # sound.play()
+                    if selected >= 3:
+                        selected = 3
+                    else:
+                        selected = selected + 1
+                if event.key == self.keys["click"]:
+                    if selected <= 1:
+                        # 버튼 입력 후 시작 함수 실행 - 해결하면 지우기
+                        pass
+                    if selected == 2:
+                        # 버튼 입력 후 설정 함수 실행 - 해결하면 지우기
+                        pass
+                    if selected >= 3:
+                        # 버튼 입력 후 시작 함수 실행 - 해결하면 지우기
+                        pass
+
+            if event.type == pygame.MOUSEBUTTONUP and current_time - self.start_time >= 1:
+                if self.button_li[0].get_rect().collidepoint(event.pos):
+                    self.settings['fullscreen'] = pygame.FULLSCREEN
+                    self.screen = pygame.display.set_mode(
+                        (self.settings['screen']), flags=self.settings['fullscreen'])
+                elif self.button_li[1].get_rect().collidepoint(event.pos):
+                    # 테스트 할려고 화면 크기 임시로 정함 -> 나중에 수정
+                    self.settings['screen'][0] = 1280
+                    self.settings['screen'][1] = 720
+                    self.screen = pygame.display.set_mode(
+                        (self.settings['screen']), flags=self.settings['fullscreen'])
+                    self.button_li, self.slider_li, self.rect = self.object_init()
+
+                elif self.button_li[2].get_rect().collidepoint(event.pos):
+                    # 테스트 할려고 화면 크기 임시로 정함 -> 나중에 수정
+                    self.settings['screen'][0] = 800
+                    self.settings['screen'][1] = 600
+                    self.screen = pygame.display.set_mode(
+                        (self.settings['screen']), flags=self.settings['fullscreen'])
+                    self.button_li, self.slider_li, self.rect = self.object_init()
+
+                elif self.button_li[3].get_rect().collidepoint(event.pos):
+                    self.setting_run = False
+
+                elif self.button_li[4].get_rect().collidepoint(event.pos):
+                    self.key_select_screen()  # 키보드 설정 함수 실행
+                elif self.button_li[5].get_rect().collidepoint(event.pos):
+                    self.setting.init_setting()
+                elif self.button_li[6].get_rect().collidepoint(event.pos):
+                    self.setting.change_setting(self.settings)  # 현재 값을 파일에 저장
+
+                elif self.rect.collidepoint(event.pos):
+                    if self.rect.x == int(self.settings['screen'][0] * (8 / 11)):
+                        self.rect.x += 50
+                        self.settings['setting_color'] = True
+                    elif self.rect.x == int(self.settings['screen'][0] * (8 / 11)) + 50:
+                        self.rect.x -= 50
+                        self.settings['setting_color'] = False
+
+        for i, button in enumerate(self.button_li):
+            if i == self.selected:
+                button.highlight()  # 선택된 메뉴 크기 조정
+
+    def bg_img_load(self, filename: str) -> object:
+        bg_img = pygame.image.load(s.resource_path(filename))
+        bg_img = pygame.transform.scale(bg_img,
+                                        (self.settings['screen']))
+        return self.screen.blit(bg_img, (0, 0))
+
+    def key_select_screen(self):
+        key_select = True
+        self.bg_img_load("./image/setting_image/settingbackground.jpg")
+        close_button = rf.Button(self.screen, self.settings['screen'][0] * (5 / 6), self.settings['screen'][1] * (3 / 11),
+                                 c.SETTING_CLOSE_BUTTON, 20, 20)
+        save_button = rf.Button(self.screen, self.settings['screen'][0] * (8 / 11), self.settings['screen'][1] * (6 / 8),
+                                c.SETTING_SAVE_BUTTON, 100, 50)
+
+        pygame.draw.rect(self.screen, c.WHITE, (
+            self.settings['screen'][0] *
+            (1 / 9), self.settings['screen'][1] * (2 / 8),
+            self.settings['screen'][0] * (7 / 9),
+            self.settings['screen'][1] * (6 / 10)))
+
+        while key_select:
+
+            self.up_text.show(
+                (self.settings['screen'][0] * (2 / 5), self.settings['screen'][1] * (6 / 18)))
+            self.down_text.show(
+                (self.settings['screen'][0] * (2 / 5), self.settings['screen'][1] * (8 / 18)))
+            self.left_text.show(
+                (self.settings['screen'][0] * (2 / 5), self.settings['screen'][1] * (10 / 18)))
+            self.right_text.show(
+                (self.settings['screen'][0] * (2 / 5), self.settings['screen'][1] * (12 / 18)))
+            self.click_text.show(
+                (self.settings['screen'][0] * (2 / 5), self.settings['screen'][1] * (14 / 18)))
+
+            self.key_setting_text.show(
+                (self.settings['screen'][0] * (1 / 4), self.settings['screen'][1] * (1 / 6)))
+            self.move_up_text.show(
+                (self.settings['screen'][0] * (3 / 5), self.settings['screen'][1] * (6 / 18)))
+            self.move_down_text.show(
+                (self.settings['screen'][0] * (3 / 5), self.settings['screen'][1] * (8 / 18)))
+            self.move_left_text.show(
+                (self.settings['screen'][0] * (3 / 5), self.settings['screen'][1] * (10 / 18)))
+            self.move_right_text.show(
+                (self.settings['screen'][0] * (3 / 5), self.settings['screen'][1] * (12 / 18)))
+            self.move_click_text.show(
+                (self.settings['screen'][0] * (3 / 5), self.settings['screen'][1] * (14 / 18)))
+
+            close_button.show()
+            save_button.show()
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if self.move_up_text.rect.collidepoint(event.pos):
+                        key_change = True
+                        while key_change:
+                            event = pygame.event.wait()
+                            if event.type == pygame.KEYDOWN:
+                                key = event.key
+                                # print(key)
+                                self.keys["up"] = key
+                                # print(self.keys)
+                                pygame.draw.rect(
+                                    self.screen, c.WHITE, self.move_up_text.rect)
+                                self.move_up_text.change_text_surface(
+                                    pygame.key.name(self.keys["up"]))
+                                key_change = False
+
+                    elif self.move_down_text.rect.collidepoint(event.pos):
+                        key_change = True
+                        while key_change:
+                            event = pygame.event.wait()
+                            if event.type == pygame.KEYDOWN:
+                                key = event.key
+                                # print(key)
+                                self.keys["down"] = key
+                                # print(self.keys)
+                                pygame.draw.rect(
+                                    self.screen, c.WHITE, self.move_down_text.rect)
+                                self.move_down_text.change_text_surface(
+                                    pygame.key.name(self.keys["down"]))
+                                key_change = False
+
+                    elif self.move_left_text.rect.collidepoint(event.pos):
+                        key_change = True
+                        while key_change:
+                            event = pygame.event.wait()
+                            if event.type == pygame.KEYDOWN:
+                                key = event.key
+                                # print(key)
+                                self.keys["left"] = key
+                                # print(self.keys)
+                                pygame.draw.rect(
+                                    self.screen, c.WHITE, self.move_left_text.rect)
+                                self.move_left_text.change_text_surface(
+                                    pygame.key.name(self.keys["left"]))
+                                key_change = False
+
+                    elif self.move_right_text.rect.collidepoint(event.pos):
+                        key_change = True
+                        while key_change:
+                            event = pygame.event.wait()
+                            if event.type == pygame.KEYDOWN:
+                                key = event.key
+                                # print(key)
+                                self.keys["right"] = key
+                                # print(self.keys)
+                                pygame.draw.rect(
+                                    self.screen, c.WHITE, self.move_right_text.rect)
+                                self.move_right_text.change_text_surface(
+                                    pygame.key.name(self.keys["right"]))
+                                key_change = False
+
+                    elif self.move_click_text.rect.collidepoint(event.pos):
+                        key_change = True
+                        while key_change:
+                            event = pygame.event.wait()
+                            if event.type == pygame.KEYDOWN:
+                                key = event.key
+                                # print(key)
+                                self.keys["click"] = key
+                                # print(self.keys)
+                                pygame.draw.rect(
+                                    self.screen, c.WHITE, self.move_click_text.rect)
+                                self.move_click_text.change_text_surface(
+                                    pygame.key.name(self.keys["click"]))
+                                key_change = False
+
+                    elif close_button.get_rect().collidepoint(event.pos):
+                        # key_select = False
+                        self.setting_run = False
+
+                    elif save_button.get_rect().collidepoint(event.pos):
+                        self.setting.change_setting(self.settings)
+
+            pygame.display.update()
+
+    def menu(self):
+        selected = 1
+
+        while True:
+            self.bg_img_load(c.SETTING_BACKGROUND)
+            self.object_show()
+            self.handle_event()
+
+            pygame.display.update()
+
+
+class AchievementScreen():
+    def __init__(self):
+        super().__init__()
+        self.screen = pygame.display.set_mode(
+            (self.settings['screen']), flags=self.settings['fullscreen'])
+        self.setting = s.Settings()
+
+        self.achv_text = rf.TextRect(self.screen, "업적", 35, c.WHITE)
+
+        self.x = self.settings['screen'][0] * (1 / 8)
+        self.y = self.settings['screen'][1] * (1 / 5)
+        self.width = self.settings['screen'][0] * (6 / 8)
+        self.height = self.settings['screen'][1] * (1 / 6)
+        self.achievement_li, self.close_button = self.object_init()
+
+        self.achv_completed_img = pygame.transform.scale(pygame.image.load(c.ACHV_COMPLETED),
+                                                         (self.settings['screen'][0]*(1/9), self.settings['screen'][1]*(1/9)))
+        self.achv_completed_rect = self.achv_completed_img.get_rect()
+
+    def object_init(self):
+        close_button = rf.Button(self.screen, self.settings['screen'][0] * (7 / 8), self.settings['screen'][1] * (1 / 7),
+                                 c.SETTING_CLOSE_BUTTON, 20, 20)
+
+        i = 1
+        achievement_li = []
+        for achievement in c.ACHV_LIST:
+            achievement = rf.Button(self.screen, self.x, self.y * i,
+                                    achievement, self.width, self.height)
+            achievement_li.append(achievement)
+            i += 1
+
+        return achievement_li, close_button
+
+    def object_show(self):
+        self.achv_text.show(
+            (self.settings['screen'][0] * (1 / 5), self.settings['screen'][1] * (1 / 7)))
+        self.close_button.show()
+
+        for achievement in self.achievement_li:
+            achievement.show()
+
+        font = pygame.font.SysFont(c.MALGUNGOTHIC, 20)
+        if self.settings['achievement']['single_win'] == True:
+            self.achv_completed_rect.center = self.achievement_li[0].midright
+            self.screen.blit(self.achv_completed_img, self.achv_completed_rect)
+
+            single_win_date_rect = rf.TextRect(
+                self.screen, "self.settings['achievement_date']['single_win']", 20, c.WHITE)
+            single_win_date_rect.x = self.achievement_li[0].midright
+            single_win_date_rect.y = self.achv_completed_rect.y + achievement.rect.height
+            self.screen.blit(
+                single_win_date_rect, (single_win_date_rect.midright, single_win_date_rect.y))
+
+        if self.settings['achievement']['storya_win'] == True:
+            self.achv_completed_rect.center = self.achievement_li[1].midright
+            self.screen.blit(self.achv_completed_img, self.achv_completed_rect)
+
+            storya_win_date_rect = rf.TextRect(
+                self.screen, "self.settings['achievement_date']['storya_win']", 20, c.WHITE)
+            storya_win_date_rect.x = self.achievement_li[1].midright
+            storya_win_date_rect.y = self.achv_completed_rect.y + achievement.rect.height
+            self.screen.blit(
+                storya_win_date_rect, (storya_win_date_rect.midright, storya_win_date_rect.y))
+
+        if self.settings['achievement']['storyb_win'] == True:
+            self.achv_completed_rect.center = self.achievement_li[2].midright
+            self.screen.blit(self.achv_completed_img, self.achv_completed_rect)
+
+            storyb_win_date_rect = rf.TextRect(
+                self.screen, "self.settings['achievement_date']['storyb_win']", 20, c.WHITE)
+            storyb_win_date_rect.x = self.achievement_li[2].midright
+            storyb_win_date_rect.y = self.achv_completed_rect.y + achievement.rect.height
+            self.screen.blit(
+                storyb_win_date_rect, (storyb_win_date_rect.midright, storyb_win_date_rect.y))
+
+        if self.settings['achievement']['storyc_win'] == True:
+            self.achv_completed_rect.center = self.achievement_li[3].midright
+            self.screen.blit(self.achv_completed_img, self.achv_completed_rect)
+
+            storyc_win_date_rect = rf.TextRect(
+                self.screen, "self.settings['achievement_date']['storyc_win']", 20, c.WHITE)
+            storyc_win_date_rect.x = self.achievement_li[2].midright
+            storyc_win_date_rect.y = self.achv_completed_rect.y + achievement.rect.height
+            self.screen.blit(
+                storyc_win_date_rect, (storyc_win_date_rect.midright, storyc_win_date_rect.y))
+
+        if self.settings['achievement']['storyd_win'] == True:
+            self.achv_completed_rect.center = self.achievement_li[4].midright
+            self.screen.blit(self.achv_completed_img, self.achv_completed_rect)
+
+            storyd_win_date_rect = rf.TextRect(
+                self.screen, "self.settings['achievement_date']['storyd_win']", 20, c.WHITE)
+            storyd_win_date_rect.x = self.achievement_li[4].midright
+            storyd_win_date_rect.y = self.achv_completed_rect.y + achievement.rect.height
+            self.screen.blit(
+                storyd_win_date_rect, (storyd_win_date_rect.midright, storyd_win_date_rect.y))
+
+        if self.settings['achievement']['speed_master'] == True:
+            self.achv_completed_rect.center = self.achievement_li[5].midright
+            self.screen.blit(self.achv_completed_img, self.achv_completed_rect)
+
+            speed_master_date_rect = rf.TextRect(
+                self.screen, "self.settings['achievement_date']['speed_master']", 20, c.WHITE)
+            speed_master_date_rect.x = self.achievement_li[5].midright
+            speed_master_date_rect.y = self.achv_completed_rect.y + achievement.rect.height
+            self.screen.blit(
+                speed_master_date_rect, (speed_master_date_rect.midright, speed_master_date_rect.y))
+
+        if self.settings['achievement']['no_skill_card'] == True:
+            self.achv_completed_rect.center = self.achievement_li[6].midright
+            self.screen.blit(self.achv_completed_img, self.achv_completed_rect)
+
+            no_skill_card_date_rect = rf.TextRect(
+                self.screen, "self.settings['achievement_date']['no_skill_card']", 20, c.WHITE)
+            no_skill_card_date_rect.x = self.achievement_li[6].midright
+            no_skill_card_date_rect.y = self.achv_completed_rect.y + achievement.rect.height
+            self.screen.blit(
+                no_skill_card_date_rect, (no_skill_card_date_rect.midright, no_skill_card_date_rect.y))
+
+        if self.settings['achievement']['turtle_win'] == True:
+            self.achv_completed_rect.center = self.achievement_li[7].midright
+            self.screen.blit(self.achv_completed_img, self.achv_completed_rect)
+
+            turtle_win_date_rect = rf.TextRect(
+                self.screen, "self.settings['achievement_date']['turtle_win']", 20, c.WHITE)
+            turtle_win_date_rect.x = self.achievement_li[7].midright
+            turtle_win_date_rect.y = self.achv_completed_rect.y + achievement.rect.height
+            self.screen.blit(
+                turtle_win_date_rect, (turtle_win_date_rect.midright, turtle_win_date_rect.y))
+
+        if self.settings['achievement']['first_play'] == True:
+            self.achv_completed_rect.center = self.achievement_li[8].midright
+            self.screen.blit(self.achv_completed_img, self.achv_completed_rect)
+
+            first_play_date_rect = rf.TextRect(
+                self.screen, "self.settings['achievement_date']['first_play']", 20, c.WHITE)
+            first_play_date_rect.x = self.achievement_li[8].midright
+            first_play_date_rect.y = self.achv_completed_rect.y + achievement.rect.height
+            self.screen.blit(
+                first_play_date_rect, (first_play_date_rect.midright, first_play_date_rect.y))
+
+        if self.settings['achievement']['card_collector'] == True:
+            self.achv_completed_rect.center = self.achievement_li[9].midright
+            self.screen.blit(self.achv_completed_img, self.achv_completed_rect)
+
+            card_collector_date_rect = rf.TextRect(
+                self.screen, "self.settings['achievement_date']['card_collector']", 20, c.WHITE)
+            card_collector_date_rect.x = self.achievement_li[9].midright
+            card_collector_date_rect.y = self.achv_completed_rect.y + achievement.rect.height
+            self.screen.blit(card_collector_date_rect,
+                             (card_collector_date_rect.midright, card_collector_date_rect.y))
+
+        if self.settings['achievement']['skill_master'] == True:
+            self.achv_completed_rect.center = self.achievement_li[10].midright
+            self.screen.blit(self.achv_completed_img, self.achv_completed_rect)
+
+            skill_master_date_rect = rf.TextRect(
+                self.screen, "self.settings['achievement_date']['skill_master']", 20, c.WHITE)
+            skill_master_date_rect.x = self.achievement_li[10].midright
+            skill_master_date_rect.y = self.achv_completed_rect.y + achievement.rect.height
+            self.screen.blit(
+                skill_master_date_rect, (skill_master_date_rect.midright, skill_master_date_rect.y))
+
+    def sound(self):
+        pass
+
+    def handle_event(self):
+
+        scroll_speed = 5
+        scroll_pos = 0
+
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                achievement_menu = False
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 4:
+                    scroll_pos += scroll_speed
+                elif event.button == 5:
+                    scroll_pos -= scroll_speed
+
+            elif event.type == pygame.MOUSEBUTTONUP:
+                if self.close_button.get_rect().collidepoint(event.pos):
+                    self.achv_run = False
+
+        for achievement in self.achievement_li:
+            achievement.y += scroll_pos
+
+    def menu(self):
+        while True:
+            self.bg_img_load(c.SETTING_BACKGROUND)
+            self.object_show()
+            self.handle_event()
+
             pygame.display.update()
